@@ -1,0 +1,227 @@
+
+		-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+		|  Mahdi Programming Language   |
+		-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+
+-----------------------------
+Influence by:
+C,PHP,MPL,PYTHON,JAVA
+-----------------------------
+step 1   :import all files
+step 2   :detect all functions , packages , instructions
+step 3   :resolve all inherit packages
+step 3.1 :if debug mode is on, then go to mdebug and wait!
+step 3.2 :if build mode is on, then go to mbuild and compile execute file!
+step 4   :start from first instruction of bootup function and run codes line by line
+-----------------------------
+/*
+**basic data types**
+num,str,bool
+**sub data types**
+num:i(8dig),f(10dig),h
+bool:b
+str:s,u
+null:0
+pointer:p
+**Keywords**
+func,pack,private,override,static,true,false,null,if,elif,else,choose,and,or,not,next,break,loop,new,num,str,bool,manage,return,self,this,import,config=>28
+*************************************
+-----------------core module packages
+exception,console,string,math,os,bit,app,file
+-----------------http module packages
+net
+-----------------db module packages
+sqlite3,csv
+-----------------builtin functions
+len(var),tstr(var),tnum(var),tbool(var),typeof(var),exec(str),ErrHandle(num,str,str),inum(str),ibool(str),del(var)
+-----------------predefined functions
+_bootup_(str?),_init_(),_plus_(package),_len_(),_str_(),_equal_(package),_index_(int),_minus_(package)
+-----------------Extensions
+- mah    : mahdi source files
+- mahlib : mahdi lib bytecode files
+-----------------Operators
++,-,*,/,|(int divide),%(int),^
+==,<=,>=,!=,<,>
++=,++,--,-=,*=,/=,%=,^=,:=,!=
+..,::,->,?
+*************************************
+-----------------modules and libraries
+- modules in c with .dll or .so
+- libraries in mahdi with .mahlib
+- in modules and libraries just packages not global functions
+- lib: (package1.mah,package2.mah,...).mahlib
+
+-----------------const var
+- if in define var, first char is capital, is const var
+num B,str Fg;
+-----------------config keyword
+- config just in outof any package
+config:DebugMode=true
+config:ErrorsState='fetal'
+ErrorsState,WarningsState,ExportLogFile,MaxHugeDivideSteps,MaxHugeDecimalNumbers,AppVersion,AppName,AppLicense,AppCreator,AppIcon,DebugMode,ExportBuildFile,BuildMode
+----------------- import keyword
+import mod:core:exception //import execption package from core module
+import mod:core:math,os //OR *
+import lib:..libs.mylib:* // import from "/home/am/Desktop/proj/libs/mylib.mahlib" all packages , .. is project root(/home/am/Desktop/proj)
+import lib:stdlib:* // import from stdlib of mahdi lang
+import file:..other:pkg1,pkg2,@fun1 //import from "/home/am/Desktop/proj/other.mah" pkg1,pkg2 packages and fun1 global function
+import file:..src.all:* //import from "/home/am/Desktop/proj/src/all.mah" all packages and all global functions
+-----------------switch structure
+choose(var){
+   -> 43:
+   //do something
+   -> 34 or 12:
+   //do something
+   -> true:
+   //do something
+}
+-----------------multi assign to var
+num g=choose(
+  readline()=='hello':3,
+  delta>=4:5,
+  isexist:1,
+  true:0
+)
+-----------------declare variables and arrays
+- bool not get null, it is error
+- all arrays save as dictionaries by keys
+- you can define an array by '?' dimension but you must assign it by a value like : num k[?]={5,7,8,8} //k[4]
+- you can set default value for all rooms of array
+
+num j,str[?] d,bool b=null OR 56.6,{'t','o'},null //ERR:bool not null
+num x,e,u=45
+num n,m,bool b=4,6,true
+num[?] er={'q1':23,'q2':67} //num j=e['q1'] OR num j=e[0] //j=23
+num[?][2] dd={{2,8},{5,7},{56,9}}
+dd[]={2,89,6} //ERR=>mahdi.push(dd,{2,89})
+num[?] jk=dd[0]
+num[45] gh;
+str[4] kl='ali';//str[4] kl={'ali','ali','ali','ali'}
+-----------------create instance of a new package
+type1 t1=new type1(45)
+t1.add(34)
+-----------------set vars in string
+str t="Amin",num j=56;
+str s="Hello %t% : %j%\%";
+-----------------loop
+loop([section1];[section2];[section3])
+[section1] : just run in first time (for define vars)
+[section2] : run every time and decide that loop be continue (for check vars) [is required]
+[section3] : run every time except first time (for change vars)
+sample:
+- loop(num i=0,str u=null;i<10,u!="Hello";i++)
+- loop(str u,str b=null,num i=0;u,b:uu;i+=5,u+=" ") //str uu[2,2]={{"x","v"},{"h","i"}} browse uu array
+- loop(;i<5) or loop(;i<5;)
+- loop(num h=get1(),num k=0;h<get2(k);k++,h++)
+- loop(str u,b=null,num i=0;u!="Hi") //=>make an error Correct:loop(str u=null,str b=null,num i=0;u!="Hi") OR loop(str u,str b,num i=null;u!="Hi")
+num[23] u;
+loop(num j;u->j) //foreach an array
+-----------------break,next
+- break instruction can give a number that determine how many break from multiple loops
+- next instruction can not gives any numbers!
+loop(..){
+	loop(..){
+		a=b;
+		break(2); //break(*) : break all loops
+	}
+	next;
+}
+-----------------manage
+- manage can get not any parameters like : manage()
+- manage get a var type exception
+- in manage, when get exception, then stop and out of manage block!
+- without manage block, when get exception, ignore that line and continue from next line :)
+exception exp=null;
+manage(exp){
+//do something
+}
+if(exp!=null){
+//do something
+}
+-----------------range
+- for arrays and strings
+num[?] j={3,8,6.5,-9}
+num[?] v=j[1..3]; //v={8,6.5}
+str[?] s={"amin","ali"}
+str ss=s[0][1..4];//ss="min";
+-----------------swap with :=
+- swap is just for same type variables and not arrays!
+num n=45,num[?] q={5,9.6};
+n:=q[0] //n=5,q[0]=45
+----------------- push to an array
+num [?][?] yu={{2,3},{5,7.4}}
+yu[]={7,8,11}
+yu[0][]=34; //yu[0]={2,3,34}
+-----------------function header
+- function header can a parameter with default value
+func sam(str d,num[?][2] g)
+func sam1(num j=3,str jj)
+----------------- call function
+- all functions that defined out of all packages, are static and public and not give any attribute(private,static)
+- for call outof functions using self keyword
+- call function can using parameter name!
+func fg(){}
+func _bootup(){
+self.fg()
+}
+sam1(jj:"Hello") OR sam1(jj="er",j=7.656) OR sam1(34,"hello")
+//call static function
+pkg::main();
+//call package function
+mypkg1.sub()
+num g,str[?] s=sam() //=>ERR:on defined variable
+g,s=sam() //=>ERR:if sam() return not two values
+num j=f("g",6.8)[1]  //=>j get 2nd returned value
+-----------------++,--
+- for strings and numbers
+str:("Hello")
+	++:"Hello " (add a space end of string)
+	--:"Hell" (remove last char of string)
+num:(45.5)
+	++:46.5 (plus num by 1)
+	--:44.5 (subtraction num by 1)
+num q=1
+num e1=(45*q++) //=>e1=45,q=2
+num e2=(45*++q) //=>e2=90,q=2
+-----------------control characters
+\n : new line
+\t : insert tab
+\" : print "
+\' : print '
+\\ : print \
+\% : print %
+\b : backspace
+\a : play alert sound
+-----------------_bootup_ function
+- bootup function can exist in a package or out of any packages
+- if bootup function in a package, then must static!
+- bootup can give app arguments
+- just one bootup function exist in all program
+pack main2(){
+  static func _bootup_(){}
+}
+OR
+func _bootup_(){}
+func _bootup_(str[?] argvs){}
+-----------------_init_ function
+- package constructor and must be just public!
+pack main(){
+func _init_(str s,str y){}
+}
+-----------------inherit packages
+pack pkg1(){
+   override func ps1(){}
+   private func ps2(num j){}
+   func ps3(num k){
+      this.ps2(56)
+   }
+}
+pack pkg2(pkg1){
+   func ps1(num jj){} //not override on ps1 of pkg1
+   (private|static|override) func ps3(num kk){} //ERR:exist this on super and not override
+   func ps2(num j){
+      this.ps2(4)
+      this.ps1()
+      this.ps3(78)
+   }
+}
