@@ -7,103 +7,108 @@ _This is a small,fast interpreter also Assemble all the good features of program
 TODO
 --------
  
+ * init git **[OK]** (0)
  * get first build **[OK]** (1)
-
+ * get argvs and analyze options and file path **[OK]** (1)
+ * init exceptions **[OK]** (1)
+ * defnie mpl help **[OK]** (1)
+ * init basic interpreter variables **[OK]** (2)
+ * init data defined **[OK]** (2)
+ * init virtual memory(vm) **[..]**
 
 ### ((:publish MAHDI-BETA version of MAHDI (for linux):))
 
-* init exceptions **[OK]**
-* define mpl arguments **[OK]**
-* defnie mpl help **[OK]**
-* init basic interpreter variables **[OK]**
-* init data defined **[OK]**
-* init virtual memory(vm) **[OK]**
-* init built-in functions **[OK]**
-* init built-in defines **[OK]**
-* create memory structure **[OK]**
-* reading source file as utf8 **[OK]**
-* remove comments and convert utf8 to ascii **[OK]**
-* extract tokens **[OK]**
-* parsing tokens **[OK]**
-* parsing imports **[OK]**
-* parsing functions **[OK]**
-* parsing structs **[OK]**
-* parsing instructions **[OK]**
-* parsing structures **[OK]**
-* start runtime **[OK]**
-* init global vars **[OK]**
-* start APP_CONTROLLER **[OK]**
-* start INSTRUCTION_EXECUTOR **[OK]**
-* labeled instructions **[OK]**
-* implement define vars **[OK]**
-* set new var in memory **[OK]**
-* delete var in memory **[OK]**
-* manage exceptions **[OK]**
-* create other memory functions **[OK]**
-* determine type of data **[OK]**
-* calculate math expressions **[OK]**
-* calculate radix numbers **[OK]**
-* calculate integer,float numbers **[OK]**
-* calculate string expressions **[OK]**
-* calculate utf8 string expressions **[OK]**
-* calculate boolean expressions **[OK]**
-* define struct expressions **[OK]**
-* define complex struct expressions **[OK]**
-* set built-in $def variables **[OK]**
-* set built-in $con variables **[OK]**
-* using magic macros **[OK]**
-* set new $def **[OK]**
-* define global vars **[OK]**
-* edit $con **[OK]**
-* calculate sum huge numbers **[OK]**
-* calculate multiplication huge numbers **[OK]**
-* calculate division huge numbers **[OK]**
-* calculate power huge numbers **[OK]**
-* implement function call **[OK]**
-* determine type of function parameter values **[OK]**
-* validation called function parameters **[OK]**
-* set arrays in functions parameter **[OK]**
-* init function parameters **[OK]**
-* support for vars values parameters **[OK]**
-* set structs in functions parameter **[OK]**
-* switch to another function **[OK]**
-* implement return keyword **[OK]**
-* return values from function **[OK]**
-* return value by index from function **[OK]**
-* call built-in functions **[OK]**
-* implement control characters **[OK]**
-* implement print built-in function **[OK]**
-* implement some built-in functions **[OK]**
-* return values from built-in functions **[OK]**
-* complete built-in function call **[OK]**
-* implement garbage collector for functions **[OK]**
-* implement alloc_vars **[OK]**
-* alloc values expressions **[OK]**
-* alloc array expressions **[OK]**
-* alloc struct expressions **[OK]**
-* replace values of vars by ':=' **[OK]**
-* define an array by '?' index **[OK]**
-* support alloc struct has array by '?' **[OK]**
-* define an empty array **[OK]**
-* implement short alloc by '++','--' pre **[OK]**
-* implement short alloc by '++','--' post **[OK]**
-* implement structures **[OK]**
-* define manage **[OK]**
-* start exception_handler **[OK]**
-* implement push built-in functions **[OK]**
-* push errors,warnings for manage var exception **[OK]**
-* call gc for deleting structure vars **[OK]**
-* define if **[OK]**
-* define elif **[OK]**
-* define else **[OK]**
-* follow order of if,elif else **[OK]**
-* implement condition level for managing if,elif,else **[OK]**
-* recursive functions **[OK]**
-* can use multiple 'if' one after another **[OK]**
-* define loop **[OK]**
-* define header defined vars **[OK]**
-* labeled loop instructions **[OK]**
-* check loop conditions every time **[OK]**
+
+
+
+
+
+* init built-in functions **[..]**
+* init built-in defines **[..]**
+* create memory structure **[..]**
+* reading source file as utf8 **[..]**
+* remove comments and convert utf8 to ascii **[..]**
+* extract tokens **[..]**
+* parsing tokens **[..]**
+* parsing imports **[..]**
+* parsing functions **[..]**
+* parsing structs **[..]**
+* parsing instructions **[..]**
+* parsing structures **[..]**
+* start runtime **[..]**
+* init global vars **[..]**
+* start APP_CONTROLLER **[..]**
+* start INSTRUCTION_EXECUTOR **[..]**
+* labeled instructions **[..]**
+* implement define vars **[..]**
+* set new var in memory **[..]**
+* delete var in memory **[..]**
+* manage exceptions **[..]**
+* create other memory functions **[..]**
+* determine type of data **[..]**
+* calculate math expressions **[..]**
+* calculate radix numbers **[..]**
+* calculate integer,float numbers **[..]**
+* calculate string expressions **[..]**
+* calculate utf8 string expressions **[..]**
+* calculate boolean expressions **[..]**
+* define struct expressions **[..]**
+* define complex struct expressions **[..]**
+* set built-in $def variables **[..]**
+* set built-in $con variables **[..]**
+* using magic macros **[..]**
+* set new $def **[..]**
+* define global vars **[..]**
+* edit $con **[..]**
+* calculate sum huge numbers **[..]**
+* calculate multiplication huge numbers **[..]**
+* calculate division huge numbers **[..]**
+* calculate power huge numbers **[..]**
+* implement function call **[..]**
+* determine type of function parameter values **[..]**
+* validation called function parameters **[..]**
+* set arrays in functions parameter **[..]**
+* init function parameters **[..]**
+* support for vars values parameters **[..]**
+* set structs in functions parameter **[..]**
+* switch to another function **[..]**
+* implement return keyword **[..]**
+* return values from function **[..]**
+* return value by index from function **[..]**
+* call built-in functions **[..]**
+* implement control characters **[..]**
+* implement print built-in function **[..]**
+* implement some built-in functions **[..]**
+* return values from built-in functions **[..]**
+* complete built-in function call **[..]**
+* implement garbage collector for functions **[..]**
+* implement alloc_vars **[..]**
+* alloc values expressions **[..]**
+* alloc array expressions **[..]**
+* alloc struct expressions **[..]**
+* replace values of vars by ':=' **[..]**
+* define an array by '?' index **[..]**
+* support alloc struct has array by '?' **[..]**
+* define an empty array **[..]**
+* implement short alloc by '++','--' pre **[..]**
+* implement short alloc by '++','--' post **[..]**
+* implement structures **[..]**
+* define manage **[..]**
+* start exception_handler **[..]**
+* implement push built-in functions **[..]**
+* push errors,warnings for manage var exception **[..]**
+* call gc for deleting structure vars **[..]**
+* define if **[..]**
+* define elif **[..]**
+* define else **[..]**
+* follow order of if,elif else **[..]**
+* implement condition level for managing if,elif,else **[..]**
+* recursive functions **[..]**
+* can use multiple 'if' one after another **[..]**
+* define loop **[..]**
+* define header defined vars **[..]**
+* labeled loop instructions **[..]**
+* check loop conditions every time **[..]**
 * do loop part3 every time **[OK]**
 * delete local vars in end of loop **[OK]**
 * implement loop level for managing loop **[OK]**

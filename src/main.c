@@ -16,6 +16,8 @@ int main(int argc, char **argv) {
   //-------------------------init exceptions list
   EXP_init();
   //--------------------------get Argvs,analyze it
+  //=>save program command
+  program_command=argv[0];
   //=>no any argv, show help usage
   if (argc < 2) {
     MHELP_usage();
@@ -48,23 +50,23 @@ int main(int argc, char **argv) {
   }
   //=>if argv not an option, check for exist a file 
   else {
-    //store arguments of program
-    if (argc > 2)
-      for (int ii = 2; ii < argc; ++ii)
-        SLIST_append(&program_argvs, argv[ii], argvs_len++);
-    //printf("argv:%s",argv[4]);
+    //=>get argv as a file path and absolute path
     STR_init(&stdin_source_path, argv[1]);
     stdin_source_path = CALL_abspath(stdin_source_path);
-//     printf("####:%s,%s\n",argv[1],stdin_source_path);
     //=>check if source path is exist
-    if (stdin_source_path == 0) {
-    //   print_error(0, "not_exist_file", 0, argv[1], 0, "main");
+    if(stdin_source_path==0){
+      EXP_print_error(0, "not_exist_file", 0, argv[1], 0, "main");
+    }else{
+      //=>store arguments of program
+      if (argc > 2){
+        for (int ii = 2; ii < argc; ++ii)
+          SLIST_append(&program_argvs, argv[ii], argvs_len++);
+      }
+      Boolean ret = INTR_start();
+      interpreter_mode = 'f';
+      if (!ret)
+        EXP_print_error(0, "bad_exit", "stdin", 0, 0, "main");
     }
-    Boolean ret = INTR_start();
-    interpreter_mode = 'f';
-    if (!ret)
-      EXP_print_error(0, "bad_exit", "stdin", 0, 0, "main");
-
   }
 
 //  String ss = 0;
@@ -85,7 +87,7 @@ int main(int argc, char **argv) {
 Boolean INTR_start() {
   //-----------------------init interpreter
   STR_init(&interpreter_level, "init");
-  // INTR_init();
+  INTR_init();
 //   //-----------------------parsing source codes
 //   str_init(&interpreter_level, "parse");
 //   Boolean ret0 = import_all_files();
@@ -108,7 +110,7 @@ Boolean INTR_start() {
 //************************************************
 void INTR_init() {
   //********************
-//   init_data_defined();
+  DEF_init();
 //   //********************
 //   init_memory();
 //   //********************

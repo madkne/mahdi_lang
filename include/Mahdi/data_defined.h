@@ -10,7 +10,6 @@ clock_t AppStartedClock;
 String AppStartedTime;
 String project_root;
 String stdin_source_path;
-String main_source_name;
 String interpreter_level;
 String interpreter_path;
 String interpreter_tmp_path;
@@ -27,8 +26,9 @@ String os_version;
 uint64 os_total_memory;
 uint64 os_total_disk;
 Longint max_size_id;
-uint32 max_mpl_modules_instance_len;
+uint32 max_mahdi_modules_instance_len;
 Boolean is_real_mahdi;
+String program_command;
 //******************************config values
 uint8 is_programmer_debug;
 String logfile_path;
@@ -47,24 +47,23 @@ String buildfile_path;
 #if WINDOWS_PLATFORM == true
 HINSTANCE mahdi_modules_instance[100];
 #elif LINUX_PLATFORM == true
-//TODO
+void * mahdi_modules_instance[100];
 #endif
 String exceptions_group[16];
 String exceptions_type[4];
-String keywords[18];
-String keywords_out[13];
-String block_instructions[5];
-uint8 single_operators[6];
+String keywords[28];
+// String keywords_out[13];
+String block_instructions[6];
+uint8 single_operators[7];
 String comparative_operators[6];
-String alloc_operators[11];
-String boolean_operators[3];
+String alloc_operators[8];
+String boolean_operators[2];
 String basic_types[3];
 uint8 golden_bytes[5];
 uint8 splitters[10];
 uint8 words_splitter[12];
-String sub_types[5];
+uint8 sub_types[6];
 String control_chars[5];
-UStrList source_paths;
 StrList program_argvs;
 uint32 argvs_len;
 StrList installed_modules;
@@ -103,53 +102,166 @@ typedef struct exceptions_list_struct {
 
   struct exceptions_list_struct *next;
 } exli;
-// //****************************utf8_strings struct
-// typedef struct utf8_strings_struct {
-//   long_int id;
-//   uint32 line;
-//   str_utf8 utf8_string;
-//   uint8 max_bytes_per_char;
 
-//   struct utf8_strings_struct *next;
-// } utst;
-// //****************************instructions struct
-// typedef struct instructions_struct {
-//   long_int id;
-//   long_int func_id;
-//   long_int stru_id;
-//   uint32 order;
-//   String code;
-//   uint8 type;
+//****************************virtual memory
+//runtime
+typedef struct var_memory_struct {
+  Longint id;
+  Longint pointer_id;
+  Longint stru_id;     //(0:global vars or pack vars or func direct vars)
+  Longint func_id;     //(0:global vars or pack vars)
+  Longint func_index;  
+  Longint pack_id;     //(0:global vars in outer or inner of global functions)
+  Longint pack_index;
+  Longint type_id;
+  Boolean is_static;
+  Boolean is_private;
+  uint8 flag;
+  String  name;
+  struct var_memory_struct *next;
+} Mvar;
+typedef struct pointer_memory_struct {
+  Longint id;
+  uint8 type; //('i':int , 'f':float , 'h':huge , 's':string , 'u':utf8 , 'b':boolean , 'p':Pointer To Mpoint , 'v':Pointer To Mvar)
+  String data;
+  struct pointer_memory_struct *next;
+} Mpoint;
+//static
+Mpoint *hash_pointers[HASH_MEM_SIZE];
+Mpoint *hash_pointers_end[HASH_MEM_SIZE];
+Longint hash_pointers_len[HASH_MEM_SIZE];
 
-//   uint32 line;
-//   uint32 source_id;
-//   struct instructions_struct *next;
-// } instru;
-// //****************************block_structures struct
-// typedef struct block_structures_struct {
-//   long_int id;
-//   long_int func_id;
-//   long_int stru_id;
-//   uint8 type; //1:loop,2:if,3:elif,4:else,5:manage,6:func
-//   String lbl;
-//   str_list params;
-//   uint32 params_len;
+//****************************utf8_strings struct
+/**
+ * store utf8 strings like str r='سلام' => str s='!UTF8!'
+ */
+typedef struct utf8_strings_struct {
+  Longint id;
+  uint32 line;
+  UString utf8_string;
+  uint8 max_bytes_per_char;
 
-//   uint32 line;
-//   uint32 source_id;
-//   struct block_structures_struct *next;
-// } blst;
+  struct utf8_strings_struct *next;
+} utst;
+//****************************instructions struct
+/**
+ * store all instructions except block headers
+ */ 
+typedef struct instructions_struct {
+  Longint id;
+  Longint pack_id;
+  Longint func_id;
+  Longint stru_id;
+  uint32 order;
+  String code;
+  uint8 type;
+
+  uint32 line;
+  uint32 source_id;
+  struct instructions_struct *next;
+} instru;
+//****************************instructions_order struct
+typedef struct instructions_order_struct {
+  Longint pid;
+  Longint fid;
+  Longint sid;
+  uint32 order;
+
+  struct instructions_order_struct *next;
+} inor;
+//****************************block_structures struct
+typedef struct block_structures_struct {
+  Longint id;
+  Longint pack_id;
+  Longint func_id;
+  Longint stru_id;
+  uint8 type; //loop,if,elif,else,manage,choose,func,pack
+  String label;
+  StrList params; //for packs, is attributes vars
+  uint32 params_len;
+
+  uint32 line;
+  uint32 source_id;
+  struct block_structures_struct *next;
+} blst;
 // //****************************data_types struct
-// typedef struct data_types_struct {
-//   long_int id;
-//   long_int fid;
-//   String name;
-//   uint8 type; //1:main,2:struct
-//   str_list params;
-//   uint32 params_len;
+/**
+ * store all valid data types, basic and user defined by packages
+ */ 
+typedef struct data_types_struct {
+  Longint id;
+  Longint fid;
+  Longint pack_id;
+  uint8 type; //basic,package
+  String name;
 
-//   struct data_types_struct *next;
-// } datas;
+  struct data_types_struct *next;
+} datas;
+//****************************built_in_funcs struct
+typedef struct built_in_funcs_struct {
+  uint32 id;
+  String func_name;
+  String params;
+  uint8 params_len;
+  String returns;
+  uint8 returns_len;
+
+  struct built_in_funcs_struct *next;
+} bifs;
+//****************************structures_stack struct
+/**
+ * (runtime) when multi structures init in complex or basic, need to call back before and before structure with this struct
+ */ 
+typedef struct structures_stack_struct {
+  uint8 type;
+  Longint pid;
+  Longint pin;
+  Longint fid;
+  Longint fin;
+  Longint sid;
+  Longint parent_sid;
+  Longint order;
+  String extra;
+
+  struct structures_stack_struct *next;
+} stst;
+//****************************condition_level struct
+/**
+ * (runtime) when a condition structure like if,elif,else in complex init, then use this struct to store states of conditions
+ */ 
+typedef struct condition_level_struct {
+  uint32 id;
+  Longint pin;
+  Longint fin;
+  Longint sid;
+  Boolean is_complete;
+
+  struct condition_level_struct *prev;
+  struct condition_level_struct *next;
+} cole;
+//****************************loop_level struct
+/**
+ * (runtime) when a loop structure in complex init, then use this struct to store states of loops
+ */ 
+typedef struct loop_level_struct {
+  uint32 id;
+  Longint pin;
+  Longint fin;
+  Longint sid;
+
+  struct loop_level_struct *prev;
+  struct loop_level_struct *next;
+} lole;
+
+//****************************debug_breakpoints struct
+/**
+ * (debug) when in debug mode, user can define brakepoints based on source program and store in this struct 
+ */ 
+typedef struct debug_breakpoints_struct {
+  uint32 line_number;
+  String source_path;
+  struct debug_breakpoints_struct *next;
+} debr;
 // //****************************def_var struct
 // typedef struct def_var_struct {
 //   String main_type;
@@ -157,14 +269,14 @@ typedef struct exceptions_list_struct {
 //   String name_var;
 //   String index_var;
 //   String value_var;
-//   long_int fid;
-//   long_int sid;
+//   Longint fid;
+//   Longint sid;
 
 // } def_var_s;
 
 // //**********************vals_array_struct
 // typedef struct vals_array_struct {
-//   long_int data_id;
+//   Longint data_id;
 //   uint8 sub_type;
 //   String value;
 //   String index;
@@ -175,33 +287,14 @@ typedef struct exceptions_list_struct {
 //   vaar *end;
 //   uint32 count;
 // } vaar_en;
-// //****************************instructions_order struct
-// typedef struct instructions_order_struct {
-//   long_int fid;
-//   long_int sid;
-//   uint32 order;
-
-//   struct instructions_order_struct *next;
-// } inor;
 // //****************************stru_to_in struct
 // typedef struct stru_to_in_struct {
-//   long_int id;
+//   Longint id;
 //   uint32 stru_pars;
 //   Boolean is_active;
 //   Boolean is_inline;
 // } stoi;
-// //****************************built_in_funcs struct
-// typedef struct built_in_funcs_struct {
-//   uint32 id;
-//   uint8 type;
-//   String func_name;
-//   String params;
-//   uint8 params_len;
-//   String returns;
-//   uint8 returns_len;
 
-//   struct built_in_funcs_struct *next;
-// } bifs;
 // //****************************modules_funcs struct
 // typedef struct modules_funcs_struct {
 //   uint32 id;
@@ -214,69 +307,18 @@ typedef struct exceptions_list_struct {
 
 //   struct modules_funcs_struct *next;
 // } mofu;
-// //****************************magic_macros struct
-// typedef struct magic_macros_struct {
-//   uint32 id;
-//   uint8 type;
-//   String value_type;
-//   String key;
-//   String value;
-//   struct magic_macros_struct *next;
-// } mama;
-// //****************************struct_descriptor struct
-// typedef struct struct_descriptor_struct {
-//   long_int id;
-//   String type;
-//   vaar_en st;
-//   struct struct_descriptor_struct *next;
-// } stde;
 // //****************************functions_stack struct
 // typedef struct functions_stack_struct {
-//   long_int fid;
-//   long_int fin;
-//   long_int sid;
-//   long_int order;
-//   long_int parent_fin;
+//   Longint fid;
+//   Longint fin;
+//   Longint sid;
+//   Longint order;
+//   Longint parent_fin;
 
 //   struct functions_stack_struct *next;
 // } fust;
-// //****************************structures_stack struct
-// typedef struct structures_stack_struct {
-//   uint8 type;
-//   long_int fid;
-//   long_int fin;
-//   long_int sid;
-//   long_int parent_sid;
-//   long_int order;
-//   String extra;
 
-//   struct structures_stack_struct *next;
-// } stst;
-// //****************************condition_level struct
-// typedef struct condition_level_struct {
-//   uint32 id;
-//   long_int fin;
-//   long_int sid;
-//   Boolean is_complete;
 
-//   struct condition_level_struct *prev;
-//   struct condition_level_struct *next;
-// } cole;
-// //****************************loop_level struct
-// typedef struct loop_level_struct {
-//   uint32 id;
-//   long_int fin;
-//   long_int sid;
-
-//   struct loop_level_struct *prev;
-//   struct loop_level_struct *next;
-// } lole;
-// //****************************debug_breakpoints struct
-// typedef struct debug_breakpoints_struct {
-//   uint32 line_number;
-//   String source_path;
-//   struct debug_breakpoints_struct *next;
-// } debr;
 // //****************************alloc_var struct
 // struct alloc_var_struct {
 //   String type;
@@ -284,30 +326,6 @@ typedef struct exceptions_list_struct {
 //   String alloc;
 //   String index;
 // };
-// //****************************virtual memory
-// //runtime
-// typedef struct var_memory_struct {
-//   long_int id;
-//   long_int pointer_id;
-//   long_int stru_index;
-//   long_int func_index; //0:just global vars
-//   long_int type_var;
-//   long_int pack_id; //0:main program
-//   String name;
-//   uint8 flag; //'l' : loop header var
-//   struct var_memory_struct *next;
-// } Mvar;
-// typedef struct pointer_memory_struct {
-//   long_int id;
-//   String data;
-//   uint8
-//       type_data; //'0':null , 'i':int , 'f':float , 'h':huge , 's':string , 'u':utf8 , 'b':boolean , 'p':Pointer To Mpoint , 'v':Pointer To Mvar , 'l': struct list
-//   struct pointer_memory_struct *next;
-// } Mpoint;
-// //static
-// Mpoint *hash_pointers[HASH_MEM_SIZE];
-// Mpoint *hash_pointers_end[HASH_MEM_SIZE];
-// //long_int hash_pointers_len[HASH_MEM_SIZE];
 
 
 // //****************************call_func struct
@@ -321,16 +339,16 @@ typedef struct exceptions_list_struct {
 // } call_func_s;
 // //****************************vars_table struct
 // typedef struct vars_table_table {
-//     long_int id;
+//     Longint id;
 //     String name;
 //     uint8 var_type;
 //     String pack_name;
 //     Boolean is_static;
 //     Boolean is_const;
 //     Boolean is_private;
-//     long_int sid;
-//     long_int fid;
-//     long_int pid;
+//     Longint sid;
+//     Longint fid;
+//     Longint pid;
 
 //     struct vars_table_table *next;
 // } vata;
@@ -369,72 +387,67 @@ struct entry_table_struct {
   exli *exli_end;
   Longint exceptions_count;
 
-  // utst *utst_start;
-  // utst *utst_end;
-  // Longint utf8_strings_id;
+  utst *utst_start;
+  utst *utst_end;
+  Longint utf8_strings_id;
 
-  // instru *instru_start;
-  // instru *instru_end;
-  // Longint inst_id;
+  instru *instru_start;
+  instru *instru_end;
+  Longint inst_id;
 
-  // blst *blst_stru_start;
-  // blst *blst_stru_end;
-  // Longint stru_id;
+  blst *blst_stru_start;
+  blst *blst_stru_end;
+  Longint stru_id;
 
-  // blst *blst_func_start;
-  // blst *blst_func_end;
+  blst *blst_pack_start;
+  blst *blst_pack_end;
+  Longint pack_id;
+  Longint pack_index;
+
+  blst *blst_func_start;
+  blst *blst_func_end;
   Longint func_id;
   Longint func_index;
 
-  uint32 source_counter;
+  datas *datas_start;
+  datas *datas_end;
+  Longint datas_id;
 
-  // datas *datas_start;
-  // datas *datas_end;
-  // long_int datas_id;
+  inor *inor_start;
+  inor *inor_end;
+  Longint inor_count;
 
-  // inor *inor_start;
-  // inor *inor_end;
-  // long_int inor_count;
-
-  // bifs *bifs_start;
-  // bifs *bifs_end;
-  // uint32 bifs_len;
-
-  // mama *mama_start;
-  // mama *mama_end;
-  // uint32 mama_id;
-
-  // stde *stde_start;
-  // stde *stde_end;
-  // long_int stde_id;
+  bifs *bifs_start;
+  bifs *bifs_end;
+  uint32 bifs_len;
 
   // fust *fust_start;
   // fust *fust_end;
   // uint32 fust_len;
 
-  // stst *stst_start;
-  // stst *stst_end;
-  // uint32 stst_len;
+  stst *stst_start;
+  stst *stst_end;
+  uint32 stst_len;
 
-  // cole *cole_start;
-  // cole *cole_end;
-  // uint32 cole_len;
+  cole *cole_start;
+  cole *cole_end;
+  uint32 cole_len;
 
-  // lole *lole_start;
-  // lole *lole_end;
-  // uint32 lole_len;
+  lole *lole_start;
+  lole *lole_end;
+  uint32 lole_len;
 
-  // debr *debr_start;
-  // debr *debr_end;
-  // uint32 debr_len;
+  debr *debr_start;
+  debr *debr_end;
+  uint32 debr_len;
 
   Boolean debug_is_run;
   Boolean debug_is_next;
 
-  // Mvar *var_memory_start;
-  // Mvar *var_memory_end;
-//  Mpoint *pointer_memory_start;
-//  Mpoint *pointer_memory_end;
+  Mvar *var_memory_start;
+  Mvar *var_memory_end;
+  Mpoint *pointer_memory_start;
+  Mpoint *pointer_memory_end;
   // Longint var_mem_id;
   // Longint var_mem_len;
   // Longint pointer_mem_id;
@@ -443,6 +456,8 @@ struct entry_table_struct {
   int8 next_break_inst;
   uint32 break_count;
 
+  Longint cur_pid;
+  Longint cur_pin;
   Longint cur_fid;
   Longint cur_fin;
   Longint cur_sid;
@@ -452,10 +467,10 @@ struct entry_table_struct {
   String Rsrc;
   Longint return_fin;
   uint32 Rorder, Rline;
-  Boolean is_stop_APP_CONTROLLER, is_next_inst_running, is_occur_error_exception;
+  Boolean is_stop_APP_controller, is_next_inst_running, is_occur_error_exception;
 
   StrList sources_list;
-  uint32 sources_list_len;
+  uint32 sources_len;
 
   StrList post_short_alloc;
   uint32 post_short_alloc_len;
@@ -464,7 +479,7 @@ struct entry_table_struct {
 struct entry_table_struct entry_table;
 
 //****************************functions
-// void init_data_defined();
+void DEF_init();
 
 // //-------------------------imin funcs
 // void append_imin(imin s);
@@ -484,35 +499,35 @@ struct entry_table_struct entry_table;
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);
 // //-------------------------utst funcs
 // void append_utst(utst s);
-// long_int add_to_utst(uint32 line,str_utf8 str,uint8 max_bytes);
-// utst get_utst(long_int id);
+// Longint add_to_utst(uint32 line,str_utf8 str,uint8 max_bytes);
+// utst get_utst(Longint id);
 // utst get_utst_by_string(String s);
 // utst get_utst_by_label(String s);
 // //-------------------------blst funcs
 // void append_blst(blst s);
 
 // blst search_lbl_func(String lbl, str_list params, uint32 par_len);
-// blst get_func_by_id(long_int id);
+// blst get_func_by_id(Longint id);
 // blst search_lbl_stru(String lbl);
 // //-------------------------datas funcs
-// void append_datas(datas s);
+void _datas_append(Longint fid,Longint pack_id,uint8 type,String name);
 
-// datas get_datas(long_int id);
+// datas _datas_get(Longint id);
 
-// datas search_datas(String name, long_int fid, Boolean is_all);
+// datas _datas_search(String name, Longint fid, Boolean is_all);
 
 // //-------------------------instru funcs
 // void append_instru(instru s);
 
-// instru get_instru_by_id(long_int id);
-// instru get_instru_by_params(long_int fid, long_int sid, uint32 order);
+// instru get_instru_by_id(Longint id);
+// instru get_instru_by_params(Longint fid, Longint sid, uint32 order);
 // instru get_instru_by_source(String source_file, uint32 source_line);
 // //-------------------------inor funcs
 // void append_inor(inor s);
 
-// uint32 get_order(long_int fid, long_int sid);
+// uint32 get_order(Longint fid, Longint sid);
 
-// void set_order(long_int fid, long_int sid, uint32 order);
+// void set_order(Longint fid, Longint sid, uint32 order);
 
 // //-------------------------stoi funcs
 // void empty_stoi(stoi s[], uint32 size);
@@ -520,7 +535,7 @@ struct entry_table_struct entry_table;
 // //-------------------------bifs funcs
 // void append_bifs(bifs s);
 
-// void add_to_bifs(long_int id, uint8 type, String func_name, String params, String returns);
+// void add_to_bifs(Longint id, uint8 type, String func_name, String params, String returns);
 // //-------------------------mofu funcs
 // //void append_mofu(mofu s, mofu *start, mofu *end);
 // //-------------------------mama funcs
@@ -536,7 +551,7 @@ struct entry_table_struct entry_table;
 // //-------------------------stde funcs
 // void append_stde(stde s);
 
-// stde get_stde(long_int id);
+// stde get_stde(Longint id);
 
 // //-------------------------fust funcs
 // void append_fust(fust s);

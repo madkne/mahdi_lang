@@ -13,15 +13,17 @@
 #include <malloc.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <limits.h>
 //---------------------------------platform based C functions
 #if LINUX_PLATFORM == 1
 #include <linux/limits.h>
 #include <stdint.h>
+#include <errno.h>
+#include <dlfcn.h>
 #elif WINDOWS_PLATFORM == 1
 #include <ctype.h>
 #include <stdint.h>
 #include <float.h>
-#include <limits.h>
 #include <windows.h>
 
 #endif

@@ -2,7 +2,7 @@
 #define __MAHDI_COMMON_FUNCS_H    1
 
 
-String COM_get_Mahdi_dir_path();
+// String COM_get_Mahdi_dir_path();
 double COM_calculate_period_time(Longint start_time, String *unit);
 // Boolean functions
 //******************************************

@@ -1,0 +1,24 @@
+
+ 
+var_memory (Mvar) :
+- Longint id
+- Longint pointer_id
+- Longint block_id    (0:global vars or pack vars or func direct vars)
+- Longint func_id     (0:global vars or pack vars)
+- Longint func_index  
+- Longint pack_id     (0:global vars in outer or inner of global functions)
+- Longint pack_index
+- Longint type_id
+- Boolean is_static
+- Boolean is_private
+- uint8 flag
+- String  name
+*************************************
+pointer_memory (MPoint) :
+- Longint id
+- uint8   type ('i':int , 'f':float , 'h':huge , 's':string , 'u':utf8 , 'b':boolean , 'p':Pointer To Mpoint , 'v':Pointer To Mvar)
+- String  data
+ 
+ 
+
+

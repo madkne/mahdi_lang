@@ -7,6 +7,8 @@
 String CALL_hostname();
 String CALL_homedir();
 Longint CALL_pid();
+Boolean CALL_is_directory(String path);
+String CALL_parent_path(String path);
 String CALL_abspath(String path);
 Longint CALL_unix_time();
 String CALL_datetime(uint8 type);

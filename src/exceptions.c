@@ -412,7 +412,7 @@ int8 EXP_print_error(Longint line_err, String name_err, String file_err, String 
 
   //-----------------------handle fatal
   if (type_err == FATAL_ID) {
-    // exit_runtime(EXIT_FATAL);
+    APP_exit(EXIT_FATAL);
   }
   return type_err;
 }

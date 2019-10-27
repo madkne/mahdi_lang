@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.0.12"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 1          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.0.23"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 2          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -103,8 +103,7 @@
 #define   FUNC_CALL_LBL_INST            4
 #define   ALLOC_SHORT_LBL_INST          5
 #define   RETURN_LBL_INST               6
-#define   DEF_STRUCT_LBL_INST           7
-#define   ALLOC_MAGIC_MACROS_LBL_INST   8
+#define   DEF_PACKAGE_LBL_INST          7
 #define   NEXT_BREAK_LBL_INST           9
 
 #define   LOGIC_CALC_LBL_INST           20
@@ -148,33 +147,27 @@
 //------------------------------------------
 #define   BOOL_SUB_TYPE_ID              1
 #define   STR_SUB_TYPE_ID               2
-#define   INT_SUB_TYPE_ID               3
-#define   FLOAT_SUB_TYPE_ID             4
-#define   HUGE_SUB_TYPE_ID              5
+#define   UTF8_SUB_TYPE_ID              3
+#define   INT_SUB_TYPE_ID               4
+#define   FLOAT_SUB_TYPE_ID             5
+#define   HUGE_SUB_TYPE_ID              6
 //------------------------------------------used in parser-determine type of statements and block codes
 #define   FUNC_BLOCK_ID                 1
-#define   LOOP_STRU_ID                  2
-#define   IF_STRU_ID                    3
-#define   ELIF_STRU_ID                  4
-#define   ELSE_STRU_ID                  5
-#define   MANAGE_STRU_ID                6
-#define   SWITCH_STRU_ID                7
-//------------------------------------------used in data_defined,runtime-determine type data types that is main or struct
-#define   MAIN_DATA_TYPE                1
-#define   STRUCT_DATA_TYPE              2
-//------------------------------------------used in built_in-determine type of built-in functions
-#define   MPL_BUILT_IN_TYPE             1
-#define   DATA_BUILT_IN_TYPE            2
-#define   OS_BUILT_IN_TYPE              3
-#define   FS_BUILT_IN_TYPE              4
-//------------------------------------------used in built_in-determine type of magic macros
-#define   DEFINE_MAGIC_MACRO_TYPE       1
-#define   CONFIG_MAGIC_MACRO_TYPE       2
-#define   SESSION_MAGIC_MACRO_TYPE      3
+#define   PACK_BLOCK_ID                 2
+#define   LOOP_STRU_ID                  3
+#define   IF_STRU_ID                    4
+#define   ELIF_STRU_ID                  5
+#define   ELSE_STRU_ID                  6
+#define   MANAGE_STRU_ID                7
+#define   CHOOSE_STRU_ID                8
+
+//------------------------------------------used in data_defined,runtime-determine type data types that is basic or package
+#define   BASIC_DATA_TYPE                1
+#define   PACKAGE_DATA_TYPE              2
 //------------------------------------------
 #define   FAILED_EXECUTE_INSTRUCTION    1
 #define   SUCCESS_EXECUTE_INSTRUCTION   2
-//------------------------------------------used in APP_CONTROLLER return
+//------------------------------------------used in APP_controller return
 #define   BAD_RETURN_APP_CONTROLLER     0
 #define   NORMAL_RETURN_APP_CONTROLLER  1
 #define   STOP_RETURN_APP_CONTROLLER    2
@@ -183,30 +176,22 @@
 #define   READ_CHAR_INPUT_TYPE          "1"
 #define   READ_LINE_INPUT_TYPE          "2"
 #define   READ_ALL_INPUT_TYPE           "3"
-//------------------------------------------used in built-in pop,push,trim functions
-#define   LEFT_DIRECT                   "1"
-#define   RIGHT_DIRECT                  "2"
-#define   BOTH_DIRECT                   "0"
 //------------------------------------------used for entry_table.next_break_inst
 #define   NEXT_INST                     1
 #define   BREAK_INST                    2
-//------------------------------------------used for mpl_modules_instance array
-#define   OS_MODULE_ID                  2
-#define   SQLITE_MODULE_ID              3
-#define   MATH_MODULE_ID                4
-#define   MGT_MODULE_ID                 5
-#define   STRS_MODULE_ID                6
+//------------------------------------------used for mahdi_modules_instance array
+#define   EXCEPTION_MODULE_ID           2
+#define   CONSOLE_MODULE_ID             3
+#define   STRING_MODULE_ID              4
+#define   MATH_MODULE_ID                5
+#define   OS_MODULE_ID                  6
+#define   BIT_MODULE_ID                 7
+#define   APP_MODULE_ID                 8
+#define   FILE_MODULE_ID                9
 //------------------------------------------used for function call
 #define   FUNC_TYPE_NORMAL              1
 #define   FUNC_TYPE_MODULE              2
 #define   FUNC_TYPE_PACKAGE             3
-//------------------------------------------used for run_package_module_function,set_function_parameters
-#define   FUNC_RET_BAD                  -1
-#define   FUNC_RET_NORMAL               1
-#define   FUNC_RET_BUILTIN              2
-#define   FUNC_RET_MODULE               3
-#define   FUNC_RET_PACKAGE              4
-
 //**************************************************typedef
 typedef char int8;
 typedef unsigned char uint8;

@@ -66,8 +66,8 @@ if os.path.exists(logfile):
 # for j in compfiles:
 #	print(compfiles)
 # ----------------------
-print("\t~~~~~MAHDI Build Tool (BY Python3) V 3.7~~~~~")
-print("=== Start Building linux32 release of MAHDI Interpreter using GCC....")
+print("\t~~~~~MAHDI Build Tool (BY Python3) V 3.8~~~~~")
+print("=== Start Building linux32 release of MAHDI Interpreter using GCC (C99) ....")
 # ----------------------init dirs
 # -----create docs file
 if not os.path.exists(build_folder+"/docs"):
@@ -102,7 +102,7 @@ sources = [
     # [scr_folder+"/builder.c",scr_folder+"/builder.c -o "+obj_folder+"/builder.o"],
     [scr_folder+"/mahdi_help.c",scr_folder+"/mahdi_help.c -o "+obj_folder+"/mahdi_help.o"],
     # [scr_folder+"/module.c",scr_folder+"/module.c -o "+obj_folder+"/module.o"],
-    # [scr_folder+"/data_defined.c", scr_folder + "/data_defined.c -o "+obj_folder+"/data_defined.o"],
+    [scr_folder+"/data_defined.c", scr_folder + "/data_defined.c -o "+obj_folder+"/data_defined.o"],
     [scr_folder+"/exceptions.c",scr_folder+"/exceptions.c -o "+obj_folder+"/exceptions.o"],
     # [scr_folder+"/debugger.c",scr_folder+"/debugger.c -o "+obj_folder+"/debugger.o"],
     # [scr_folder+"/built_in.c",scr_folder+"/built_in.c -o "+obj_folder+"/built_in.o"],
@@ -149,7 +149,7 @@ fi.close()
 # ----------------------link object files
 print("=== Start linking object files [mahdi]...")
 if is_error == 1:
-    os.system("color C0")
+    os.system("tput setaf 1") #set foreground red
     print("*** Failed Compiling! ***")
     # ----------------------pause
     os.system("pause")
@@ -162,16 +162,16 @@ else:
     all_files = ' '.join(obj_files)
     #print("gcc .\win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
     # is_error=os.system("gcc win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
-    is_error = os.system("gcc "+all_files+" -o "+build_folder+"/mahdi")
+    is_error = os.system("gcc -fPIC "+all_files+" -o "+build_folder+"/mahdi")
 
 # ----------------------finish
 if is_error == 1:
-    os.system("color C0")
+    os.system("tput setaf 1") #set foreground red
     print("*** Failed Linking! ***")
     # ----------------------pause
     # os.system("pause");
 else:
-    os.system("color A0")
+    os.system("tput setaf 2") #set foreground green
     print("=== Finish Building! All Done in "+build_folder+" folder")
     # ----------------------run gdb
     #print("=== Running GDB ...");
@@ -179,6 +179,7 @@ else:
     # ----------------------run mahdi
     print("=== Running mahdi executable ...")
     print("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_")
+    os.system("tput sgr0") #reset colors
     os.system("../linux32-release/mahdi ../devdocs/test.mah")
     #os.system("../win32-release/mpl.exe ../mprog.mpl init my_project");
     #os.system("../win32-release/mpl.exe -h keywords null");

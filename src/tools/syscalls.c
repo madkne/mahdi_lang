@@ -28,24 +28,47 @@ Longint CALL_pid() {
   #endif
   return 0;
 }
-
+//******************************************
+Boolean CALL_is_directory(String path) {
+   struct stat statbuf;
+   if (stat(path, &statbuf) != 0)
+       return 0;
+   return S_ISDIR(statbuf.st_mode);
+}
+//******************************************
+String CALL_parent_path(String path){
+  //=>init vars
+  StrList entries;
+  String parent=0;
+  //=>split from path separator and store in entries list
+  uint32 size = CH_split(path, OS_SEPARATOR, &entries, true);
+  //=>join enreies without last item
+  parent = CH_join(entries, OS_SEPARATOR, size - 1, true);
+//  printf("GGGGG:%s,%s\n",project_root,stdin_source_path);
+  #if LINUX_PLATFORM == true
+  parent = STR_append("/", parent);
+  #endif
+  return parent;
+}
 //******************************************
 String CALL_abspath(String path) {
-  //uint8 resolved_path[PATH_MAX+1];
-//   #if LINUX_PLATFORM == 1
-//   String abs_path=0;
-//   abs_path=realpath(path,0);
-//   //printf("\n%s=>%s\n",path,abs_path);
-//   return abs_path;
-//   #elif WINDOWS_PLATFORM == 1
-//   char tmp[BufferSize];
-//   String abs_path = 0;
-//   GetFullPathName(path, BufferSize, tmp, 0);
-//   STR_init(&abs_path, tmp);
-//   if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(abs_path) && GetLastError() == ERROR_FILE_NOT_FOUND) return 0;
-// //  printf("\nSSS::%s=>%s\n",path,abs_path);
-//   return abs_path;
-//   #endif
+  if(path==0)return 0;
+  #if LINUX_PLATFORM == 1
+    const uint8 abs_path[PATH_MAX+1];
+    uint8 stat=realpath(path,abs_path);
+    // printf("abspath:%s=>%s(%i,%i,%i)\n",path,abs_path,stat,errno,ENOENT);
+    if(errno==0)return STR_from_const(abs_path);
+    //=>has an error
+    return 0;
+  #elif WINDOWS_PLATFORM == 1
+    char tmp[BufferSize];
+    String abs_path = 0;
+    GetFullPathName(path, BufferSize, tmp, 0);
+    STR_init(&abs_path, tmp);
+    if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(abs_path) && GetLastError() == ERROR_FILE_NOT_FOUND) return 0;
+    //printf("\nSSS::%s=>%s\n",path,abs_path);
+    return abs_path;
+  #endif
   return 0;
 }
 //******************************************
@@ -165,7 +188,12 @@ String CALL_get_line(FILE *fp) {
 //******************************************
 Boolean CALL_mkdir(String path, Boolean is_make_parents) {
   if (is_make_parents) {
-    //TODO
+    #if WINDOWS_PLATFORM == true
+    //TODO:
+    #elif LINUX_PLATFORM == true
+    int8 status = mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    return(status==0)? true:false;
+    #endif
   } else {
     #if WINDOWS_PLATFORM == true
     int err = CreateDirectoryA(path, NULL);
@@ -173,13 +201,11 @@ Boolean CALL_mkdir(String path, Boolean is_make_parents) {
     if (err == 0)return false;
     else return true;
     #elif LINUX_PLATFORM == true
-    mkdir(path,777);
-    //TODO
+    int8 status =mkdir(path,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    return(status==0)? true:false;
     #endif
-
   }
-
-  return true;
+  return false;
 }
 //******************************************
 uint32 CALL_rand(uint32 min, uint32 max) {

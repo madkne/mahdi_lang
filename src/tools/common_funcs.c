@@ -2,26 +2,26 @@
 
 
 //******************************************
-String COM_get_Mahdi_dir_path() {
-  String out = 0;
-  #if LINUX_PLATFORM == 1
-  //TODO:
-  #elif WINDOWS_PLATFORM == 1
-  uint8 ownPth[MAX_PATH];
-  HMODULE hModule = GetModuleHandle(NULL);
-  if (hModule != NULL) {
-    // Use GetModuleFileName() with module handle to get the path
-    GetModuleFileName(hModule, ownPth, (sizeof(ownPth)));
-    StrList entries = 0;
-    uint32 size = CH_split(ownPth, OS_SEPARATOR, &entries, true);
-    for (uint32 i = 0; i < size - 1; i++) {
-      out = STR_append(out, entries[i]);
-      if (i + 1 < size - 1)out = CH_append(out, OS_SEPARATOR);
-    }
-  }
-  #endif
-  return out;
-}
+// String COM_get_Mahdi_dir_path() {
+//   String out = 0;
+//   #if LINUX_PLATFORM == 1
+//   //TODO:
+//   #elif WINDOWS_PLATFORM == 1
+//   uint8 ownPth[MAX_PATH];
+//   HMODULE hModule = GetModuleHandle(NULL);
+//   if (hModule != NULL) {
+//     // Use GetModuleFileName() with module handle to get the path
+//     GetModuleFileName(hModule, ownPth, (sizeof(ownPth)));
+//     StrList entries = 0;
+//     uint32 size = CH_split(ownPth, OS_SEPARATOR, &entries, true);
+//     for (uint32 i = 0; i < size - 1; i++) {
+//       out = STR_append(out, entries[i]);
+//       if (i + 1 < size - 1)out = CH_append(out, OS_SEPARATOR);
+//     }
+//   }
+//   #endif
+//   return out;
+// }
 
 //*************************************************************
 double COM_calculate_period_time(Longint start_time, String *unit) {

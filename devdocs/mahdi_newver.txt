@@ -21,10 +21,9 @@ num,str,bool
 num:i(8dig),f(10dig),h
 bool:b
 str:s,u
-null:0
 pointer:p
 **Keywords**
-func,pack,private,override,static,true,false,null,if,elif,else,choose,and,or,not,next,break,loop,new,num,str,bool,manage,return,self,this,import,config=>28
+func,pack,private,override,static,true,false,if,elif,else,choose,and,or,not,next,break,loop,new,def,num,str,bool,manage,return,self,this,import,config=>28
 *************************************
 -----------------core module packages
 exception,console,string,math,os,bit,app,file
@@ -33,16 +32,17 @@ net
 -----------------db module packages
 sqlite3,csv
 -----------------builtin functions
-len(var),tstr(var),tnum(var),tbool(var),typeof(var),exec(str),ErrHandle(num,str,str),inum(str),ibool(str),del(var)
+len(var),tstr(var),tnum(var),tbool(var),typeof(var),exec(str),ErrHandle(num,str,str),inum(str),ibool(str),del(var),nil(var)/*check is empty based on def*/
 -----------------predefined functions
-_bootup_(str?),_init_(),_plus_(package),_len_(),_str_(),_equal_(package),_index_(int),_minus_(package)
+- thease functions just called by mahdi, not programmer!
+_bootup_(str?),_init_(),_plus_(pack),_len_():num,_str_():str,_equal_(pack):bool,_index_(int):pack,_minus_(pack),_empty_():bool
 -----------------Extensions
 - mah    : mahdi source files
 - mahlib : mahdi lib bytecode files
 -----------------Operators
 +,-,*,/,|(int divide),%(int),^
 ==,<=,>=,!=,<,>
-+=,++,--,-=,*=,/=,%=,^=,:=,!=
++=,++,--,-=,*=,/=,%=,^=,:=,|=
 ..,::,->,?
 *************************************
 -----------------modules and libraries
@@ -83,14 +83,18 @@ num g=choose(
   true:0
 )
 -----------------declare variables and arrays
-- bool not get null, it is error
+- variable attributes: static (func), private(pack)
+- static variables just declared in functions
+- def{str:'',num:0,bool:true}
+- def kwyword, set default value for variable by its type
+- all variables must get default value when declared
 - all arrays save as dictionaries by keys
 - you can define an array by '?' dimension but you must assign it by a value like : num k[?]={5,7,8,8} //k[4]
 - you can set default value for all rooms of array
 
-num j,str[?] d,bool b=null OR 56.6,{'t','o'},null //ERR:bool not null
+num j,str[?] d,bool b= 56.6,{'t','o'},def
 num x,e,u=45
-num n,m,bool b=4,6,true
+num n,m,bool b=def,6,true
 num[?] er={'q1':23,'q2':67} //num j=e['q1'] OR num j=e[0] //j=23
 num[?][2] dd={{2,8},{5,7},{56,9}}
 dd[]={2,89,6} //ERR=>mahdi.push(dd,{2,89})
@@ -109,11 +113,11 @@ loop([section1];[section2];[section3])
 [section2] : run every time and decide that loop be continue (for check vars) [is required]
 [section3] : run every time except first time (for change vars)
 sample:
-- loop(num i=0,str u=null;i<10,u!="Hello";i++)
-- loop(str u,str b=null,num i=0;u,b:uu;i+=5,u+=" ") //str uu[2,2]={{"x","v"},{"h","i"}} browse uu array
+- loop(num i=0,str u='';i<10,u!="Hello";i++)
+- loop(str u,str b='',num i=0;u,b:uu;i+=5,u+=" ") //str uu[2,2]={{"x","v"},{"h","i"}} browse uu array
 - loop(;i<5) or loop(;i<5;)
 - loop(num h=get1(),num k=0;h<get2(k);k++,h++)
-- loop(str u,b=null,num i=0;u!="Hi") //=>make an error Correct:loop(str u=null,str b=null,num i=0;u!="Hi") OR loop(str u,str b,num i=null;u!="Hi")
+- loop(str u,b='',num i=0;u!="Hi") //=>make an error Correct:loop(str u='',str b='',num i=0;u!="Hi") OR loop(str u,str b,num i=0;u!="Hi")
 num[23] u;
 loop(num j;u->j) //foreach an array
 -----------------break,next
@@ -131,11 +135,11 @@ loop(..){
 - manage get a var type exception
 - in manage, when get exception, then stop and out of manage block!
 - without manage block, when get exception, ignore that line and continue from next line :)
-exception exp=null;
+exception exp=def;
 manage(exp){
 //do something
 }
-if(exp!=null){
+if(nil(exp)){
 //do something
 }
 -----------------range
@@ -170,8 +174,23 @@ pkg::main();
 //call package function
 mypkg1.sub()
 num g,str[?] s=sam() //=>ERR:on defined variable
-g,s=sam() //=>ERR:if sam() return not two values
+<g,s>=sam() //=>ERR:if sam() return not two values
 num j=f("g",6.8)[1]  //=>j get 2nd returned value
+-----------------var alloc
+a=3
+b+=4
+a:=b
+<a,b>=sam()
+<b,c,d>=sam() //ERR
+<v,n>=<e,u> // OR v=e;n=u;
+-----------------if in if
+if(true)
+  if(ty>7 and rt=='56'){
+    console.print('gggg')
+    loop(;true)
+       break
+  }else
+    console.print('ffff')
 -----------------++,--
 - for strings and numbers
 str:("Hello")
@@ -193,6 +212,7 @@ num e2=(45*++q) //=>e2=90,q=2
 \b : backspace
 \a : play alert sound
 -----------------_bootup_ function
+- bootup function can just run for once, not recursive
 - bootup function can exist in a package or out of any packages
 - if bootup function in a package, then must static!
 - bootup can give app arguments
