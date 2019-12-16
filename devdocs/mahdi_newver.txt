@@ -16,14 +16,14 @@ step 4   :start from first instruction of bootup function and run codes line by 
 -----------------------------
 /*
 **basic data types**
-num,str,bool
+number,string,boolean
 **sub data types**
 num:i(8dig),f(10dig),h
 bool:b
 str:s,u
 pointer:p
 **Keywords**
-func,pack,private,override,static,true,false,if,elif,else,choose,and,or,not,next,break,loop,new,def,num,str,bool,manage,return,self,this,import,config=>28
+func,pack,override,static,true,false,if,elif,else,choose,and,or,not,next,break,loop,number,string,boolean,def,manage,return,self,this,import,config=>26
 *************************************
 -----------------core module packages
 exception,console,string,math,os,bit,app,file
@@ -32,10 +32,12 @@ net
 -----------------db module packages
 sqlite3,csv
 -----------------builtin functions
-len(var),tstr(var),tnum(var),tbool(var),typeof(var),exec(str),ErrHandle(num,str,str),inum(str),ibool(str),del(var),nil(var)/*check is empty based on def*/
+len(var),typeof(var),exec(str),errhand(num,str,str),del(var),nil(var)/*check is empty*/,str(var)/*convert to string*/,num(var)/*convert to number*/,inum(str)
+list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/,popfirst(),topfirst(),pushfirst(var),fill(number,var)/*fill n rooms with var value*/
+map methods: get(key),set(key,var)
 -----------------predefined functions
-- thease functions just called by mahdi, not programmer!
-_bootup_(str?),_init_(),_plus_(pack),_len_():num,_str_():str,_equal_(pack):bool,_index_(int):pack,_minus_(pack),_empty_():bool
+- these functions just called by mahdi, not programmer!
+_bootup_(string),_init_(),_plus_(package),_len_():num,_str_():str,_equal_(package):bool,_index_(number):pack/*pack1[0]*/,_minus_(package),_empty_():bool/*nil(pack1)*/
 -----------------Extensions
 - mah    : mahdi source files
 - mahlib : mahdi lib bytecode files
@@ -43,7 +45,7 @@ _bootup_(str?),_init_(),_plus_(pack),_len_():num,_str_():str,_equal_(pack):bool,
 +,-,*,/,|(int divide),%(int),^
 ==,<=,>=,!=,<,>
 +=,++,--,-=,*=,/=,%=,^=,:=,|=
-..,::,->,?
+..,::,->
 *************************************
 -----------------modules and libraries
 - modules in c with .dll or .so
@@ -53,20 +55,36 @@ _bootup_(str?),_init_(),_plus_(pack),_len_():num,_str_():str,_equal_(pack):bool,
 
 -----------------const var
 - if in define var, first char is capital, is const var
-num B,str Fg;
+def B=true //OR def B:boolean=true
+def Fg=''
 -----------------config keyword
 - config just in outof any package
 config:DebugMode=true
 config:ErrorsState='fetal'
-ErrorsState,WarningsState,ExportLogFile,MaxHugeDivideSteps,MaxHugeDecimalNumbers,AppVersion,AppName,AppLicense,AppCreator,AppIcon,DebugMode,ExportBuildFile,BuildMode
+config:BootupPackage='main' //=>when you call _bootup_ function from a package not global
+ErrorsState(string),WarningsState(string),ExportLogFile(string),MaxHugeDivideSteps(number),MaxHugeDecimalNumbers(number),AppVersion(string),AppName(string),AppLicense(string),AppCreator(string),AppIcon(string),DebugMode(boolean),ExportBuildFile(string),BuildMode(boolean)
 ----------------- import keyword
 import mod:core:exception //import execption package from core module
 import mod:core:math,os //OR *
-import lib:..libs.mylib:* // import from "/home/am/Desktop/proj/libs/mylib.mahlib" all packages , .. is project root(/home/am/Desktop/proj)
+import lib:..libs.mylib:* // import from "/home/am/Desktop/proj/libs/mylib.mahlib" all packages , .(first) is project root(/home/am/Desktop/proj) and . is /(slash)
 import lib:stdlib:* // import from stdlib of mahdi lang
 import file:..other:pkg1,pkg2,@fun1 //import from "/home/am/Desktop/proj/other.mah" pkg1,pkg2 packages and fun1 global function
 import file:..src.all:* //import from "/home/am/Desktop/proj/src/all.mah" all packages and all global functions
+-----------------package methods
+pack pk1(){
+	@public_methods
+	static func h2(){}
+	@private_methods
+	override static func h1(){}
+}
+OR
+pack pk1(){
+	static func h2(){}
+	@private_methods
+	override static func h1(){}
+}
 -----------------switch structure
+- if not set true item(default case), occurs an warning and if not all conditions, occurs an error!
 choose(var){
    -> 43:
    //do something
@@ -75,51 +93,49 @@ choose(var){
    -> true:
    //do something
 }
------------------multi assign to var
-num g=choose(
-  readline()=='hello':3,
-  delta>=4:5,
-  isexist:1,
-  true:0
-)
+-----------------conditional assign
+def delta=4
+def g=choose(delta){
+	-> 3: return 3*6
+	-> 4: 
+	def t=delta*2
+	return t
+	->true: return -1
+} //=>g=8
 -----------------declare variables and arrays
-- variable attributes: static (func), private(pack)
+- variable attributes: static (func), private,public (pack)
 - static variables just declared in functions
-- def{str:'',num:0,bool:true}
-- def kwyword, set default value for variable by its type
 - all variables must get default value when declared
-- all arrays save as dictionaries by keys
-- you can define an array by '?' dimension but you must assign it by a value like : num k[?]={5,7,8,8} //k[4]
 - you can set default value for all rooms of array
-
-num j,str[?] d,bool b= 56.6,{'t','o'},def
-num x,e,u=45
-num n,m,bool b=def,6,true
-num[?] er={'q1':23,'q2':67} //num j=e['q1'] OR num j=e[0] //j=23
-num[?][2] dd={{2,8},{5,7},{56,9}}
-dd[]={2,89,6} //ERR=>mahdi.push(dd,{2,89})
-num[?] jk=dd[0]
-num[45] gh;
-str[4] kl='ali';//str[4] kl={'ali','ali','ali','ali'}
+def list=[4,6,9,-3] OR def list:number=[] //=>def g=list[2] //g=9
+def j,d:string,b= 56.6,['t','o'],true
+def x,e,u=45
+def n,m,b:boolean=0,6,true
+def er:number={'q1':23,'q2':67} //num j=e.get('q1')
+def dd=[[2.6,6],[5,-7.1]] OR def dd:float=[[2.6,6],[5,-7.1]]
+def ddd=[{'q1':3,'q2':4},{'f':'fg','g':'gf'}] //=>def h:string=ddd[1].get('f')
+def dd=[2,89,6] //ERR=>dd.push([2,89]) => dd.push(2)
+def gh:string=[]; gh.fill(45,'hi');
+def kl=[];kl.fill(4,'ali');//def kl=['ali','ali','ali','ali']
 -----------------create instance of a new package
-type1 t1=new type1(45)
+def t1=type1(45)
 t1.add(34)
 -----------------set vars in string
-str t="Amin",num j=56;
-str s="Hello %t% : %j%\%";
+def t="Amin";def j=56;
+def s="Hello %t% : %j%\%";
 -----------------loop
 loop([section1];[section2];[section3])
 [section1] : just run in first time (for define vars)
 [section2] : run every time and decide that loop be continue (for check vars) [is required]
 [section3] : run every time except first time (for change vars)
 sample:
-- loop(num i=0,str u='';i<10,u!="Hello";i++)
-- loop(str u,str b='',num i=0;u,b:uu;i+=5,u+=" ") //str uu[2,2]={{"x","v"},{"h","i"}} browse uu array
+- loop(def i=0,def u='';i<10,u!="Hello";i++)
+- loop(def u:string='',def b='',def i=0;u:uu;i+=5,u[0]+=" ") //def uu=[["x","v"],["h","i"]] browse uu array => u=["x ","v"]
 - loop(;i<5) or loop(;i<5;)
-- loop(num h=get1(),num k=0;h<get2(k);k++,h++)
-- loop(str u,b='',num i=0;u!="Hi") //=>make an error Correct:loop(str u='',str b='',num i=0;u!="Hi") OR loop(str u,str b,num i=0;u!="Hi")
-num[23] u;
-loop(num j;u->j) //foreach an array
+- loop(def h=get1(),def k=0;h<get2(k);k++,h++)
+- loop(def u='',def b='',def i=0;u!="Hi")
+def u:number=[];u.fill(34,5);
+loop(def j=0;j:u) //foreach an array
 -----------------break,next
 - break instruction can give a number that determine how many break from multiple loops
 - next instruction can not gives any numbers!
@@ -135,54 +151,63 @@ loop(..){
 - manage get a var type exception
 - in manage, when get exception, then stop and out of manage block!
 - without manage block, when get exception, ignore that line and continue from next line :)
-exception exp=def;
-manage(exp){
+
+manage(){ //=>just interuppt when occurs an error
 //do something
 }
-if(nil(exp)){
+def exp=exception();
+manage(exp){ //=>interuppt when occurs an error and put error and warnings in exception var
+//do something
+}
+if(not nil(exp)){
 //do something
 }
 -----------------range
-- for arrays and strings
-num[?] j={3,8,6.5,-9}
-num[?] v=j[1..3]; //v={8,6.5}
-str[?] s={"amin","ali"}
-str ss=s[0][1..4];//ss="min";
+- for lists and strings
+def j=[3,8,6.5,-9]
+def v:number=j[1..3]; //v=[8,6.5]
+def s=["amin","ali"]
+def ss=s[0][1..4];//ss="min";
 -----------------swap with :=
-- swap is just for same type variables and not arrays!
-num n=45,num[?] q={5,9.6};
+- swap is just for same type variables and not lists!
+def n=45,def q=[5,9.6];
 n:=q[0] //n=5,q[0]=45
------------------ push to an array
-num [?][?] yu={{2,3},{5,7.4}}
-yu[]={7,8,11}
-yu[0][]=34; //yu[0]={2,3,34}
 -----------------function header
 - function header can a parameter with default value
-func sam(str d,num[?][2] g)
-func sam1(num j=3,str jj)
+func sam(d:string,g/*OR g:number*/)
+func sam1(j=3,jj)
 ----------------- call function
 - all functions that defined out of all packages, are static and public and not give any attribute(private,static)
 - for call outof functions using self keyword
 - call function can using parameter name!
 func fg(){}
-func _bootup(){
+func _bootup_(){
 self.fg()
 }
-sam1(jj:"Hello") OR sam1(jj="er",j=7.656) OR sam1(34,"hello")
+sam1(jj="er",j=7.656) OR sam1(34,"hello")
 //call static function
-pkg::main();
+pkg.main(); OR mypkg1=pkg();mypkg1.main();
+//get public const package vars
+def f=pkg::ERRORSTATE; //f=4
 //call package function
-mypkg1.sub()
-num g,str[?] s=sam() //=>ERR:on defined variable
-<g,s>=sam() //=>ERR:if sam() return not two values
-num j=f("g",6.8)[1]  //=>j get 2nd returned value
+mypkg1=pkg();mypkg1.sub() OR pkg().sub() 
+def z=pkg().plus(3)
+def g,s=sam() //=>ERR:on defined variable
+g,s=sam() //=>ERR:if sam() return not two values
+def j=0;j=f("g",6.8)[1]  //=>j get 2nd returned value
+-----------------predefined package functions 
+def _plus_(pack):any => def g=pk1+pk2
+def _minus_(pack):any => def g=pk1-pk2
+def _empty_():boolean => if(nil(pk1))
+def _index(number):any=> def h=pk1[0] //h='hello'
+
 -----------------var alloc
 a=3
 b+=4
 a:=b
-<a,b>=sam()
-<b,c,d>=sam() //ERR
-<v,n>=<e,u> // OR v=e;n=u;
+a,b=sam()
+b,c,d=sam() //ERR
+v,n=e,u // OR v=e;n=u;
 -----------------if in if
 if(true)
   if(ty>7 and rt=='56'){
@@ -199,9 +224,9 @@ str:("Hello")
 num:(45.5)
 	++:46.5 (plus num by 1)
 	--:44.5 (subtraction num by 1)
-num q=1
-num e1=(45*q++) //=>e1=45,q=2
-num e2=(45*++q) //=>e2=90,q=2
+def q=1
+def e1=(45*q++) //=>e1=45,q=2
+def e2=(45*++q) //=>e2=90,q=2
 -----------------control characters
 \n : new line
 \t : insert tab
@@ -218,28 +243,35 @@ num e2=(45*++q) //=>e2=90,q=2
 - bootup can give app arguments
 - just one bootup function exist in all program
 pack main2(){
+@public_method //(default)
   static func _bootup_(){}
 }
 OR
 func _bootup_(){}
-func _bootup_(str[?] argvs){}
+func _bootup_(argvs){}
 -----------------_init_ function
 - package constructor and must be just public!
 pack main(){
-func _init_(str s,str y){}
+@public_method
+func _init_(s:string,y:string){}
 }
 -----------------inherit packages
+- if a method override, then in next package that inherit it, can define a method with same name else error! 
+- example of override: override func _str_(){}
 pack pkg1(){
+   @public_method
    override func ps1(){}
-   private func ps2(num j){}
    func ps3(num k){
       this.ps2(56)
    }
+   @private_method
+   func ps2(num j){}
+   
 }
 pack pkg2(pkg1){
-   func ps1(num jj){} //not override on ps1 of pkg1
-   (private|static|override) func ps3(num kk){} //ERR:exist this on super and not override
-   func ps2(num j){
+   func ps1(jj){} //not override on ps1 of pkg1
+   (static|override) func ps3(num kk){} //ERR:exist this on super and not override
+   func ps2(j){
       this.ps2(4)
       this.ps1()
       this.ps3(78)

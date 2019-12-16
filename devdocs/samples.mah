@@ -1,6 +1,15 @@
 ----------------APP1--------------------
 import mod:core:console
 func _bootup_(){
-    console::print('Hello World\n')
-
+    console.print('Hello World\n')
+}
+----------------APP2--------------------
+import mod:core:console
+func _bootup_(argvs){
+	main.hello()
+}
+pack main(){
+	static func hello(){
+		console.print('Hello World\n')
+	}
 }

@@ -190,6 +190,7 @@ int8 EXP_handler(String lbl_err, const char func_occur[], String rep1, String re
   }
   //---------------------search for manage structure
   String manage_exception_store = 0;
+  //TODO:
 //   stst *tmp1 = entry_table.stst_start;
 //   //print_struct(PRINT_STRUCTURES_STACK_ST);
 //   if (tmp1 != 0) {
@@ -418,6 +419,7 @@ int8 EXP_print_error(Longint line_err, String name_err, String file_err, String 
 }
 //**************************************************************
 Boolean EXP_set_to_logfile(String exception_msg) {
+  //TODO:
 //   String clk = __syscall_datetime(1);
 // //  printf("logfile:%s\n",logfile_path);
 //   FILE *fp = fopen(logfile_path, "a");

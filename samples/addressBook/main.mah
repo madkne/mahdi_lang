@@ -3,39 +3,40 @@ import mod:core:console,os,file,app,string
 
 
 func _bootup_(){
-     addr_book addr=new addr_book();
+     def addr=addr_book();
      addr.menu();       
 }
-package addr_book(){
-      private num req_num=0;
+pack addr_book(){
+      @private_method
+      def req_num:number=0;
+      @public_method
       func menu(){
-            console.printLn("Address Book with mahdi PL")
+            console.printLn("Address Book with mahdi PL");
             console.print("\
                   (1) Add New Address\
                   (2) View An Address\
                   (3) Exit AddressBook:/\");
             loop(;true;){
-                  this.req_num=tnum(console.input("Enter Request: "))
+                  this.req_num=num(console.input("Enter Request: "))
                   choose(this.req_num){
-                       ->1:this.add()
+                        ->1:this.add()
                         ->2:this.view()
                         ->3:os.exit()
                         ->true:
-                             console.print('Unknown Request :/ ');
+                              console.print('Unknown Request :/ ');
                               os.exit();
                   }
             }
       }
       //*********************************************
       func add(){
-            str id=console.input('Enter new ID: ')
-            str phone=console.input('Enter A Phone Number: ')
+            def id=console.input('Enter new ID: ')
+            def phone=console.input('Enter A Phone Number: ')
             //=>check for exist id
-            str prjroot=app.appDir()
-            file f=new file('%prjroot%/address.dat','r');
-            loop(str s;f.hasNextLine();s=f.readLine()){
-                  string ss=new string(s)
-                  str sp=ss.split(';')
+            def prjroot=app.appDir()
+            def f:file=file('%prjroot%/address.dat','r');
+            loop(def s;f.hasNextLine();s=f.readLine()){
+                  def sp=string(s).split(';')
                   if(sp[0]==id){
                         console.print('Entered ID is exist')
                         return false
@@ -43,19 +44,18 @@ package addr_book(){
             }
             f.close()
             //=>add new address
-            f=new file('%prjroot%/address.dat','a');
+            f=file('%prjroot%/address.dat','a');
             f.writeline('%id%;%phone%')
             f.close()
             return true
       }
       //*********************************************
       func view(){
-            str id=console.input('Enter Your ID: ')
-            str prjroot=app.appDir()
-            file f=new file('%prjroot%/address.dat','r');
-            loop(str s;f.hasNextLine();s=f.readLine()){
-                  string ss=new string(s)
-                  str sp=ss.split(';')
+            def id=console.input('Enter Your ID: ')
+            def prjroot=app.appDir()
+            def f=file('%prjroot%/address.dat','r');
+            loop(def s;f.hasNextLine();s=f.readLine()){
+                  def sp=string(s).split(';')
                   if(sp[0]==id){
                         console.print('Phone Number for ID[%id%] : %sp[1]%')
                         return true

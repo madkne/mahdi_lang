@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.0.23"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 2          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.0.38"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 3          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -22,7 +22,7 @@
 #define  H_CORE_CODE_LINES              0
 #define  MODULES_CODE_LINES             0           //+=16757
 #define  LANGUAGE_CREATOR               "madkne"
-#define  CREATOR_SIGNATURE              "603556816519829596"
+#define  CREATOR_SIGNATURE              "48441415431625231"
 #define  TRUST_LEVEL                    0          //100%
 #define  WINDOWS_COMPATIBLE             false
 #define  LINUX_COMPATIBLE               true
@@ -126,8 +126,9 @@
 #define   DebuggerError                 14
 #define   BuilderError                  15
 #define   UserDefinedError              100
-//------------------------------------------
-#define STDIN_SOURCE_PATH               0
+//------------------------------------------used for soco struct in append and the other functions
+#define MAIN_SOURCE_CODE                1
+#define TOKENS_SOURCE_CODE              2
 //------------------------------------------
 #define PRINT_IMPORT_ST                 1
 #define PRINT_EXCEPTIONS_ST             2

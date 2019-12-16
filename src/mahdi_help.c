@@ -184,6 +184,7 @@ int8 MHELP_print_article(String path, String part, Boolean generate_list) {
 }
 //************************************************
 void MHELP_article(String params[3], String *not_exist) {
+  //TODO:
   //init vars
 //   String footer = 0;
 //   //=>show group intro
@@ -223,6 +224,7 @@ void MHELP_article(String params[3], String *not_exist) {
 }
 //************************************************
 void MHELP_list(uint8 type, String params[3], String *not_exist) {
+  //TODO:
   //=>if request for group list
 //   if (type == 0) {
 //     printf("mahdi:)) offline documentation groups:\n%s\n", header_full);

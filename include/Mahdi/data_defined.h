@@ -74,14 +74,15 @@ typedef struct import_inst_struct {
   uint8 type;
   Boolean is_active;
   String name;
+  String path;
   StrList packages;
   StrList functions;
-  StrList path;
-  uint8 max_bytes_per_char;
+  uint32 pack_len;
+  uint32 func_len;
   uint8 err_code;
 
   uint32 line;
-  uint32 source_id;
+  uint32 source_index; //=>index of entry_table.sources_list StrList
 
   struct import_inst_struct *next;
 } imin;
@@ -200,6 +201,7 @@ typedef struct data_types_struct {
 //****************************built_in_funcs struct
 typedef struct built_in_funcs_struct {
   uint32 id;
+  uint32 parent_type;
   String func_name;
   String params;
   uint8 params_len;
@@ -371,12 +373,11 @@ struct entry_table_struct {
   imin *import_start;
   imin *import_end;
   Longint import_id;
-  uint32 import_inst_count;
+  uint32 import_active_count;
 
   soco *soco_main_start;
   soco *soco_main_end;
-  UString cur_source_path;
-  String cur_ascii_source_path;
+  String current_source_path;
   Longint soco_main_count;
 
   soco *soco_tokens_start;
@@ -448,10 +449,10 @@ struct entry_table_struct {
   Mvar *var_memory_end;
   Mpoint *pointer_memory_start;
   Mpoint *pointer_memory_end;
-  // Longint var_mem_id;
-  // Longint var_mem_len;
-  // Longint pointer_mem_id;
-  // Longint pointer_mem_len;
+  Longint var_mem_id;
+  Longint var_mem_len;
+  Longint pointer_mem_id;
+  Longint pointer_mem_len;
 
   int8 next_break_inst;
   uint32 break_count;
@@ -481,19 +482,9 @@ struct entry_table_struct entry_table;
 //****************************functions
 void DEF_init();
 
-// //-------------------------imin funcs
-// void append_imin(imin s);
-
-// imin get_imin(Longint id);
-
-// imin get_first_active_imin();
-
-// void delete_imin(Longint id, Boolean is_delete);
-
-// //-------------------------soco funcs
-// void append_soco(uint8 type, soco s);
-
-// void clear_soco(uint8 type);
+//soco functions
+void _soco_append(uint8 type, uint32 line,String code);
+void _soco_clear(uint8 type);
 
 // soco get_soco(uint8 type, uint32 ind);
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);

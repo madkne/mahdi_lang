@@ -301,20 +301,7 @@ double I32_power(double base, int32 power) {
 // }
 
 
-//*************************************************************
-// void USLIST_append(UStrList *s, UString s1, uint32 len) {
-//   //printf("CCCC:%s,%i\n",s1,len);
-//   utf8_str_list tmp = 0;
-//   utf8_str_list_init(&tmp, *s, len);
-//   free(*s);
-//   (*s) = (utf8_str_list) malloc((len + 1) * sizeof(utf8_str_list));
-//   if (*s == 0)return;
-//   for (uint32 i = 0; i < len; i++) {
-//     (*s)[i] = tmp[i];
-//   }
-//   (*s)[len] = utf8_str_append(0, s1);
-//   //printf("CCVVV:%s,%i\n",(*s)[len],str_length((*s)[len]));
-// }
+
 
 // //*************************************************************
 // String remove_incorrect_pars(String str, int32 *invalid_pars) {
@@ -348,19 +335,7 @@ double I32_power(double base, int32 power) {
 
 // }
 
-// //*************************************************************
-// FILE *utf8_file_open(String filename, String mode) {
-//   #if LINUX_PLATFORM == 1
-//   //TODO:utf8 fopen for linux
-//   #elif WINDOWS_PLATFORM == 1
-//   wchar_t wfile[260];
-//   wchar_t wmode[32];
-//   MultiByteToWideChar(CP_UTF8, 0, filename, -1, wfile, 260);
-//   MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 32);
-//   return _wfopen(wfile, wmode);
-//   #endif
-//   return NULL;
-// }
+
 
 // //*************************************************************
 // String replace_in_expression(String exp, String rep, int32 start, int32 end, Boolean remove_pars, Boolean is_trim) {

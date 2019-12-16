@@ -32,25 +32,25 @@
 #include "data_defined.h"
 //---------------------------------normal functions
 #include "exceptions.h"
-// #include "built_in.h"
+#include "mahdi_builtin.h"
 #include "mahdi_help.h"
 // #include "debugger.h"
 // #include "builder.h"
-// //---------------------------------core functions
-// #include "core/importer.h"
+//---------------------------------core functions
+#include "core/importer.h"
 // #include "core/parser.h"
 #include "core/starter.h"
 
 // #include "core/vars_mgr.h"
 // #include "core/run_mgr.h"
-// #include "core/virtual_memory.h"
+#include "core/memory.h"
 // #include "core/magic_macro.h"
-// //---------------------------------tools functions
+//---------------------------------tools functions
 #include "tools/common_funcs.h"
 #include "tools/strings.h"
 #include "tools/chars.h"
 #include "tools/lists.h"
-// #include "tools/utf8.h"
+#include "tools/utf8.h"
 #include "tools/syscalls.h"
 // #include "tools/encoder.h"
 #include "tools/console.h"

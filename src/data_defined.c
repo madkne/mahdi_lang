@@ -143,7 +143,7 @@ void DEF_init() {
   //=>init import struct
   entry_table.import_start = 0;
   entry_table.import_id = 1;
-  entry_table.import_inst_count = 0;
+  entry_table.import_active_count = 0;
   //=>init utf8 struct
   entry_table.utst_start = 0;
   entry_table.utf8_strings_id = 1;
@@ -209,8 +209,6 @@ void DEF_init() {
   //=>init import sources list
   entry_table.sources_list = 0;
   entry_table.sources_len = 0;
-  //=>append first source to list
-  str_list_append(&entry_table.sources_list,"stdin",entry_table.sources_len++);
   //=>init runtime debug vars states 
   entry_table.debug_is_run = false;
   entry_table.debug_is_next = false;
@@ -218,144 +216,71 @@ void DEF_init() {
   entry_table.post_short_alloc = 0;
   entry_table.post_short_alloc_len = 0;
   //=>init basic data_types
-  _datas_append(0,0,BASIC_DATA_TYPE,"str");
-  _datas_append(0,0,BASIC_DATA_TYPE,"num");
-  _datas_append(0,0,BASIC_DATA_TYPE,"bool");
+  _datas_append(0,0,BASIC_DATA_TYPE,"string");
+  _datas_append(0,0,BASIC_DATA_TYPE,"number");
+  _datas_append(0,0,BASIC_DATA_TYPE,"boolean");
+}
+
+//*************************************************************
+//*******************source_code functions*********************
+//*************************************************************
+void _soco_append(uint8 type, uint32 line,String code) {
+  soco *q;
+  q = (soco *) malloc(sizeof(soco));
+  if (q == 0) return;
+  q->line = line;
+  STR_init(&q->code, code);
+  q->next = 0;
+  //soco_main
+  if (type == MAIN_SOURCE_CODE) {
+    //printf("QW!!!:%s,%i,%s\n", s.code, entry_table.soco_main_start, q->code);
+    if (entry_table.soco_main_start == 0) {
+      entry_table.soco_main_start = entry_table.soco_main_end = q;
+    } else {
+      entry_table.soco_main_end->next = q;
+      entry_table.soco_main_end = q;
+    }
+    entry_table.soco_main_count++;
+  }
+    //soco tokens
+  else if (type == TOKENS_SOURCE_CODE) {
+    if (entry_table.soco_tokens_start == 0)
+      entry_table.soco_tokens_start = entry_table.soco_tokens_end = q;
+    else {
+      entry_table.soco_tokens_end->next = q;
+      entry_table.soco_tokens_end = q;
+    }
+    entry_table.soco_tokens_count++;
+  }
 }
 
 // //*************************************************************
-// //*******************import_inst functions**********************
-// //*************************************************************
-// void append_imin(imin s) {
-//   imin *q;
-//   q = (imin *) malloc(sizeof(imin));
-//   if (q == 0) return;
-//   q->id = s.id;
-//   q->is_active = true;
-//   q->type = s.type;
-//   utf8_str_init(&q->path, s.path);
-//   q->line = s.line;
-//   q->err_code = 0;
-//   q->max_bytes_per_char = s.max_bytes_per_char;
-//   q->source_id = s.source_id;
-//   q->next = 0;
-//   if (entry_table.import_start == 0) {
-//     entry_table.import_start = entry_table.import_end = q;
-//   } else {
-//     entry_table.import_end->next = q;
-//     entry_table.import_end = q;
-//   }
-//   entry_table.import_inst_count++;
-// }
-
-// //*************************************************************
-// imin get_imin(long_int id) {
-//   imin ret = {0, 0, false, 0, 0, 0, 0};
-//   imin *tmp1 = entry_table.import_start;
-//   for (;;) {
-//     if (tmp1->id == id) {
-//       ret = *tmp1;
-//       break;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-//   return ret;
-// }
-
-// //*************************************************************
-// imin get_first_active_imin() {
-//   imin ret = {0, 0, false, 0, 0, 0, 0};
-//   imin *tmp1 = entry_table.import_start;
-//   for (;;) {
-//     if (tmp1->is_active) {
-//       ret = *tmp1;
-//       break;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-//   return ret;
-// }
-
-// //*************************************************************
-// void delete_imin(long_int id, Boolean is_delete) {
-//   imin *tmp1 = entry_table.import_start;
-//   for (;;) {
-//     if (tmp1->is_active && tmp1->id == id) {
-//       entry_table.import_inst_count--;
-//       if (!is_delete) {
-//         tmp1->is_active = false;
-//       } else {
-//         //TODO: delete import node
-//       }
-//       break;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-// }
-
-// //*************************************************************
-// //*******************source_code functions*********************
-// //*************************************************************
-// void append_soco(uint8 type, soco s) {
-//   soco *q;
-//   q = (soco *) malloc(sizeof(soco));
-//   if (q == 0) return;
-//   q->line = s.line;
-//   str_init(&q->code, s.code);
-//   q->next = 0;
-//   //soco_main
-//   if (type == 1) {
-//     //printf("QW!!!:%s,%i,%s\n", s.code, entry_table.soco_main_start, q->code);
-//     if (entry_table.soco_main_start == 0) {
-//       entry_table.soco_main_start = entry_table.soco_main_end = q;
-//     } else {
-//       entry_table.soco_main_end->next = q;
-//       entry_table.soco_main_end = q;
-//     }
-//     entry_table.soco_main_count++;
-//   }
-//     //soco tokens
-//   else if (type == 2) {
-//     if (entry_table.soco_tokens_start == 0)
-//       entry_table.soco_tokens_start = entry_table.soco_tokens_end = q;
-//     else {
-//       entry_table.soco_tokens_end->next = q;
-//       entry_table.soco_tokens_end = q;
-//     }
-//     entry_table.soco_tokens_count++;
-//   }
-// }
-
-// //*************************************************************
-// void clear_soco(uint8 type) {
-//   //soco_main
-//   if (type == 1 && entry_table.soco_main_start > 0) {
-//     entry_table.soco_main_count = 0;
-//     soco *tmp1;
-//     entry_table.soco_main_end = entry_table.soco_main_start;
-//     entry_table.soco_main_start = 0;
-//     for (;;) {
-//       tmp1 = entry_table.soco_main_end;
-//       entry_table.soco_main_end = entry_table.soco_main_end->next;
-//       free(tmp1);
-//       if (entry_table.soco_main_end == 0) break;
-//     }
-//   } else if (type == 2 && entry_table.soco_tokens_start > 0) {
-//     entry_table.soco_tokens_count = 0;
-//     soco *tmp1;
-//     entry_table.soco_tokens_end = entry_table.soco_tokens_start;
-//     entry_table.soco_tokens_start = 0;
-//     for (;;) {
-//       tmp1 = entry_table.soco_tokens_end;
-//       entry_table.soco_tokens_end = entry_table.soco_tokens_end->next;
-//       free(tmp1);
-//       if (entry_table.soco_tokens_end == 0) break;
-//     }
-//   }
-// }
+void _soco_clear(uint8 type) {
+  //soco_main
+  if (type == MAIN_SOURCE_CODE && entry_table.soco_main_start > 0) {
+    entry_table.soco_main_count = 0;
+    soco *tmp1;
+    entry_table.soco_main_end = entry_table.soco_main_start;
+    entry_table.soco_main_start = 0;
+    for (;;) {
+      tmp1 = entry_table.soco_main_end;
+      entry_table.soco_main_end = entry_table.soco_main_end->next;
+      free(tmp1);
+      if (entry_table.soco_main_end == 0) break;
+    }
+  } else if (type == TOKENS_SOURCE_CODE && entry_table.soco_tokens_start > 0) {
+    entry_table.soco_tokens_count = 0;
+    soco *tmp1;
+    entry_table.soco_tokens_end = entry_table.soco_tokens_start;
+    entry_table.soco_tokens_start = 0;
+    for (;;) {
+      tmp1 = entry_table.soco_tokens_end;
+      entry_table.soco_tokens_end = entry_table.soco_tokens_end->next;
+      free(tmp1);
+      if (entry_table.soco_tokens_end == 0) break;
+    }
+  }
+}
 
 // //*************************************************************
 // soco get_soco(uint8 type, uint32 ind) {
@@ -576,7 +501,7 @@ void _datas_append(Longint fid,Longint pack_id,uint8 type,String name) {
   q->type = type;
   q->fid = fid;
   q->pack_id=pack_id;
-  str_init(&q->name, name);
+  STR_init(&q->name, name);
   q->next = 0;
   if (entry_table.datas_start == 0)
     entry_table.datas_start = entry_table.datas_end = q;
@@ -763,38 +688,7 @@ void _datas_append(Longint fid,Longint pack_id,uint8 type,String name) {
 //   }
 // }
 
-// //*************************************************************
-// //****************built_in_funcs functions*********************
-// //*************************************************************
-// void append_bifs(bifs s) {
-//   bifs *q;
-//   q = (bifs *) malloc(sizeof(bifs));
-//   if (q == 0) return;
-//   q->id = s.id;
-//   q->type = s.type;
-//   q->params_len = s.params_len;
-//   q->returns_len = s.returns_len;
-//   str_init(&q->func_name, s.func_name);
-//   str_init(&q->params, s.params);
-//   str_init(&q->returns, s.returns);
-//   q->next = 0;
-//   //entry_table.bifs_len++;
-//   if (entry_table.bifs_start == 0) {
-//     entry_table.bifs_start = entry_table.bifs_end = q;
-//   } else {
-//     entry_table.bifs_end->next = q;
-//     entry_table.bifs_end = q;
-//   }
-// }
 
-// //*************************************************************
-// void add_to_bifs(long_int id, uint8 type, String func_name, String params, String returns) {
-//   uint8 par_len = 0, ret_len = 0;
-//   par_len = char_search_count(params, ';');
-//   ret_len = char_search_count(returns, ';');
-//   bifs tmp = {id, type, func_name, params, par_len, returns, ret_len};
-//   append_bifs(tmp);
-// }
 // //*************************************************************
 // //*****************modules_funcs functions*********************
 // //*************************************************************

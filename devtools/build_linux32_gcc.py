@@ -58,7 +58,7 @@ is_error = 0
 logfile = "build_linux32_gcc_list.txt"
 compfiles = []
 writefiles = []
-# ----------------------open build_win32_mingw64_list.txt
+# ----------------------open build_linux32_gcc_list.txt
 if os.path.exists(logfile):
     f = open(logfile, "r")
     compfiles = f.readlines()
@@ -66,7 +66,7 @@ if os.path.exists(logfile):
 # for j in compfiles:
 #	print(compfiles)
 # ----------------------
-print("\t~~~~~MAHDI Build Tool (BY Python3) V 3.8~~~~~")
+print("\t~~~~~MAHDI Build Tool (BY Python3) V 4.1~~~~~")
 print("=== Start Building linux32 release of MAHDI Interpreter using GCC (C99) ....")
 # ----------------------init dirs
 # -----create docs file
@@ -104,23 +104,22 @@ sources = [
     # [scr_folder+"/module.c",scr_folder+"/module.c -o "+obj_folder+"/module.o"],
     [scr_folder+"/data_defined.c", scr_folder + "/data_defined.c -o "+obj_folder+"/data_defined.o"],
     [scr_folder+"/exceptions.c",scr_folder+"/exceptions.c -o "+obj_folder+"/exceptions.o"],
-    # [scr_folder+"/debugger.c",scr_folder+"/debugger.c -o "+obj_folder+"/debugger.o"],
-    # [scr_folder+"/built_in.c",scr_folder+"/built_in.c -o "+obj_folder+"/built_in.o"],
+    # [scr_folder+"/mahdi_debugger.c",scr_folder+"/mahdi_debugger.c -o "+obj_folder+"/mahdi_debugger.o"],
+    [scr_folder+"/mahdi_builtin.c",scr_folder+"/mahdi_builtin.c -o "+obj_folder+"/mahdi_builtin.o"],
     [scr_folder+"/tools/common_funcs.c", scr_folder +"/tools/common_funcs.c -o "+obj_folder+"/common_funcs.o"],
     [scr_folder+"/tools/console.c", scr_folder + "/tools/console.c -o "+obj_folder+"/console.o"],
     [scr_folder+"/tools/strings.c", scr_folder + "/tools/strings.c -o "+obj_folder+"/strings.o"],
     [scr_folder+"/tools/chars.c", scr_folder + "/tools/chars.c -o "+obj_folder+"/chars.o"],
     [scr_folder+"/tools/lists.c", scr_folder + "/tools/lists.c -o "+obj_folder+"/lists.o"],
     # [scr_folder+"/tools/encoder.c", scr_folder +  "/tools/encoder.c -o "+obj_folder+"/encoder.o"],
-    # [scr_folder+"/tools/utf8.c", scr_folder +"/tools/utf8.c -o "+obj_folder+"/utf8.o"],
+    [scr_folder+"/tools/utf8.c", scr_folder +"/tools/utf8.c -o "+obj_folder+"/utf8.o"],
     [scr_folder+"/tools/syscalls.c", scr_folder + "/tools/syscalls.c -o "+obj_folder+"/syscalls.o"],
     # [scr_folder+"/core/vars_mgr.c",scr_folder+"/core/vars_mgr.c -o "+obj_folder+"/vars_mgr.o"],
     # [scr_folder+"/core/parser.c",scr_folder+"/core/parser.c -o "+obj_folder+"/parser.o"],
-    # [scr_folder+"/core/importer.c",scr_folder+"/core/importer.c -o "+obj_folder+"/importer.o"],
+    [scr_folder+"/core/importer.c",scr_folder+"/core/importer.c -o "+obj_folder+"/importer.o"],
     [scr_folder+"/core/starter.c",scr_folder+"/core/starter.c -o "+obj_folder+"/starter.o"],
     # [scr_folder+"/core/run_mgr.c",scr_folder+"/core/run_mgr.c -o "+obj_folder+"/run_mgr.o"],
-    # [scr_folder+"/core/virtual_memory.c",scr_folder+"/core/virtual_memory.c -o "+obj_folder+"/virtual_memory.o"],
-    # [scr_folder+"/core/magic_macro.c",scr_folder+"/core/magic_macro.c -o "+obj_folder+"/magic_macro.o"],
+    [scr_folder+"/core/memory.c",scr_folder+"/core/memory.c -o "+obj_folder+"/memory.o"],
     # [scr_folder+"/built_in/mpl_builtin.c",scr_folder+"/built_in/mpl_builtin.c -o "+obj_folder+"/mpl_builtin.o"],
     # [scr_folder+"/built_in/os_builtin.c",scr_folder+"/built_in/os_builtin.c -o "+obj_folder+"/os_builtin.o"],
     # [scr_folder+"/built_in/data_builtin.c",scr_folder+"/built_in/data_builtin.c -o "+obj_folder+"/data_builtin.o"],
@@ -131,12 +130,18 @@ sources = [
 for i in range(0, len(sources), 1):
     ind = sources[i]
     mtime = os.path.getmtime(ind[0])
-    if len(compfiles) > i and float(compfiles[i]) == mtime:
+    if len(compfiles)==len(sources) and float(compfiles[i]) == mtime:
         print("=> Before Compiled: "+ind[0])
     else:
         # print(mtime,compfiles[i]);
-        is_error = os.system(compiler+cflags+ind[1]) == 1
+        is_error = os.system(compiler+cflags+ind[1])
+        os.system("tput setaf 4") #set foreground blue
         print("=> Compiled: "+ind[0])
+        # print('compile:',is_error)
+        if is_error != 0:
+            os.system("tput setaf 1") #set foreground red
+            print("*** Failed Compiling! ***")
+            exit(1)
 
     writefiles.append(mtime)
 # ----------------------save modified date of source files
@@ -147,25 +152,21 @@ for kl in writefiles:
 fi.close()
 
 # ----------------------link object files
+print("_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_")
 print("=== Start linking object files [mahdi]...")
-if is_error == 1:
-    os.system("tput setaf 1") #set foreground red
-    print("*** Failed Compiling! ***")
-    # ----------------------pause
-    os.system("pause")
-else:
-    # if os.path.exists("win32rc.res"):
-    #    os.remove("win32rc.res")
-    # is_error=os.system("windres win32_resources.rc -O coff -o win32rc.res")
-    # if is_error==1:os.system("color C0"); exit(1);
-    obj_files = glob.glob(obj_folder+"/*.o")
-    all_files = ' '.join(obj_files)
-    #print("gcc .\win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
-    # is_error=os.system("gcc win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
-    is_error = os.system("gcc -fPIC "+all_files+" -o "+build_folder+"/mahdi")
 
+# if os.path.exists("win32rc.res"):
+#    os.remove("win32rc.res")
+# is_error=os.system("windres win32_resources.rc -O coff -o win32rc.res")
+# if is_error==1:os.system("color C0"); exit(1);
+obj_files = glob.glob(obj_folder+"/*.o")
+all_files = ' '.join(obj_files)
+#print("gcc .\win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
+# is_error=os.system("gcc win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
+is_error = os.system("gcc -fPIC "+all_files+" -o "+build_folder+"/mahdi")
+# print('link:',is_error)
 # ----------------------finish
-if is_error == 1:
+if is_error != 0:
     os.system("tput setaf 1") #set foreground red
     print("*** Failed Linking! ***")
     # ----------------------pause

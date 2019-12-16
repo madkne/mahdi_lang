@@ -88,11 +88,11 @@ Boolean INTR_start() {
   //-----------------------init interpreter
   STR_init(&interpreter_level, "init");
   INTR_init();
-//   //-----------------------parsing source codes
-//   str_init(&interpreter_level, "parse");
-//   Boolean ret0 = import_all_files();
-//   //printf("VVVVVV:%i\n",ret0);
-//   if (!ret0) return false;
+  //-----------------------parsing source codes
+  STR_init(&interpreter_level, "parse");
+  Boolean ret0 = IMPORT_run();
+  //printf("VVVVVV:%i\n",ret0);
+  if (!ret0) return false;
 //   //-----------------------meaning&running instructions
 //   str_init(&interpreter_level, "runtime");
 //   Boolean ret3 = start_runtime();
@@ -109,16 +109,14 @@ Boolean INTR_start() {
 
 //************************************************
 void INTR_init() {
-  //********************
+  //=>init data defined
   DEF_init();
-//   //********************
-//   init_memory();
-//   //********************
-//   init_built_in_funcs();
-//   //********************
-//   init_magic_define();
-//   //********************
-//   init_magic_config();
+  //=>init virtual memory
+  VM_init();
+  //=>init built-in functions
+  BUILT_init();
+  //=>init importer
+  IMPORT_init();
   //********************
   //get_basic_system_info()
 }
