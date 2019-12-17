@@ -281,75 +281,32 @@ void _soco_clear(uint8 type) {
     }
   }
 }
-
-// //*************************************************************
-// soco get_soco(uint8 type, uint32 ind) {
-//   soco ret = {0, 0, 0};
-//   uint32 ii = 0;
-//   soco *tmp1;
-//   //soco_main
-//   if (type == 1) {
-//     tmp1 = entry_table.soco_main_start;
-//   }
-//     //soco_tokens
-//   else if (type == 2) {
-//     tmp1 = entry_table.soco_tokens_start;
-//   }
-//   for (;;) {
-//     if (ii++ == ind) {
-//       ret = *tmp1;
-//       break;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-
-//   return ret;
-// }
-// //*************************************************************
-// Boolean edit_soco(uint8 type, uint32 line, String new_data) {
-//   soco *tmp1;
-//   //soco_main
-//   if (type == 1)tmp1 = entry_table.soco_main_start;
-//     //soco_tokens
-//   else if (type == 2)tmp1 = entry_table.soco_tokens_start;
-//   for (;;) {
-//     if (tmp1->line == line) {
-//       (*tmp1).code = new_data;
-//       return true;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-
-//   return false;
-// }
-// //*************************************************************
-// //******************utf8_strings functions*********************
-// //*************************************************************
-// void append_utst(utst s) {
-//   utst *q;
-//   q = (utst *) malloc(sizeof(utst));
-//   if (q == 0) return;
-//   q->id = s.id;
-//   q->max_bytes_per_char = s.max_bytes_per_char;
-//   utf8_str_init(&q->utf8_string, s.utf8_string);
-//   q->line = s.line;
-//   q->next = 0;
-//   if (entry_table.utst_start == 0)
-//     entry_table.utst_start = entry_table.utst_end = q;
-//   else {
-//     entry_table.utst_end->next = q;
-//     entry_table.utst_end = q;
-//   }
-// }
-// //*************************************************************
-// long_int add_to_utst(uint32 line, str_utf8 str, uint8 max_bytes) {
-//   if (max_bytes == 0)max_bytes = utf8_str_max_bytes(str, false);
-//   utst tmp1 = {++entry_table.utf8_strings_id, line, str, max_bytes};
-//   append_utst(tmp1);
-//   return entry_table.utf8_strings_id;
-// }
+//*************************************************************
+//******************utf8_strings functions*********************
+//*************************************************************
+void _utst_append(utst s) {
+  utst *q;
+  q = (utst *) malloc(sizeof(utst));
+  if (q == 0) return;
+  q->id = s.id;
+  q->max_bytes_per_char = s.max_bytes_per_char;
+  USTR_init(&q->utf8_string, s.utf8_string);
+  q->line = s.line;
+  q->next = 0;
+  if (entry_table.utst_start == 0)
+    entry_table.utst_start = entry_table.utst_end = q;
+  else {
+    entry_table.utst_end->next = q;
+    entry_table.utst_end = q;
+  }
+}
+//*************************************************************
+Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
+  if (max_bytes == 0)max_bytes = USTR_max_bytes(str, false);
+  utst tmp1 = {++entry_table.utf8_strings_id, line, str, max_bytes};
+  _utst_append(tmp1);
+  return entry_table.utf8_strings_id;
+}
 // //*************************************************************
 // utst get_utst(long_int id) {
 //   utst ret = {0, 0, 0, 0};
@@ -403,6 +360,49 @@ void _soco_clear(uint8 type) {
 //   }
 //   return ret;
 // }
+// //*************************************************************
+// soco get_soco(uint8 type, uint32 ind) {
+//   soco ret = {0, 0, 0};
+//   uint32 ii = 0;
+//   soco *tmp1;
+//   //soco_main
+//   if (type == 1) {
+//     tmp1 = entry_table.soco_main_start;
+//   }
+//     //soco_tokens
+//   else if (type == 2) {
+//     tmp1 = entry_table.soco_tokens_start;
+//   }
+//   for (;;) {
+//     if (ii++ == ind) {
+//       ret = *tmp1;
+//       break;
+//     }
+//     tmp1 = tmp1->next;
+//     if (tmp1 == 0) break;
+//   }
+
+//   return ret;
+// }
+// //*************************************************************
+// Boolean edit_soco(uint8 type, uint32 line, String new_data) {
+//   soco *tmp1;
+//   //soco_main
+//   if (type == 1)tmp1 = entry_table.soco_main_start;
+//     //soco_tokens
+//   else if (type == 2)tmp1 = entry_table.soco_tokens_start;
+//   for (;;) {
+//     if (tmp1->line == line) {
+//       (*tmp1).code = new_data;
+//       return true;
+//     }
+//     tmp1 = tmp1->next;
+//     if (tmp1 == 0) break;
+//   }
+
+//   return false;
+// }
+
 // //*************************************************************
 // //****************block_structures functions*******************
 // //*************************************************************

@@ -1,6 +1,6 @@
 #include <Mahdi/system.h>
 
-
+// common functions
 //******************************************
 // String COM_get_Mahdi_dir_path() {
 //   String out = 0;
@@ -34,39 +34,8 @@ double COM_calculate_period_time(Longint start_time, String *unit) {
   } else STR_init(&(*unit), "seconds");
   return time_taken;
 }
-
-// Boolean functions
 //******************************************
-Boolean BOOL_switch(Boolean b) {
-  if (b) return false;
-  return true;
-}
-
-// int32 functions
-//******************************************
-double I32_power(double base, int32 power) {
-  double ret = 1;
-  Boolean is_neg = false;
-  if (power < 0) {
-    is_neg = true;
-    power *= -1;
-  }
-  for (uint32 b = 0; b < power; b++) {
-    ret *= base;
-  }
-  if (is_neg) {
-    ret = (double) 1 / ret;
-  }
-  return ret;
-}
-
-//******************************************
-
-//******************************************
-
-
-//******************************************
-// void print_struct(uint8 which) {
+void COM_print_struct(uint8 which) {
 //   if (which == 0 || which == PRINT_IMPORT_ST) {
 //     imin *tmp1 = entry_table.import_start;
 //     printf("=====Print import_inst_struct :\n");
@@ -90,28 +59,33 @@ double I32_power(double base, int32 power) {
 //       if (tmp1 == 0) break;
 //     }
 //     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_UTF8_ST) {
-//     utst *tmp1 = entry_table.utst_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print utf8_strings_struct :\n");
-//     for (;;) {
-//       printf("id:%li,line:%i,max_bytes:%i, ", tmp1->id, tmp1->line, tmp1->max_bytes_per_char);
-//       utf8_str_print("string", tmp1->utf8_string, true);
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_MAIN_SOURCE_ST) {
-//     soco *tmp1 = entry_table.soco_main_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print source_code_struct :\n");
-//     for (;;) {
-//       printf("line:%i,code:%s\n", tmp1->line, tmp1->code);
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_TOKENS_SOURCE_ST) {
+  // } 
+  //=>print all nodes of utst struct (utf8 strings)
+   if (which == 0 || which == PRINT_UTF8_ST) {
+    utst *tmp1 = entry_table.utst_start;
+    if (tmp1 == 0) return;
+    printf("=====Print utf8_strings_struct :\n");
+    for (;;) {
+      printf("id:%li,line:%i,max_bytes:%i, ", tmp1->id, tmp1->line, tmp1->max_bytes_per_char);
+      USTR_print("string", tmp1->utf8_string, true);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of soco struct (source code)
+  else if (which == 0 || which == PRINT_MAIN_SOURCE_ST) {
+    soco *tmp1 = entry_table.soco_main_start;
+    if (tmp1 == 0) return;
+    printf("=====Print source_code_struct :\n");
+    for (;;) {
+      printf("line:%i,code:%s\n", tmp1->line, tmp1->code);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+// else if (which == 0 || which == PRINT_TOKENS_SOURCE_ST) {
 //     soco *tmp1 = entry_table.soco_tokens_start;
 //     if (tmp1 == 0) return;
 //     printf("=====Print source_code_tokens_struct :\n");
@@ -248,7 +222,41 @@ double I32_power(double base, int32 power) {
 //     }
 //     printf("=====End printed\n");
 //   }
-// }
+}
+
+
+
+// Boolean functions
+//******************************************
+Boolean BOOL_switch(Boolean b) {
+  if (b) return false;
+  return true;
+}
+
+// int32 functions
+//******************************************
+double I32_power(double base, int32 power) {
+  double ret = 1;
+  Boolean is_neg = false;
+  if (power < 0) {
+    is_neg = true;
+    power *= -1;
+  }
+  for (uint32 b = 0; b < power; b++) {
+    ret *= base;
+  }
+  if (is_neg) {
+    ret = (double) 1 / ret;
+  }
+  return ret;
+}
+
+//******************************************
+
+//******************************************
+
+
+
 //*************************************************************
 // void print_vaar(vaar_en s) {
 //   vaar *tmp1 = s.start;

@@ -182,7 +182,7 @@ uint8 UTF_need_bytes(uint8 c)
 //***************************************
 FILE * UTF_file_open(String filename, String mode) {
   #if LINUX_PLATFORM == 1
-  //TODO:utf8 fopen for linux
+  return fopen(filename,mode);
   #elif WINDOWS_PLATFORM == 1
   wchar_t wfile[260];
   wchar_t wmode[32];
@@ -358,8 +358,7 @@ void USTR_print(String name, UString s, Boolean is_print_char)
 	uint32 len = USTR_length(s);
 	if (!is_print_char)
 	{
-		if (name == 0)
-			STR_init(&name, "UTF8-BIN");
+		if (name == 0) STR_init(&name, "UTF8-BIN");
 		printf("%s[%4i]: ", name, len);
 		for (uint32 i = 0; i < len; i++)
 		{

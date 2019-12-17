@@ -17,8 +17,8 @@ TODO
  - [x] init virtual memory(vm) (2)
  - [x] init built in functions (2)
  - [x] import main source from stdin
- - [.] reading source file as utf8
- - [.] remove comments and convert utf8 to ascii
+ - [x] reading source file as utf8
+ - [x] remove comments and convert utf8 to ascii
  - [.] extract tokens
  - [.] parsing tokens
  - [.] get the other imports from main source file

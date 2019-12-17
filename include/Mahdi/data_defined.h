@@ -482,14 +482,15 @@ struct entry_table_struct entry_table;
 //****************************functions
 void DEF_init();
 
-//soco functions
+//=>soco functions
 void _soco_append(uint8 type, uint32 line,String code);
 void _soco_clear(uint8 type);
 
 // soco get_soco(uint8 type, uint32 ind);
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);
-// //-------------------------utst funcs
-// void append_utst(utst s);
+//=>utst functions
+void _utst_append(utst s);
+Longint _utst_add(uint32 line, UString str, uint8 max_bytes);
 // Longint add_to_utst(uint32 line,str_utf8 str,uint8 max_bytes);
 // utst get_utst(Longint id);
 // utst get_utst_by_string(String s);

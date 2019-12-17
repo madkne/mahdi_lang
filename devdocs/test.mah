@@ -1,5 +1,9 @@
 import mod:core:console
 func _bootup_(){
+	def f="سلام به دنیا \
+	hello world!"/*is comment
+	ha ha...
+	*/
     console.print('Hello World\n')
 
 }

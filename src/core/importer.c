@@ -41,183 +41,185 @@ Boolean IMPORT_run(){
 //******************************************************
 Boolean IMPORT_open_file(imin s)
 {
-    // //  printf("DONE!:%s\n",ascii_path);
     //=>check if file exist and open it
     FILE *fp = UTF_file_open(s.path, "r");
     if (fp == NULL){
         EXP_print_error(s.line, "not_open_file", s.name, s.path,0, "IMPORT_open_file");
         return false;
     }
-    // //printf("WWWWWWWW:%s\n",ascii_path);
-    // int32 status = 1;
-    // long_int line_number = 0;
-    // Boolean is_multiple_comment = false;
-    // Boolean is_multiple_str = false;
-    // str_utf8 glob_buffer = 0, glob_collect = 0;
-    // while (status >= 0)
-    // {
-    //     //----------------init vars
-    //     str_utf8 chars;
-    //     uint32 size = 0;
-    //     String optimize = 0;
-    //     Boolean is_str = false;
-    //     str_utf8 buffer = 0;
-    //     str_utf8 collect = 0;
-    //     uint8 max_bytes = 1;
-    //     //----------------restore buffer,collect,is_str
-    //     if (is_multiple_str)
-    //     {
-    //         is_multiple_str = false;
-    //         is_str = true;
-    //         utf8_str_init(&buffer, glob_buffer);
-    //         utf8_str_init(&collect, glob_collect);
-    //     }
-    //     //----------------reading line by line from file in utf8
-    //     status = utf8_read_line(fp, &chars, &size);
-
-    //     //utf8_str_print("RRTT",chars,true);
-    //     if (status == -10)
-    //     {
-    //         print_error(s.line, "file_not_support_utf8", (String)source_paths[s.source_id], ascii_path, "",
-    //                     "open_mpl_file");
-    //         return false;
-    //     }
-
-    //     //----------------trim line and check is empty
-    //     line_number++;
-    //     str_utf8 code_line = utf8_str_trim_space(chars);
-    //     if (code_line == 0)
-    //     {
-    //         continue;
-    //     }
-    //     uint32 line_size = utf8_str_length(code_line);
-    //     //----------------basic analyzing every line
-    //     for (uint32 i = 0; i < line_size; i++)
-    //     {
-    //         //----------------check is multi line str
-    //         if (is_str && i + 1 == line_size && code_line[i] == '\\')
-    //         {
-    //             is_multiple_str = true;
-    //             glob_buffer = buffer;
-    //             glob_collect = collect;
-    //             break;
-    //         }
-    //         //----------------check is line comment
-    //         if (!is_str && i + 1 < line_size && code_line[i] == '/' && code_line[i + 1] == '/')
-    //         {
-    //             break;
-    //         }
-    //         //----------------check is multi line comments
-    //         if (!is_str && i + 1 < line_size)
-    //         {
-    //             if (code_line[i] == '/' && code_line[i + 1] == '*')
-    //                 is_multiple_comment = true;
-    //             else if (code_line[i] == '*' && code_line[i + 1] == '/')
-    //             {
-    //                 is_multiple_comment = false;
-    //                 i += 1;
-    //                 continue;
-    //             }
-    //         }
-    //         //----------------
-    //         if (is_multiple_comment)
-    //         {
-    //             continue;
-    //         }
-    //         //----------------check is str
-    //         if ((code_line[i] == '\"' || code_line[i] == '\'') && (i == 0 || code_line[i - 1] != '\\'))
-    //         {
-    //             //=>convert single quotation to double quotation
-    //             if (code_line[i] == '\'')
-    //                 code_line[i] = '\"';
-    //             is_str = switch_bool(is_str);
-    //             if (is_str)
-    //             {
-    //                 max_bytes = 1;
-    //                 collect = 0;
-    //                 buffer = utf8_char_append(buffer, (uint32)'\"');
-    //             }
-    //             else
-    //             {
-    //                 //          utf8_str_print("gggg",collect,true);
-    //                 max_bytes = utf8_str_max_bytes(collect, true);
-    //                 //          printf("XXXX:%i,%s\n",max_bytes,utf8_to_bytes_string(collect));
-    //                 if (max_bytes > 1)
-    //                 {
-    //                     long_int utf8_id = add_to_utst(line_number, collect, max_bytes);
-    //                     collect = 0;
-    //                     str_utf8 ss;
-    //                     str_to_utf8(&ss, str_append(UTF8_ID_LABEL, str_from_long_int(utf8_id)));
-    //                     //=>remove first quotation of string
-    //                     buffer = utf8_str_substring(buffer, 0, utf8_str_length(buffer) - 1);
-    //                     buffer = utf8_str_append(buffer, ss);
-    //                     // printf("OOOO:%s\n",str_from_long_int(entry_table.utf8_strings_id));
-    //                 }
-    //                 else
-    //                 {
-    //                     buffer = utf8_str_append(buffer, collect);
-    //                     collect = 0;
-    //                 }
-    //             }
-    //         }
-    //         //      printf("WW@@@:%c\n",code_line[i]);
-    //         //----------------add char to buffer
-    //         if (is_str && (collect != 0 || code_line[i] != '\"'))
-    //         {
-    //             collect = utf8_char_append(collect, code_line[i]);
-    //             uint8 tmp12 = utf8_need_bytes((uint8)code_line[i]);
-    //         }
-    //         if (!is_str && i > 0 && code_line[i - 1] == ' ' && code_line[i] == ' ')
-    //             continue;
-    //         else if (code_line[i] == '\"' && max_bytes > 1)
-    //             continue;
-    //         else if (!is_str)
-    //         {
-    //             //        printf("WW@@@:%c\n",code_line[i]);
-    //             buffer = utf8_char_append(buffer, code_line[i]);
-    //         }
-    //     }
-    //     if (!is_multiple_str)
-    //     {
-    //         //trim again buffer
-    //         buffer = utf8_str_trim_space(buffer);
-    //         if (buffer == 0)
-    //         {
-    //             continue;
-    //         }
-    //         //----------------convert buffer to String
-    //         for (uint32 i = 0; i < utf8_str_length(buffer); i++)
-    //         {
-    //             if (!IS_ONE_BYTE(buffer[i]))
-    //             {
-    //                 // printf("ERR:%i\n", buffer[i]);
-    //                 print_error(line_number, "bad_place_using_utf8", ascii_path, utf8_to_bytes_string(buffer), "",
-    //                             "open_mpl_file");
-    //                 //printf("CXXXX:%s\n",);
-    //                 if (is_programmer_debug >= 2)
-    //                 {
-    //                     print_struct(PRINT_MAIN_SOURCE_ST);
-    //                     print_struct(PRINT_UTF8_ST);
-    //                 }
-    //                 return false;
-    //             }
-    //             optimize = char_append(optimize, (uint8)buffer[i]);
-    //         }
-    //         // optimize=utf8_to_str(buffer);
-    //         //----------------store code line to source_code struct
-    //         //utf8_str_print("Optimize",buffer,true);
-    //         soco tmp1 = {(uint32)line_number, optimize, 0};
-    //         //printf("optimize:%s\n",optimize);
-    //         append_soco(1, tmp1);
-    //     }
-    //     //----------------free memory
-    //     free(chars);
-    // }
-    // free(glob_buffer);
-    // free(glob_collect);
-    // //print_struct(3);
-    // //print_struct(4);
-    // fclose(fp);
+    //printf("WWWWWWWW:%s\n",ascii_path);
+    //=>init vars
+    int32 status = 1;
+    Longint line_number = 0;
+    Boolean is_multiple_comment = false;
+    Boolean is_multiple_str = false;
+    //=>used for multiline strings
+    UString glob_buffer = 0, glob_collect = 0; 
+    while (status >= 0){
+        //=>init vars
+        UString chars;
+        uint32 size = 0;
+        String optimize = 0;
+        Boolean is_str = false;
+        UString buffer = 0;
+        UString collect = 0;
+        uint8 max_bytes = 1;
+        //----------------restore buffer,collect,is_str
+        //=>if multiple string, then set before collected strings to buffer and set is_str
+        if (is_multiple_str){
+          is_multiple_str = false;
+          is_str = true;
+          USTR_init(&buffer, glob_buffer);
+          USTR_init(&collect, glob_collect);
+        }
+        //=>reading line by line from file in utf8
+        status = UTF_read_line(fp, &chars, &size);
+        // USTR_print("RRTT",chars,true);
+        //=>if status code is -10 (can not read an utf8 char)
+        if (status == -10){
+          EXP_print_error(s.line, "file_not_support_utf8", s.name, s.path, "","IMPORT_open_file");
+          return false;
+        }
+        //=>increase line number
+        line_number++;
+        //=>trim space code line
+        UString code_line = USTR_trim_space(chars);
+        //=>if line length after is null,then ignore it!
+        if (code_line == 0){
+            continue;
+        }
+        //=>get line length
+        uint32 line_size = USTR_length(code_line);
+        //=>iterate all line chars, detect utf8 strings
+        for (uint32 i = 0; i < line_size; i++){
+          //=>check if this line is can multi line string, if last line has '\'
+          if (is_str && i + 1 == line_size && code_line[i] == '\\'){
+            is_multiple_str = true;
+            USTR_init(&glob_buffer,buffer);
+            USTR_init(&glob_collect,collect);
+            break;
+          }
+          //=>check is line comment,then ignore it
+          if (!is_str && i + 1 < line_size && code_line[i] == '/' && code_line[i + 1] == '/'){
+            break;
+          }
+          //=>check is multi line comments
+          if (!is_str && i + 1 < line_size){
+            //=>if start multi comment with '/*'
+            if (code_line[i] == '/' && code_line[i + 1] == '*')
+              is_multiple_comment = true;
+            //=>if end multi comment with '*/'
+            else if (code_line[i] == '*' && code_line[i + 1] == '/'){
+              is_multiple_comment = false;
+              i += 1;
+              continue;
+            }
+          }
+          //=>if line is multi comment, then ignore
+          if (is_multiple_comment){
+            continue;
+          }
+          //=>check line has string
+          if ((code_line[i] == '\"' || code_line[i] == '\'') && (i == 0 || code_line[i - 1] != '\\')){
+            //=>convert single quotation to double quotation
+            if (code_line[i] == '\''){
+              code_line[i] = '\"';
+            }
+            is_str = BOOL_switch(is_str);
+            //=>if is string(start of string)
+            if (is_str){
+              max_bytes = 1;
+              collect = 0;
+              buffer = UCH_append(buffer, (uint32)'\"');
+            }
+            //=>if not string(end of string)
+            else{
+              //=>get max bytes needs per char of string
+              max_bytes = USTR_max_bytes(collect, true);
+              //printf("XXXX:%i,%s\n",max_bytes,utf8_to_bytes_string(collect));
+              //=>if string is unicode and not english!
+              if (max_bytes > 1){
+                //=>add utf8 string to utst linkedlist and get its id
+                Longint utf8_id = _utst_add(line_number, collect, max_bytes);
+                collect = 0;
+                UString ss;
+                //=>generate a label replacement utf8 string by its id
+                STR_to_utf8(&ss, STR_append(UTF8_ID_LABEL, STR_from_Longint(utf8_id)));
+                //=>remove first quotation of string (just a utf8 label)
+                buffer = USTR_substring(buffer, 0, USTR_length(buffer) - 1);
+                buffer = USTR_append(buffer, ss);
+                // printf("OOOO:%s\n",str_from_long_int(entry_table.utf8_strings_id));
+              }
+              //=>if string is english
+              else{
+                buffer = USTR_append(buffer, collect);
+                collect = 0;
+              }
+            }
+          }
+          //      printf("WW@@@:%c\n",code_line[i]);
+          //=>if char of line is in string, append it! 
+          if (is_str && (collect != 0 || code_line[i] != '\"')){
+            collect = UCH_append(collect, code_line[i]);
+            uint8 tmp12 = UTF_need_bytes((uint8)code_line[i]);
+          }
+          //=>if char of line is space and not in string, then ignore it
+          if (!is_str && i > 0 && code_line[i - 1] == ' ' && code_line[i] == ' '){
+            continue;
+          }
+          //=>if char is '"', then igonre it
+          else if (code_line[i] == '\"' && max_bytes > 1){
+            continue;
+          }
+          //=>if char of line on in string, append it to buffer
+          else if (!is_str){
+            //printf("WW@@@:%c\n",code_line[i]);
+            buffer = UCH_append(buffer, code_line[i]);
+          }
+        }
+        //=>if not multiple string
+        if (!is_multiple_str){
+          //=>trim again buffer
+          buffer = USTR_trim_space(buffer);
+          //=>if buffer is null, then ignore
+          if (buffer == 0){
+              continue;
+          }
+          //=>convert buffer to String
+          for (uint32 i = 0; i < USTR_length(buffer); i++){
+            //=>if still rest any utf8 char, then ERROR!
+            if (!IS_ONE_BYTE(buffer[i])){
+              // printf("ERR:%i\n", buffer[i]);
+              EXP_print_error(line_number, "bad_place_using_utf8", s.name, USTR_to_bytes_str(buffer), 0,"IMPORT_open_file");
+              //printf("CXXXX:%s\n",);
+              //=>if programmer debug is enabled, then display main source and utf8 structures
+              if (is_programmer_debug >= 2){
+                COM_print_struct(PRINT_MAIN_SOURCE_ST);
+                COM_print_struct(PRINT_UTF8_ST);
+              }
+              return false;
+            }
+            //=>convert utf8 chars to ascii chars
+            optimize = CH_append(optimize, (uint8)buffer[i]);
+          }
+          // optimize=utf8_to_str(buffer);
+          //=>store code line to source_code struct
+          //utf8_str_print("Optimize",buffer,true);
+          //printf("optimize:%s\n",optimize);
+          _soco_append(MAIN_SOURCE_CODE,(uint32)line_number, optimize);
+        }
+        //=>free memory every read line from file
+        free(chars);
+    }
+    //=>free memory related reading source file
+    free(glob_buffer);
+    free(glob_collect);
+    //=>if programmer debug is enabled, then display main source and utf8 structures
+    if (is_programmer_debug >= 2){
+      COM_print_struct(PRINT_MAIN_SOURCE_ST);
+      COM_print_struct(PRINT_UTF8_ST);
+    }
+    fclose(fp);
     //printf("ENDDDDD:%s\n",ascii_path);
     return true;
 }
