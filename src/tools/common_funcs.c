@@ -36,6 +36,7 @@ double COM_calculate_period_time(Longint start_time, String *unit) {
 }
 //******************************************
 void COM_print_struct(uint8 which) {
+  //TODO:
 //   if (which == 0 || which == PRINT_IMPORT_ST) {
 //     imin *tmp1 = entry_table.import_start;
 //     printf("=====Print import_inst_struct :\n");
@@ -85,17 +86,19 @@ void COM_print_struct(uint8 which) {
     }
     printf("=====End printed\n");
   } 
-// else if (which == 0 || which == PRINT_TOKENS_SOURCE_ST) {
-//     soco *tmp1 = entry_table.soco_tokens_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print source_code_tokens_struct :\n");
-//     for (;;) {
-//       printf("id:%i,code:%s\n", tmp1->line, tmp1->code);
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_FUNC_ST) {
+  //=>print all nodes of soco struct (tokens)
+  else if (which == 0 || which == PRINT_TOKENS_SOURCE_ST) {
+      soco *tmp1 = entry_table.soco_tokens_start;
+      if (tmp1 == 0) return;
+      printf("=====Print source_code_tokens_struct :\n");
+      for (;;) {
+        printf("id:%i,code:%s\n", tmp1->line, tmp1->code);
+        tmp1 = tmp1->next;
+        if (tmp1 == 0) break;
+      }
+      printf("=====End printed\n");
+    } 
+// else if (which == 0 || which == PRINT_FUNC_ST) {
 //     blst *tmp1 = entry_table.blst_func_start;
 //     if (tmp1 == 0) return;
 //     printf("=====Print func_block_struct :\n");

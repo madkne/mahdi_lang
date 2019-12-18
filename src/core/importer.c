@@ -29,16 +29,24 @@ Boolean IMPORT_run(){
         // }
         //=>set current source path
         STR_init(&entry_table.current_source_path, ret.path);
-        //----------
-        //TODO:
-        // if (ret1)
-        //     analyze_source_code();
+        //=>if success to import file or module or..., then analyze it!
+        if (ret1){
+            PARSER_analyze_source_code();
+        }
         _imin_set_inactive(ret.id);
     }
     return true;
 }
 
 //******************************************************
+/**
+ * get an import node struct by file type and fill source code and utf8 strings struct
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.18
+ * @param s : import struct node
+ * @return Boolean : if failed or success to complete read file
+ */ 
 Boolean IMPORT_open_file(imin s)
 {
     //=>check if file exist and open it

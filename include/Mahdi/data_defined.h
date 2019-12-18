@@ -51,7 +51,7 @@ void * mahdi_modules_instance[100];
 #endif
 String exceptions_group[16];
 String exceptions_type[4];
-String keywords[28];
+String keywords[26];
 // String keywords_out[13];
 String block_instructions[6];
 uint8 single_operators[7];
@@ -187,7 +187,7 @@ typedef struct block_structures_struct {
 } blst;
 // //****************************data_types struct
 /**
- * store all valid data types, basic and user defined by packages
+ * (parser) store all valid data types, basic and user defined by packages
  */ 
 typedef struct data_types_struct {
   Longint id;
@@ -264,6 +264,16 @@ typedef struct debug_breakpoints_struct {
   String source_path;
   struct debug_breakpoints_struct *next;
 } debr;
+//****************************stru_to_in struct
+/**
+ * (parser) store if,elif,else,loop,manage,... structures that can be complex and in to the other
+ */ 
+typedef struct stru_to_in_struct {
+  Longint id;
+  uint32 stru_pars;
+  Boolean is_active;
+  Boolean is_inline;
+} stoi;
 // //****************************def_var struct
 // typedef struct def_var_struct {
 //   String main_type;
@@ -289,13 +299,7 @@ typedef struct debug_breakpoints_struct {
 //   vaar *end;
 //   uint32 count;
 // } vaar_en;
-// //****************************stru_to_in struct
-// typedef struct stru_to_in_struct {
-//   Longint id;
-//   uint32 stru_pars;
-//   Boolean is_active;
-//   Boolean is_inline;
-// } stoi;
+
 
 // //****************************modules_funcs struct
 // typedef struct modules_funcs_struct {
@@ -485,9 +489,12 @@ void DEF_init();
 //=>soco functions
 void _soco_append(uint8 type, uint32 line,String code);
 void _soco_clear(uint8 type);
+soco _soco_get(uint8 type, uint32 ind);
 
 // soco get_soco(uint8 type, uint32 ind);
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);
+//=>stoi functions
+void _stoi_empty(stoi s[], uint32 size);
 //=>utst functions
 void _utst_append(utst s);
 Longint _utst_add(uint32 line, UString str, uint8 max_bytes);

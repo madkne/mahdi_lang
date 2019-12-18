@@ -7,7 +7,7 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.0.42"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION                        "0.0.48"    //X.Y.Z=> Z<100,Y<10
 #define  VERSION_NUMBER                 4          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی

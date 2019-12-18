@@ -19,7 +19,7 @@ TODO
  - [x] import main source from stdin
  - [x] reading source file as utf8
  - [x] remove comments and convert utf8 to ascii
- - [.] extract tokens
+ - [x] extract tokens
  - [.] parsing tokens
  - [.] get the other imports from main source file
 

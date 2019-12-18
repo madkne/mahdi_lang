@@ -38,10 +38,10 @@
 // #include "builder.h"
 //---------------------------------core functions
 #include "core/importer.h"
-// #include "core/parser.h"
+#include "core/parser.h"
 #include "core/starter.h"
 
-// #include "core/vars_mgr.h"
+#include "core/runkit.h"
 // #include "core/run_mgr.h"
 #include "core/memory.h"
 // #include "core/magic_macro.h"

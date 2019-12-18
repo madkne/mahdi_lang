@@ -75,7 +75,7 @@ String exceptions_group[] = {
 
 String exceptions_type[4] = {"CANCEL", "FATAL", "ERROR", "WARNING"};
 
-String keywords[28] = {"func","pack","private","override","static","true","false","if","elif","else","choose","and","or","not","next","break","loop","new","def","num","str","bool","manage","return","self","this","import","config"};
+String keywords[26] = {"func","pack","override","static","true","false","if","elif","else","choose","and","or","not","next","break","loop","def","number","string","boolean","manage","return","self","this","import","config"};
 
 // String keywords_out[13] = {"func", "true", "false", "null", "if", "elif", "else", "loop", "manage", "next", "break","return", "import"};
 
@@ -91,7 +91,7 @@ String alloc_operators[8] = {"+=", "-=", "*=", "/=", "%%=", "^=", ":=", "|="};
 
 String boolean_operators[2] = {"and", "or"};
 
-String basic_types[3] = {"str", "num", "bool"};
+String basic_types[3] = {"string", "number", "boolean"};
 
 uint8 golden_bytes[] = {7, 11, 27, 127, 223};
 
@@ -282,6 +282,41 @@ void _soco_clear(uint8 type) {
   }
 }
 //*************************************************************
+soco _soco_get(uint8 type, uint32 ind) {
+  soco ret = {0, 0, 0};
+  uint32 ii = 0;
+  soco *tmp1;
+  //soco_main
+  if (type == MAIN_SOURCE_CODE) {
+    tmp1 = entry_table.soco_main_start;
+  }
+    //soco_tokens
+  else if (type == TOKENS_SOURCE_CODE) {
+    tmp1 = entry_table.soco_tokens_start;
+  }
+  for (;;) {
+    if (ii++ == ind) {
+      ret = *tmp1;
+      break;
+    }
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+
+  return ret;
+}
+//*************************************************************
+//***************stru_to_in_struct functions*******************
+//*************************************************************
+void _stoi_empty(stoi s[], uint32 size) {
+  for (uint32 i = 0; i < size; i++) {
+    s[i].id = 0;
+    s[i].is_active = false;
+    s[i].is_inline = false;
+    s[i].stru_pars = 0;
+  }
+}
+//*************************************************************
 //******************utf8_strings functions*********************
 //*************************************************************
 void _utst_append(utst s) {
@@ -360,30 +395,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 //   }
 //   return ret;
 // }
-// //*************************************************************
-// soco get_soco(uint8 type, uint32 ind) {
-//   soco ret = {0, 0, 0};
-//   uint32 ii = 0;
-//   soco *tmp1;
-//   //soco_main
-//   if (type == 1) {
-//     tmp1 = entry_table.soco_main_start;
-//   }
-//     //soco_tokens
-//   else if (type == 2) {
-//     tmp1 = entry_table.soco_tokens_start;
-//   }
-//   for (;;) {
-//     if (ii++ == ind) {
-//       ret = *tmp1;
-//       break;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
 
-//   return ret;
-// }
 // //*************************************************************
 // Boolean edit_soco(uint8 type, uint32 line, String new_data) {
 //   soco *tmp1;
@@ -676,17 +688,7 @@ void _datas_append(Longint fid,Longint pack_id,uint8 type,String name) {
 //   }
 // }
 
-// //*************************************************************
-// //***************stru_to_in_struct functions******************
-// //*************************************************************
-// void empty_stoi(stoi s[], uint32 size) {
-//   for (uint32 i = 0; i < size; i++) {
-//     s[i].id = 0;
-//     s[i].is_active = false;
-//     s[i].is_inline = false;
-//     s[i].stru_pars = 0;
-//   }
-// }
+
 
 
 // //*************************************************************
