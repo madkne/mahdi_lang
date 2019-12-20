@@ -79,7 +79,6 @@ String keywords[26] = {"func","pack","override","static","true","false","if","el
 
 // String keywords_out[13] = {"func", "true", "false", "null", "if", "elif", "else", "loop", "manage", "next", "break","return", "import"};
 
-
 String block_instructions[6] = {"loop", "if", "elif", "else", "manage","choose"};
 
 //uint8 keywords_splitter[5] = {':', ' ', '{', '=', '('};
@@ -95,13 +94,14 @@ String basic_types[3] = {"string", "number", "boolean"};
 
 uint8 golden_bytes[] = {7, 11, 27, 127, 223};
 
-uint8 splitters[] = {' ', '(', ')', '=', '[', ']', '{', '}', ';', ','};
+uint8 token_splitters[11] = {' ', '(', ')', '=', '[', ']', '{', '}', ';', ',',':'};
 
-uint8 words_splitter[] = {':', ' ', '{', '=', '(', ',', '.', '[', ']', '}', ')', ';'};
+uint8 words_splitter[13] = {':', ' ', '{', '=', '(', ',', '.', '[', ']', '}', ')', ';','-'};
 
 uint8 sub_types[6] = {'b','s','u','i','f','h'};
 
 String control_chars[5] = {"\\n", "\\t", "\\", "\\\\", "\\b"};
+uint8 errcodes_len=MAX_ERROR_CODES;
 
 Mpoint *hash_pointers[HASH_MEM_SIZE] = {0};
 
@@ -216,9 +216,9 @@ void DEF_init() {
   entry_table.post_short_alloc = 0;
   entry_table.post_short_alloc_len = 0;
   //=>init basic data_types
-  _datas_append(0,0,BASIC_DATA_TYPE,"string");
-  _datas_append(0,0,BASIC_DATA_TYPE,"number");
-  _datas_append(0,0,BASIC_DATA_TYPE,"boolean");
+  _datas_append(0,BASIC_DATA_TYPE,"string");
+  _datas_append(0,BASIC_DATA_TYPE,"number");
+  _datas_append(0,BASIC_DATA_TYPE,"boolean");
 }
 
 //*************************************************************
@@ -315,6 +315,90 @@ void _stoi_empty(stoi s[], uint32 size) {
     s[i].is_inline = false;
     s[i].stru_pars = 0;
   }
+}
+//*************************************************************
+//****************block_structures functions*******************
+//*************************************************************
+void _blst_append(blst s) {
+  blst *q;
+  q = (blst *) malloc(sizeof(blst));
+  if (q == 0) return;
+  q->func_id = s.func_id;
+  q->stru_id = s.stru_id;
+  q->pack_id=s.pack_id;
+  q->type = s.type;
+  q->line = s.line;
+  q->is_simplified=s.is_simplified;
+  q->source_id = s.source_id;
+  q->params_len = s.params_len;
+  STR_init(&q->label, s.label);
+  SLIST_init(&q->params, s.params, s.params_len);
+  q->next = 0;
+  //blst_func
+  if (s.type == FUNC_BLOCK_ID) {
+    q->id = ++entry_table.func_id;
+    if (entry_table.blst_func_start == 0)
+      entry_table.blst_func_start = entry_table.blst_func_end = q;
+    else {
+      entry_table.blst_func_end->next = q;
+      entry_table.blst_func_end = q;
+    }
+  }
+  //blst_pack
+  if (s.type == PACK_BLOCK_ID) {
+    STR_init(&q->inherit, s.inherit);
+    q->id = ++entry_table.pack_id;
+    if (entry_table.blst_pack_start == 0)
+      entry_table.blst_pack_start = entry_table.blst_pack_end = q;
+    else {
+      entry_table.blst_pack_end->next = q;
+      entry_table.blst_pack_end = q;
+    }
+  }
+  //blst_stru
+  else {
+    q->id = ++entry_table.stru_id;
+    if (entry_table.blst_stru_start == 0)
+      entry_table.blst_stru_start = entry_table.blst_stru_end = q;
+    else {
+      entry_table.blst_stru_end->next = q;
+      entry_table.blst_stru_end = q;
+    }
+  }
+}
+//*************************************************************
+//*******************data_types functions**********************
+//*************************************************************
+void _datas_append(Longint pack_id,uint8 type,String name) {
+  datas *q;
+  q = (datas *) malloc(sizeof(datas));
+  if (q == 0) return;
+  q->id = ++entry_table.datas_id;
+
+  q->type = type;
+  q->pack_id=pack_id;
+  STR_init(&q->name, name);
+  q->next = 0;
+  if (entry_table.datas_start == 0)
+    entry_table.datas_start = entry_table.datas_end = q;
+  else {
+    entry_table.datas_end->next = q;
+    entry_table.datas_end = q;
+  }
+}
+//*************************************************************
+datas _datas_search(String name,Longint pack_id,Boolean name_or_packid) {
+  datas null = {0, 0, 0, 0, 0};
+  //printf("!!!!!SSSSS:%s\n",name);
+  datas *st = entry_table.datas_start;
+  if (st == 0) return null;
+  for (;;) {
+    if (name_or_packid && STR_equal(st->name, name)) return (*st);
+    else if (!name_or_packid && st->pack_id==pack_id) return (*st);
+    st = st->next;
+    if (st == 0) break;
+  }
+  return null;
 }
 //*************************************************************
 //******************utf8_strings functions*********************
@@ -415,43 +499,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 //   return false;
 // }
 
-// //*************************************************************
-// //****************block_structures functions*******************
-// //*************************************************************
-// void append_blst(blst s) {
-//   blst *q;
-//   q = (blst *) malloc(sizeof(blst));
-//   if (q == 0) return;
-//   q->func_id = s.func_id;
-//   q->stru_id = s.stru_id;
-//   q->type = s.type;
-//   q->line = s.line;
-//   q->source_id = s.source_id;
-//   q->params_len = s.params_len;
-//   str_init(&q->lbl, s.lbl);
-//   str_list_init(&q->params, s.params, s.params_len);
-//   q->next = 0;
-//   //blst_func
-//   if (s.type == FUNC_BLOCK_ID) {
-//     q->id = ++entry_table.func_id;
-//     if (entry_table.blst_func_start == 0)
-//       entry_table.blst_func_start = entry_table.blst_func_end = q;
-//     else {
-//       entry_table.blst_func_end->next = q;
-//       entry_table.blst_func_end = q;
-//     }
-//   }
-//     //blst_stru
-//   else {
-//     q->id = ++entry_table.stru_id;
-//     if (entry_table.blst_stru_start == 0)
-//       entry_table.blst_stru_start = entry_table.blst_stru_end = q;
-//     else {
-//       entry_table.blst_stru_end->next = q;
-//       entry_table.blst_stru_end = q;
-//     }
-//   }
-// }
+
 
 // //*************************************************************
 // blst search_lbl_func(String lbl, str_list params, uint32 par_len) {
@@ -501,27 +549,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 //   return null;
 // }
 
-// //*************************************************************
-// //*******************data_types functions**********************
-// //*************************************************************
-void _datas_append(Longint fid,Longint pack_id,uint8 type,String name) {
-  datas *q;
-  q = (datas *) malloc(sizeof(datas));
-  if (q == 0) return;
-  q->id = ++entry_table.datas_id;
 
-  q->type = type;
-  q->fid = fid;
-  q->pack_id=pack_id;
-  STR_init(&q->name, name);
-  q->next = 0;
-  if (entry_table.datas_start == 0)
-    entry_table.datas_start = entry_table.datas_end = q;
-  else {
-    entry_table.datas_end->next = q;
-    entry_table.datas_end = q;
-  }
-}
 
 // //*************************************************************
 // datas get_datas(long_int id) {
@@ -536,21 +564,7 @@ void _datas_append(Longint fid,Longint pack_id,uint8 type,String name) {
 //   return null;
 // }
 
-// //*************************************************************
-// datas search_datas(String name, long_int fid, Boolean is_all) {
-//   datas null = {0, 0, 0, 0, 0, 0};
-//   //printf("!!!!!SSSSS:%s\n",name);
-//   datas *st = entry_table.datas_start;
-//   if (st == 0) return null;
-//   for (;;) {
-//     if (is_all && str_equal(st->name, name)) return (*st);
-//     else if ((st->fid == 0 || st->fid == fid) && str_equal(st->name, name)) return (*st);
-//     st = st->next;
-//     if (st == 0) break;
-//   }
 
-//   return null;
-// }
 
 // //*************************************************************
 // //******************instructions functions*********************

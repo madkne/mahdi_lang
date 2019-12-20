@@ -5,6 +5,27 @@ func _bootup_(){
 }
 ----------------APP2--------------------
 import mod:core:console
+import file:.other
+func _bootup_(){
+	def f="سلام به دنیا \
+	hello world!"/*is comment
+	ha ha...
+	*/
+    console.print('Hello World\n')
+
+}
+----------------APP3--------------------
+pack pk1(){
+	@public_methods
+	static func h2(s:string,g=56*4+2/*OR g:number*/,ll=[65-12,67.7]){}
+	@private_methods
+	override static func h1(xx:number=45.3,s='hello'*3,k={'f':0/6,'v':00.5}){}
+}
+func _bootup_(argvs){
+
+}
+----------------APP2--------------------
+import mod:core:console
 func _bootup_(argvs){
 	main.hello()
 }

@@ -59,17 +59,18 @@ def B=true //OR def B:boolean=true
 def Fg=''
 -----------------config keyword
 - config just in outof any package
-config:DebugMode=true
-config:ErrorsState='fetal'
-config:BootupPackage='main' //=>when you call _bootup_ function from a package not global
+config DebugMode=true
+config ErrorsState='fetal'
 ErrorsState(string),WarningsState(string),ExportLogFile(string),MaxHugeDivideSteps(number),MaxHugeDecimalNumbers(number),AppVersion(string),AppName(string),AppLicense(string),AppCreator(string),AppIcon(string),DebugMode(boolean),ExportBuildFile(string),BuildMode(boolean)
 ----------------- import keyword
+- import from file not have any option like import specific package or global function
+import [type]:[dll]|[lib]|[file]:[packs],[@funcs]
 import mod:core:exception //import execption package from core module
 import mod:core:math,os //OR *
 import lib:..libs.mylib:* // import from "/home/am/Desktop/proj/libs/mylib.mahlib" all packages , .(first) is project root(/home/am/Desktop/proj) and . is /(slash)
 import lib:stdlib:* // import from stdlib of mahdi lang
-import file:..other:pkg1,pkg2,@fun1 //import from "/home/am/Desktop/proj/other.mah" pkg1,pkg2 packages and fun1 global function
-import file:..src.all:* //import from "/home/am/Desktop/proj/src/all.mah" all packages and all global functions
+import lib:..other:pkg1,pkg2,@fun1 //import from "/home/am/Desktop/proj/other.mahlib" pkg1,pkg2 packages and fun1 global function
+import file:..src.all //import from "/home/am/Desktop/proj/src/all.mah" all packages and all global functions
 -----------------package methods
 pack pk1(){
 	@public_methods
@@ -107,12 +108,13 @@ def g=choose(delta){
 - static variables just declared in functions
 - all variables must get default value when declared
 - you can set default value for all rooms of array
+- for define every variable, must determine its data type (as clean or by value)
 def list=[4,6,9,-3] OR def list:number=[] //=>def g=list[2] //g=9
 def j,d:string,b= 56.6,['t','o'],true
 def x,e,u=45
 def n,m,b:boolean=0,6,true
 def er:number={'q1':23,'q2':67} //num j=e.get('q1')
-def dd=[[2.6,6],[5,-7.1]] OR def dd:float=[[2.6,6],[5,-7.1]]
+def dd=[[2.6,6],[5,-7.1]] OR def dd:number=[[2.6,6],[5,-7.1]]
 def ddd=[{'q1':3,'q2':4},{'f':'fg','g':'gf'}] //=>def h:string=ddd[1].get('f')
 def dd=[2,89,6] //ERR=>dd.push([2,89]) => dd.push(2)
 def gh:string=[]; gh.fill(45,'hi');
@@ -174,8 +176,10 @@ def n=45,def q=[5,9.6];
 n:=q[0] //n=5,q[0]=45
 -----------------function header
 - function header can a parameter with default value
-func sam(d:string,g/*OR g:number*/)
-func sam1(j=3,jj)
+- default value of a paqrameter can be a value expression(number|string|boolean) or a list or a map as simplest! like 4+5,true,'he'+'llo',[5,8.5-4],{'q1':67,'q2':9*4}
+- function parameter must have data type or default value
+func sam(d:string,g=34/*OR g:number*/)
+func sam1(j=3,jj:string)
 ----------------- call function
 - all functions that defined out of all packages, are static and public and not give any attribute(private,static)
 - for call outof functions using self keyword
@@ -208,6 +212,11 @@ a:=b
 a,b=sam()
 b,c,d=sam() //ERR
 v,n=e,u // OR v=e;n=u;
+-----------------operands on string
++ : "He"+"llo" => 'Hello'
+* : 'H'*5 => 'HHHHH' //ERROR: 5*'H' (not detect value)
+- : 'HelHello'-'Hel' => 'Hello' //'Hel'-'HelHello' => 'Hel'
+++,-- : last spaces
 -----------------if in if
 if(true)
   if(ty>7 and rt=='56'){
@@ -238,17 +247,11 @@ def e2=(45*++q) //=>e2=90,q=2
 \a : play alert sound
 -----------------_bootup_ function
 - bootup function can just run for once, not recursive
-- bootup function can exist in a package or out of any packages
-- if bootup function in a package, then must static!
+- bootup function must be out of any packages
 - bootup can give app arguments
 - just one bootup function exist in all program
-pack main2(){
-@public_method //(default)
-  static func _bootup_(){}
-}
-OR
 func _bootup_(){}
-func _bootup_(argvs){}
+func _bootup_(argvs:string/*OR argvs:string=[]*/){}
 -----------------_init_ function
 - package constructor and must be just public!
 pack main(){
@@ -261,17 +264,17 @@ func _init_(s:string,y:string){}
 pack pkg1(){
    @public_method
    override func ps1(){}
-   func ps3(num k){
+   func ps3(k:number){
       this.ps2(56)
    }
    @private_method
-   func ps2(num j){}
+   func ps2(j:number){}
    
 }
 pack pkg2(pkg1){
-   func ps1(jj){} //not override on ps1 of pkg1
-   (static|override) func ps3(num kk){} //ERR:exist this on super and not override
-   func ps2(j){
+   func ps1(jj=56){} //not override on ps1 of pkg1
+   (static|override) func ps3(kk:number){} //ERR:exist this on super and not override
+   func ps2(j:number){
       this.ps2(4)
       this.ps1()
       this.ps3(78)

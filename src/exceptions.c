@@ -39,7 +39,7 @@ void EXP_init() {
   EXP_define(2, ERROR_ID, "not_open_file", ImportError, "can't open file '!1@1!'");
   EXP_define(3, ERROR_ID, "file_not_support_utf8", ImportError, "'!1@1!' file not support UTF-8");
   EXP_define(4, ERROR_ID, "import_syntax_error", ImportError,
-                       "A syntax error occurs for '!1@1!' import instruction");
+                       "A syntax error occurs for import instruction");
   EXP_define(5, ERROR_ID, "import_not_support_protocol", ImportError,
                        "not support the protocol in this path '!1@1!' import instruction");
   EXP_define(6, ERROR_ID, "can_not_load_module", ImportError, "can not load a module in '!1@1!' path");
@@ -97,6 +97,7 @@ void EXP_init() {
                        "'!1@1!' is a wrong expression for variable declaration");
   EXP_define(13, ERROR_ID, "invalid_name_var", SyntaxError, "'!1@1!' is not a valid name for a variable");
   EXP_define(14, ERROR_ID, "invalid_next_inst", SyntaxError, "'next' instruction not accept any parameters");
+  EXP_define(15, FATAL_ID, "define_pack_in", SyntaxError, "'!1@1!' is defined into another package");
   //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 	//ValueError
   EXP_define(1, ERROR_ID, "val_def_var", ValueError,
@@ -109,8 +110,8 @@ void EXP_init() {
                        "'!1@1!' is not a valid value as a function parameter");
   EXP_define(6, ERROR_ID, "not_defined_array", ValueError,
                        "'!1@1!' defined by one value and its assigned value is an array");
-  EXP_define(7, ERROR_ID, "unknown_magic_macro", ValueError,
-                       "'!1@1!' is an unknown magic macro");
+  EXP_define(7, ERROR_ID, "invalid_value", ValueError,
+                       "'!1@1!' is an invalid value for define a variable");
   EXP_define(8, ERROR_ID, "not_defined_mm_key", ValueError,
                        "'!1@1!' not defined in '!2@2!' magic macro");
   EXP_define(9, ERROR_ID, "reinitialized_in__define_mm", ValueError,
@@ -157,7 +158,23 @@ void EXP_init() {
                        RuntimeError,
                        "'!1@1!' is a parameter of '!2@2!' function and must be in calling this function");
 }
-
+//**************************************************************
+void EXP_set_errcode(uint32 errcode){
+  errcodes_len++;
+  if(errcodes_len+1>MAX_ERROR_CODES){
+    //=>reset all fields
+    for (uint8 i = 0; i < MAX_ERROR_CODES; i++){
+      errcodes[i]=NOT_ERROR_ERRC;
+    }
+    errcodes_len=0;
+  }
+  errcodes[errcodes_len]=errcode;
+}
+//**************************************************************
+Boolean EXP_check_errcode(uint32 errcode){
+  return (errcodes[errcodes_len]==errcode);
+}
+//**************************************************************
 int8 EXP_handler(String lbl_err, const char func_occur[], String rep1, String rep2) {
 //  printf("FFFFFFFFFF:%s\n",lbl_err);
   //---------------------init vars
@@ -206,7 +223,7 @@ int8 EXP_handler(String lbl_err, const char func_occur[], String rep1, String re
 //   }
 //   //---------------------print error;
 //   if (manage_exception_store == 0 && excep_id > 0) {
-//     ret_num = print_error(entry_table.Rline, st.lbl, entry_table.Rsrc, rep1, rep2, func_occur_err);
+    ret_num = EXP_print_error(entry_table.Rline, st.lbl, entry_table.Rsrc, rep1, rep2, func_occur_err);
 //   }
 //     //---------------------manage structure
 //   else if (manage_exception_store != 0 && excep_id > 0) {

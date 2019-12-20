@@ -16,6 +16,7 @@ String LLIST_print(LintList s, uint32 len);
 // Str List Functions
 uint32 SLIST_size(StrList s);
 String SLIST_print(StrList s, uint32 len);
+int32 SLIST_search(StrList s, uint32 len,String find);
 void SLIST_append(StrList *s, String s1, uint32 len);
 void SLIST_init(StrList *s, StrList val, uint32 len);
 void SLIST_delete_first(StrList *s, uint32 len);

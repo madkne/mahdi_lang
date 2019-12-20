@@ -14,12 +14,11 @@ Boolean IMPORT_run(){
         //=>get first active import node from imin struct
         imin ret = _imin_get_first_active(); 
         //=>if import type is file, the open it
-        if (ret.type == IMPORT_FILE)
-        {
-            //=>append source path to sources list
-            SLIST_append(&entry_table.sources_list, ret.path, entry_table.sources_len++);
-            //=>open file and fill soco struct
-            ret1 = IMPORT_open_file(ret);
+        if (ret.type == IMPORT_FILE){
+          //=>append source path to sources list
+          SLIST_append(&entry_table.sources_list, ret.path, entry_table.sources_len++);
+          //=>open file and fill soco struct
+          ret1 = IMPORT_open_file(ret);
         }
         //TODO:the others
         // else if (ret.type == IMPORT_MODULE)

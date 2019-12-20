@@ -19,13 +19,18 @@ String CH_append(String s, uint8 c) {
 
 //******************************************
 String CH_join(StrList s, uint8 sp, uint32 size, Boolean is_remove_empty) {
-  String out = "";
+  String out = 0;
   for (uint32 i = 0; i < size; i++) {
-    if (is_remove_empty && s[i][0] == 0)
+    //=>if empty, and must remove, ignore it!
+    if (is_remove_empty && (s[i]==0 || s[i][0] == 0)){
       continue;
-    if (i > 0)
-      out = CH_append(out, sp);
+    }
+    //=>append s[i]
     out = STR_append(out, s[i]);
+    
+    if (i+1<size){
+      out = CH_append(out, sp);
+    }
   }
   return out;
 }

@@ -2,6 +2,7 @@
 #define __MAHDI_COMMON_FUNCS_H    1
 
 
+String COM_convert_mahdipath_to_abspath(String mahdipath,String extension,String *mahdiname);
 // String COM_get_Mahdi_dir_path();
 double COM_calculate_period_time(Longint start_time, String *unit);
 void COM_print_struct(uint8 which);

@@ -42,12 +42,18 @@ String STR_reomve_quotations(String s, String type) {
 String STR_append(String s1, String s2) {
   uint32 len1 = STR_length(s1);
   uint32 len2 = STR_length(s2);
+  //=>if both is null
+  if(len1==0 && len2==0){
+    return 0;
+  }
   String s3;
   s3 = (String) malloc(sizeof(uint8) * (len1 + len2 + 1));
   //---------------------------
   if (s3 != 0) {
-    for (uint32 i = 0; i < len1; i++) {
-      s3[i] = s1[i];
+    if(len1>0){
+      for (uint32 i = 0; i < len1; i++) {
+        s3[i] = s1[i];
+      }
     }
     for (uint32 i = len1; i < len1 + len2; i++) {
       s3[i] = s2[i - len1];

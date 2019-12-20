@@ -7,15 +7,15 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.0.48"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 4          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.0.83"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 8          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
 #define  FIRST_BUILD                    "2019.10.26"
 #define  BETA_LBUILD                    "undefined"
 #define  RC_LBUILD                      "undefined"
-#define  LICENCE                        "MIT"
+#define  LICENCE                        "MAHDI-LICENCE"
 #define  OFFICIAL_WEBSITE               "http://mahdi-lang.ir"
 #define  COPYRIGHT                      "Copyright (C) 2019"
 #define  C_CORE_CODE_LINES              0       //0.6.31 - 0.6.90
@@ -65,6 +65,7 @@
 #define   MAX_INTO_IN_STRUCTURES        20
 #define   MAX_INTO_IN_FUNCTION_CALLS    30
 #define   MAX_OPENED_FILES              20
+#define   MAX_ERROR_CODES               5
 #define   END_OF_FILE                  -10
 #define   SYSTEM_STRING_DEFINE          "SYS__STR_"
 #define   RETURN_TMP_NAME               "@ret"
@@ -83,7 +84,7 @@
 #define   DEBUG_ANSWER                  "[mdebug]$ "
 //------------------------------------------import struct
 #define IMPORT_FILE                     1
-#define IMPORT_PACKAGE                  2
+#define IMPORT_MAHLIB                   2 
 #define IMPORT_EMBEDDED                 3
 #define IMPORT_MODULE                   4
 //------------------------------------------used as exit status for exit syscall
@@ -95,6 +96,12 @@
 #define   WARNING_ID                   -3
 #define   FATAL_ID                     -1
 #define   CANCEL_ID                     0
+//------------------------------------------used as function error codes
+#define   NOT_ERROR_ERRC                0
+#define   BAD_LIST_ERRC                 1
+#define   BAD_MAP_ERRC                  2
+#define   BAD_FIRST_ITEM_ERRC           3
+#define   INVALID_VALUE_ERRC            4
 //------------------------------------------used as instruction types
 #define   UNKNOWN_LBL_INST              0
 #define   STRUCTURE_LBL_INST            1
@@ -136,7 +143,7 @@
 #define PRINT_MAIN_SOURCE_ST            4
 #define PRINT_TOKENS_SOURCE_ST          5
 #define PRINT_FUNC_ST                   6
-#define PRINT_STRUCT_ST                 7
+#define PRINT_PACK_ST                   7
 #define PRINT_INSTRU_ST                 8
 #define PRINT_STRU_ST                   9
 #define PRINT_MAGIC_MACROS_ST           10
@@ -145,6 +152,7 @@
 #define PRINT_STRUCTURES_STACK_ST       13
 #define PRINT_CONDITION_LEVEL_ST        14
 #define PRINT_LOOP_LEVEL_ST             15
+#define PRINT_DATA_TYPES_ST             16
 //------------------------------------------
 #define   BOOL_SUB_TYPE_ID              1
 #define   STR_SUB_TYPE_ID               2

@@ -79,6 +79,10 @@ int main(int argc, char **argv) {
   //  print_struct(PRINT_CONDITION_LEVEL_ST);
   //	print_magic_macros(CONFIG_MAGIC_MACRO_TYPE);
 //  print_struct(PRINT_UTF8_ST);
+
+// printf("PPP:%s\n",RUNKIT_get_firstitem_listormap("[{'q1':[6,89],'q2':8+3}]"));
+
+
   //-------------------------time of end program
   APP_exit(EXIT_NORMAL);
   return 0;

@@ -2,6 +2,48 @@
 
 // common functions
 //******************************************
+/**
+ * get a mahdi path like '..main' or '..libs.mylib' and convert it to a absolute path of filesystem
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.18
+ * @param mahdipath : a mahdi custom path
+ * @param extension : extension with dot that attach to last path like '.mah'
+ * @param mahdiname : (pointer) if non-zero then set it filename
+ * @return String : absolute path of mahdi path
+ */ 
+String COM_convert_mahdipath_to_abspath(String mahdipath,String extension,String *mahdiname) {
+  //=>init vars
+  // String StrSep = CH_to_string(OS_SEPARATOR);
+  String ret = STR_trim_space(mahdipath);
+  StrList segs=0;
+  uint32 segslen=0;
+  //=>split by '.' as slash
+  segslen=CH_split(ret,'.',&segs,false);
+  //=>set last segment as name
+  if(mahdiname!=0){
+    STR_init(&(*mahdiname),segs[segslen-1]);
+  }
+    //=>if segments length is 0, then return null
+  if(segslen==1){
+    return segs[0]; 
+  }
+  //=>if first segment is empty, set app directory path to it!
+  if(segs[0]==0){
+    STR_init(&segs[0],project_root);
+  }
+  //=>append extension in last segment
+  if(extension!=0){
+    segs[segslen-1]=STR_append(segs[segslen-1],extension);
+  }
+    
+  //=>join all segments with '/'
+  ret=CH_join(segs,OS_SEPARATOR,segslen,true);
+// printf("dffff:%s,%s\n",SLIST_print(segs,segslen),ret);
+  return ret;
+
+}
+//******************************************
 // String COM_get_Mahdi_dir_path() {
 //   String out = 0;
 //   #if LINUX_PLATFORM == 1
@@ -36,21 +78,30 @@ double COM_calculate_period_time(Longint start_time, String *unit) {
 }
 //******************************************
 void COM_print_struct(uint8 which) {
-  //TODO:
-//   if (which == 0 || which == PRINT_IMPORT_ST) {
-//     imin *tmp1 = entry_table.import_start;
-//     printf("=====Print import_inst_struct :\n");
-//     for (;;) {
-//       printf("Active:%i,id:%li,type:%i,line:%i,source:[%i]\n", tmp1->is_active, tmp1->id, tmp1->type, tmp1->line,
-//              tmp1->source_id);
-//       utf8_str_print("path:", tmp1->path, true);
-//       utf8_str_print("source:", source_paths[tmp1->source_id], true);
-//       printf("\n");
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_EXCEPTIONS_ST) {
+  //=>print all nodes of imin struct (import instruction)
+  if (which == 0 || which == PRINT_IMPORT_ST) {
+    imin *tmp1 = entry_table.import_start;
+    printf("=====Print import_inst_struct :\n");
+    for (;;) {
+      printf("Active:%i,id:%li,type:%i,name:%s,packs:%s,funcs:%s,path:%s,line:%i,source:[%i][ERR%i]\n", tmp1->is_active, tmp1->id, tmp1->type,tmp1->name,SLIST_print(tmp1->packages,tmp1->pack_len),SLIST_print(tmp1->functions,tmp1->func_len),tmp1->path, tmp1->line,tmp1->source_index,tmp1->err_code);
+      printf("\n");
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of datas struct (data types)
+  else if (which == 0 || which == PRINT_DATA_TYPES_ST) {
+    datas *tmp1 = entry_table.datas_start;
+    printf("=====Print data_types_struct :\n");
+    for (;;) {
+      printf("[id:%li,type:%i,pid:%li]:%s\n", tmp1->id,tmp1->type,tmp1->pack_id,tmp1->name);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+// else if (which == 0 || which == PRINT_EXCEPTIONS_ST) {
 //     exli *tmp1 = entry_table.exli_start;
 //     printf("=====Print exceptions_list_struct :\n");
 //     for (;;) {
@@ -62,7 +113,7 @@ void COM_print_struct(uint8 which) {
 //     printf("=====End printed\n");
   // } 
   //=>print all nodes of utst struct (utf8 strings)
-   if (which == 0 || which == PRINT_UTF8_ST) {
+  if (which == 0 || which == PRINT_UTF8_ST) {
     utst *tmp1 = entry_table.utst_start;
     if (tmp1 == 0) return;
     printf("=====Print utf8_strings_struct :\n");
@@ -126,18 +177,22 @@ void COM_print_struct(uint8 which) {
 //       if (tmp1 == 0) break;
 //     }
 //     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_STRUCT_ST) {
-//     datas *tmp1 = entry_table.datas_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print struct_struct :\n");
-//     for (;;) {
-//       printf("(id:%li,fid:%li,len:%i),name:%s,params:%s\n", tmp1->id, tmp1->fid, tmp1->params_len, tmp1->name,
-//              print_str_list(tmp1->params, tmp1->params_len));
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_STRU_ST) {
+//   } 
+  //=>print all nodes of blst packs struct (packages)
+  else if (which == 0 || which == PRINT_PACK_ST) {
+    blst *tmp1 = entry_table.blst_pack_start;
+    if (tmp1 == 0) return;
+    printf("=====Print pack_block_struct :\n");
+    for (;;) {
+      if(tmp1->type==PACK_BLOCK_ID){
+        printf("id:%li,pid:%li,name:%s,inherit:%s,params:%s\n", tmp1->id, tmp1->pack_id, tmp1->label,tmp1->inherit, SLIST_print(tmp1->params, tmp1->params_len));
+      }
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+// else if (which == 0 || which == PRINT_STRU_ST) {
 //     blst *tmp1 = entry_table.blst_stru_start;
 //     if (tmp1 == 0) return;
 //     printf("=====Print block_structure_struct :\n");

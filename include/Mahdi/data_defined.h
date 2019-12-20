@@ -49,6 +49,8 @@ HINSTANCE mahdi_modules_instance[100];
 #elif LINUX_PLATFORM == true
 void * mahdi_modules_instance[100];
 #endif
+uint32 errcodes[MAX_ERROR_CODES];
+uint8 errcodes_len;
 String exceptions_group[16];
 String exceptions_type[4];
 String keywords[26];
@@ -60,8 +62,8 @@ String alloc_operators[8];
 String boolean_operators[2];
 String basic_types[3];
 uint8 golden_bytes[5];
-uint8 splitters[10];
-uint8 words_splitter[12];
+uint8 token_splitters[11];
+uint8 words_splitter[13];
 uint8 sub_types[6];
 String control_chars[5];
 StrList program_argvs;
@@ -71,11 +73,11 @@ uint32 installed_modules_len;
 //****************************import struct
 typedef struct import_inst_struct {
   Longint id;
-  uint8 type;
-  Boolean is_active;
-  String name;
-  String path;
-  StrList packages;
+  uint8 type; //required
+  Boolean is_active; 
+  String name; //required
+  String path; //required
+  StrList packages; 
   StrList functions;
   uint32 pack_len;
   uint32 func_len;
@@ -178,8 +180,10 @@ typedef struct block_structures_struct {
   Longint stru_id;
   uint8 type; //loop,if,elif,else,manage,choose,func,pack
   String label;
+  String inherit; //just for packs
   StrList params; //for packs, is attributes vars
   uint32 params_len;
+  Boolean is_simplified;
 
   uint32 line;
   uint32 source_id;
@@ -191,7 +195,6 @@ typedef struct block_structures_struct {
  */ 
 typedef struct data_types_struct {
   Longint id;
-  Longint fid;
   Longint pack_id;
   uint8 type; //basic,package
   String name;
@@ -274,17 +277,18 @@ typedef struct stru_to_in_struct {
   Boolean is_active;
   Boolean is_inline;
 } stoi;
-// //****************************def_var struct
-// typedef struct def_var_struct {
-//   String main_type;
-//   uint8 sub_type;
-//   String name_var;
-//   String index_var;
-//   String value_var;
-//   Longint fid;
-//   Longint sid;
+//****************************def_var struct
+typedef struct define_variable_struct {
+  String type_var;
+  String name_var;
+  String value_var;
+  Longint pid;
+  Longint fid;
+  Longint sid;
+  Boolean is_list;
+  Boolean is_map;
 
-// } def_var_s;
+} defvar;
 
 // //**********************vals_array_struct
 // typedef struct vals_array_struct {
@@ -473,7 +477,7 @@ struct entry_table_struct {
   Longint return_fin;
   uint32 Rorder, Rline;
   Boolean is_stop_APP_controller, is_next_inst_running, is_occur_error_exception;
-
+  //=>list of all source paths
   StrList sources_list;
   uint32 sources_len;
 
@@ -495,6 +499,11 @@ soco _soco_get(uint8 type, uint32 ind);
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);
 //=>stoi functions
 void _stoi_empty(stoi s[], uint32 size);
+//=>blst functions
+void _blst_append(blst s);
+//=>datas functions
+void _datas_append(Longint pack_id,uint8 type,String name);
+datas _datas_search(String name,Longint pack_id,Boolean name_or_packid);
 //=>utst functions
 void _utst_append(utst s);
 Longint _utst_add(uint32 line, UString str, uint8 max_bytes);
@@ -509,7 +518,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes);
 // blst get_func_by_id(Longint id);
 // blst search_lbl_stru(String lbl);
 // //-------------------------datas funcs
-void _datas_append(Longint fid,Longint pack_id,uint8 type,String name);
+
 
 // datas _datas_get(Longint id);
 

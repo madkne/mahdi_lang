@@ -102,9 +102,18 @@ String SLIST_print(StrList s, uint32 len) {
   ret = CH_append(ret, '}');
   return ret;
 }
+//******************************************
+int32 SLIST_search(StrList s, uint32 len,String find) {
+  if (len == 0) return -1;
+  String ret = 0;
+  for (uint32 i = 0; i < len; i++) {
+    if(STR_equal(s[i],find)) return i;
+  }
+  return -1;
+}
 //*************************************************************
 void SLIST_append(StrList *s, String s1, uint32 len) {
-  //printf("CCCC:%s,%i\n",s1,len);
+  // printf("CCCC:%s,%i\n",s1,len);
   StrList tmp = 0;
   SLIST_init(&tmp, *s, len);
   //if(*s!=NULL)free(*s);
