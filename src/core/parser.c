@@ -5,6 +5,12 @@
 Longint Aline = 0; //=>current line number
 Boolean is_in_func = false;
 Boolean is_in_pack=false;
+//=>detect and get tokens like '@private_method' in package
+uint8 pack_zone=PUBLIC_METHOD_FATTR;
+//=>get tokens like 'override','static' in package
+int32 pack_method_attrs[MAX_FUNCTION_ATTRIBUTES];
+uint8 pack_method_attrs_len=0;
+//=>store end parse_pars count on end
 int8 end_of_pack=false;
 int8 end_of_func=false;
 uint16 parse_pars = 0;
@@ -32,14 +38,18 @@ Boolean PARSER_analyze_source_code() {
     end_of_func=-1;
     is_inline_stru = false;
     end_of_pack=-1;
+    pack_zone=PUBLIC_METHOD_FATTR;
+    ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
+    pack_method_attrs_len=0;
     //=>get tokens of source code
     PARSER_get_tokens();
-    COM_print_struct(PRINT_TOKENS_SOURCE_ST);
+    if(is_programmer_debug>=2){
+        COM_print_struct(PRINT_TOKENS_SOURCE_ST);
+    }
     //=>init vars
     uint8 state = 0; //1:func , 2:stru , 3:pack
     //=>set current source path index on Apath var
     Apath=SLIST_search(entry_table.sources_list,entry_table.sources_len,entry_table.current_source_path);
-    //printf("GGGGG:%s,%i\n", print_str_list(source_paths, entry_table.source_counter), entry_table.source_counter);
     //=>start parsing codes token by token
     for (uint32 i = 0; i < entry_table.soco_tokens_count; i++) {
         //=>get token
@@ -48,7 +58,7 @@ Boolean PARSER_analyze_source_code() {
         String Acode= 0;
         STR_init(&Acode,token_item.code);
         Aline = token_item.line;
-        //printf("$%s,%i,%i\n", Acode,i,is_in_func);
+        // printf("$$$%s,%i,%i\n", Acode,i,state);
         //=>count pars
         if (STR_CH_equal(Acode, '{')) {
             parse_pars++;
@@ -100,6 +110,23 @@ Boolean PARSER_analyze_source_code() {
                 cur_stru_id = PARSER_get_last_active_is_in_stru_id();
             }
         }
+        //=>if is in a package and out of any functions
+        if(cur_pack_id>0 && cur_func_id==0){
+            if(pack_method_attrs_len==3) pack_method_attrs_len=0;
+            //=>check for zone methods in package
+            if(STR_equal(Acode,"@public_methods")){
+                pack_zone=PUBLIC_METHOD_FATTR;
+            }else if(STR_equal(Acode,"@private_methods")){
+                pack_zone=PRIVATE_METHOD_FATTR;
+            }
+            //=>get method attributes
+            else if(STR_equal(Acode,"override")){
+                pack_method_attrs[pack_method_attrs_len++]=OVERRIDE_METHOD_FATTR;
+            }
+            else if(STR_equal(Acode,"static")){
+                pack_method_attrs[pack_method_attrs_len++]=STATIC_METHOD_FATTR;
+            }
+        }
         //if token is import keyword
         if (state == 0 && STR_equal("import", Acode)) {
             i++;
@@ -115,6 +142,9 @@ Boolean PARSER_analyze_source_code() {
                 EXP_print_error(Aline, "define_pack_in", entry_table.current_source_path, name, 0, "PARSER_analyze_source_code");
                 break;
             }
+            pack_zone=PUBLIC_METHOD_FATTR;
+            ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
+            pack_method_attrs_len=0;
             state = 3;
             i++;
             PARSER_manage_package(&i);
@@ -134,22 +164,22 @@ Boolean PARSER_analyze_source_code() {
             PARSER_manage_function(&i);
             continue;
         }
-//     //-------------structure headers
-//     if (state == 0 && str_search(block_instructions, Acode, StrArraySize(block_instructions))) {
-//       state = 2;
-//       i++;
-//       if (str_equal(Acode, "else"))i--;
-//       is_inline_stru = false;
-//       manage_structures(&i, Acode);
-//       //if stru is inline
-//       if (is_inline_stru) {
-//         is_in_stru[block_id - 1].is_inline = true;
-//         is_in_stru[block_id - 1].is_active = true;
-// //        printf("FFDDDD:%s\n", Acode);
-//         state = 0;
-//       }
-//       continue;
-//     }
+        //=>if token is a if,elif,loop,... keywords 
+        if (state == 0 && STR_search(block_instructions, Acode,StrArraySize(block_instructions))) {
+            state = 2;
+            i++;
+            if (STR_equal(Acode, "else"))i--;
+            is_inline_stru = false;
+            PARSER_manage_structure(&i, Acode);
+            //=>if stru is inline
+            if (is_inline_stru) {
+                is_in_stru[block_id - 1].is_inline = true;
+                is_in_stru[block_id - 1].is_active = true;
+                //        printf("FFDDDD:%s\n", Acode);
+                state = 0;
+            }
+            continue;
+        }
 //     //-------------normal instructions
 //     if (state == 0 && !str_ch_equal(Acode, '{') && !str_ch_equal(Acode, '}') && !str_ch_equal(Acode, ';')) {
 //       manage_normal_instructions(&i);
@@ -185,7 +215,9 @@ Boolean PARSER_analyze_source_code() {
   if(is_programmer_debug>=2){
     COM_print_struct(PRINT_IMPORT_ST);
     COM_print_struct(PRINT_PACK_ST);
+    COM_print_struct(PRINT_FUNC_ST);
     COM_print_struct(PRINT_DATA_TYPES_ST);
+    COM_print_struct(PRINT_STRU_ST);
   }
   //print_struct(7);*/
   return true;
@@ -345,8 +377,13 @@ void PARSER_manage_package(uint32 *i) {
             break;
         }
     }
+    //=>verify package name
+    if(!RUNKIT_is_valid_name(name,false)){
+        EXP_print_error(Aline,"invalid_name_block",entry_table.current_source_path,name,0,"PARSER_manage_package");
+        return;
+    }
     //=>append to blst pack struct
-    blst tmp1 = {0, 0, 0,0, PACK_BLOCK_ID, name, inherit, 0,0,true, Aline, Apath, 0};
+    blst tmp1 = {0, 0, 0,0, PACK_BLOCK_ID, name, inherit, 0,0,true,0, Aline, Apath, 0};
     _blst_append(tmp1);
     //=>append to datas struct
     _datas_append(entry_table.pack_id,PACKAGE_DATA_TYPE,name);
@@ -359,19 +396,21 @@ void PARSER_manage_package(uint32 *i) {
 /**
  * get i pointer of token index in source code and detect function header and append it to imin struct
  * @author madkne
- * @version 1.0
+ * @version 1.3
  * @since 2019.12.20
  * @param i : (pointer) index of token 
  * @return void
  */
 void PARSER_manage_function(uint32 *i){
-    //-----------------init vars
+    //=>init vars
     Boolean is_par = false;
     String name = 0,param_buf=0;
     StrList parameters = 0;
     uint32 params_len = 0;
     uint8 pars = 0;
     uint8 param_bra=0,param_acol=0;
+    int32 func_attrs[MAX_FUNCTION_ATTRIBUTES];
+    ILIST_reset(func_attrs,MAX_FUNCTION_ATTRIBUTES);
     //=>iterate tokens of function header
     for (; *i < entry_table.soco_tokens_count; (*i)++) {
         //=>get token after pack
@@ -424,9 +463,48 @@ void PARSER_manage_function(uint32 *i){
             break;
         }
     }
-    printf("func_header:%s;%s;%i\n",name,SLIST_print(parameters,params_len),params_len);
+    //=>verify function name
+    for (uint32 i = 0; i < STR_length(name); i++) {
+        //=>if chars of name is valid, ignore it like _var,var,@var,var34
+        if ((name[i] >= '0' && name[i] <= '9' && i>0) || (name[i] >= 'A' && name[i] <= 'Z') || (name[i] >= 'a' && name[i] <= 'z') || name[i] == '_' ) {
+            continue;
+        } else {
+            EXP_print_error(Aline,"invalid_name_block",entry_table.current_source_path,name,0,"PARSER_manage_function");
+            return;
+        }
+    }
+    //=>check if function is global, not in predefined package function
+    if(cur_pack_id==0 && _prme_search(name)!=-1){
+        EXP_print_error(Aline,"invalid_predefined_method",entry_table.current_source_path,name,0,"PARSER_manage_function");
+        return;
+    }
+    //=>set function attributes if in a package
+    if(cur_pack_id>0){
+        for (uint8 i = 0; i < pack_method_attrs_len; i++){
+            func_attrs[i]=pack_method_attrs[i]; 
+        }
+        func_attrs[pack_method_attrs_len]=pack_zone;
+        //=>add predefined attribute, if is a predefined method
+        if(_prme_search(name)>-1){
+            func_attrs[pack_method_attrs_len+1]=PREDEFINED_METHOD_FATTR;  
+            //=>if predefined has 'private' or 'static', set error!
+            if(ILIST_search(func_attrs,PRIVATE_METHOD_FATTR,MAX_FUNCTION_ATTRIBUTES)||ILIST_search(func_attrs,STATIC_METHOD_FATTR,MAX_FUNCTION_ATTRIBUTES)){
+                EXP_print_error(Aline,"invalid_predefined_attr_method",entry_table.current_source_path,name,0,"PARSER_manage_function");
+                return;
+            }
+        }
+        //TODO:
+    }
+    //=>if function is _bootup_
+    else if(STR_equal(name,"_bootup_")){
+        func_attrs[0]=BOOTUP_FUNCTION_FATTR;
+    }
+    //=>empty method attributes array 
+    ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
+    pack_method_attrs_len=0;
+    // printf("func_header:%s;%s;%i\n",name,SLIST_print(parameters,params_len),params_len);
     //=>append to blst_func
-    blst tmp1 = {0, cur_pack_id, 0,0, FUNC_BLOCK_ID, name,0, parameters, params_len,false, Aline, Apath, 0};
+    blst tmp1 = {0, cur_pack_id, 0,0, FUNC_BLOCK_ID, name,0, parameters, params_len,false,(IntList)func_attrs, Aline, Apath, 0};
     _blst_append(tmp1);
     //=>set global vars
     cur_func_id = entry_table.func_id;
@@ -434,9 +512,187 @@ void PARSER_manage_function(uint32 *i){
 }
 //******************************************************
 /**
+ * get i pointer of token index in source code and structure name like 'if','loop' and detect structure header and append it to blst struct
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.21
+ * @param i : (pointer) index of token 
+ * @param lbl : label of structure like 'if','elif','loop'
+ * @return void
+ */
+void PARSER_manage_structure(uint32 *i, String lbl) {
+    //=>init vars
+    int32 is_par = 0;
+    uint8 type = LOOP_STRU_ID;
+    String buf = 0;
+    uint32 params_len = 0;
+    StrList params = 0;
+    if (STR_equal(lbl, "if")) type = IF_STRU_ID;
+    else if (STR_equal(lbl, "elif")) type = ELIF_STRU_ID;
+    else if (STR_equal(lbl, "else")) type = ELSE_STRU_ID;
+    else if (STR_equal(lbl, "manage")) type = MANAGE_STRU_ID;
+    else if (STR_equal(lbl, "choose")) type = CHOOSE_STRU_ID;
+
+    //=>analyze all structure except 'else'
+    if(type != ELSE_STRU_ID){
+        for (; *i < entry_table.soco_tokens_count; (*i)++) {
+            //=>get token after structure label
+            soco token_item = _soco_get(TOKENS_SOURCE_CODE, *i);
+            String Acode =0;
+            STR_init(&Acode,token_item.code);
+            Aline = token_item.line;
+            //  printf("IIO:%s\n", Acode);
+            if (STR_CH_equal(Acode, ';') && is_par==0) {
+                break;
+            }
+            //=>count pars
+            if (STR_CH_equal(Acode, '(')) {
+                is_par++;
+                if (is_par == 1)continue;
+            }else if (STR_CH_equal(Acode, ')')) {
+                is_par--;
+                //break all
+                if (is_par == 0) break;
+            }
+            /*if (str_ch_equal(Acode, '{'))parse_pars++;
+            else if (str_ch_equal(Acode, '}'))parse_pars--;*/
+            //=>append to buf
+            buf = STR_append(buf, Acode);
+            if ((*i) + 1 < entry_table.soco_tokens_count && !CH_search(words_splitter, Acode[0],ChArraySize(words_splitter)) &&
+                !CH_search(words_splitter, _soco_get(TOKENS_SOURCE_CODE, (*i) + 1).code[0],ChArraySize(words_splitter))) {
+                buf = CH_append(buf, ' ');
+            }
+        }
+    }
+    //=>if structure is 'else' type
+    if (type == ELSE_STRU_ID) {
+        SLIST_append(&params, "null", params_len++);
+    }
+    //=>if structure is other types
+    else {
+        buf = PARSER_trim_inst_code(buf); //trim code
+        SLIST_append(&params, buf, params_len++);
+    }
+    // printf("@@@DDDD:%s,%s\n", lbl, buf);
+    //=>check if stru is inline or not!
+    uint32 cur_ind = *i;
+    if (cur_ind + 2 <= entry_table.soco_tokens_count && !STR_CH_equal(_soco_get(TOKENS_SOURCE_CODE, cur_ind + 1).code, '{') &&
+        !STR_CH_equal(_soco_get(TOKENS_SOURCE_CODE, cur_ind + 2).code, '{')) {
+        is_inline_stru = true;
+    }
+
+    //=>analyze loop stru, split its parameters
+    if (type == LOOP_STRU_ID) {
+        String buffer = 0, tmp = 0;
+        //=>get parameters of loop
+        STR_init(&buffer, params[0]);
+        params_len = 0;
+        params = 0;
+        Boolean is_str = false;
+        uint32 blen = STR_length(buffer);
+        //=>iterate loop parameters
+        for (uint32 j = 0; j <= blen; j++) {
+            //=>check if is string
+            if (j < blen && buffer[j] == '\"' && (j == 0 || buffer[j - 1] != '\\')){
+                is_str = BOOL_switch(is_str);
+            }
+            //=>if get ';' or end
+            if (!is_str && (buffer[j] == ';' || j == blen)) {
+                SLIST_append(&params, tmp, params_len++);
+                tmp = 0;
+                continue;
+            }
+            //=>append to tmp
+            tmp = CH_append(tmp, buffer[j]);
+        }
+        //=>if parameters count is less that 3
+        if (params_len < 3)
+            while (params_len < 3)SLIST_append(&params, 0, params_len++);
+        //=>if parameters count is more than 3, then error!
+        else if (params_len > 3) {
+            //TODO:error
+            return;
+        }
+        //=>if condition segment of loop is null,then error!
+        if (params[1] == 0) {
+            //TODO:error
+            return;
+        }
+    //    printf("#WW:%i;;;%s;;;%s\n", params_len, print_str_list(params, params_len), buf);
+    }
+    //=>get current stru id
+    Longint sid_t = cur_stru_id;
+    //=>increase block id and check if not bigger than max!
+    block_id++;
+    if (block_id >= MAX_INTO_IN_STRUCTURES) {
+      //TODO:error
+      //block_id = 1;
+      return;
+    }
+    //printf("CFFFF:%s,%s,%i\n",lbl, print_str_list(params, params_len), params_len);
+
+    //=>append to blst
+    String inst = STR_multi_append(STRUCTURES_LABEL, STR_from_Longint(entry_table.stru_id + 1), 0, 0, 0, 0);
+    blst tmp1 = {0,cur_pack_id, cur_func_id, cur_stru_id, type, inst,0, params, params_len,false,0, Aline, Apath, 0};
+    _blst_append(tmp1);
+    //=>update current stru id and is_in_stru array
+    cur_stru_id = entry_table.stru_id;
+    is_in_stru[block_id - 1].is_active = true;
+    is_in_stru[block_id - 1].is_inline = false;
+    is_in_stru[block_id - 1].id = cur_stru_id;
+    is_in_stru[block_id - 1].stru_pars = parse_pars;
+    //printf("PPP:%i,%s\n",block_id,lbl);
+    //=>
+    // Longint order = get_order(cur_func_id, sid_t);
+    // set_order(cur_func_id, sid_t, ++order);
+    // //=>append to instru
+    // instru tmp2 = {0, cur_func_id, sid_t, order, inst, STRUCTURE_LBL_INST, Aline, Apath, 0};
+    // append_instru(tmp2);
+    //printf("GGGGGGGGGGGG:%s\n",inst);
+}
+//******************************************************
+/**
+ * get a code and trim it by ineffective spaces
+ * @author madkne
+ * @version 1.2
+ * @since 2019.12.21
+ * @param code : an instruction code include string or ...
+ * @return String : a valid trim code
+ */ 
+String PARSER_trim_inst_code(String code) {
+    //=>init vars
+    Boolean is_string = false;
+    String ret = 0;
+    uint32 len = STR_length(code);
+    //=>start analyzing
+    for (uint32 i = 0; i < len; i++) {
+        //=>check is string
+        if (code[i] == '\"' && (i == 0 || code[i - 1] != '\\')) {
+            is_string = BOOL_switch(is_string);
+        }
+        //=>continue if ' ' is before
+        if (!is_string && i + 1 < len && code[i] == ' '
+            && (CH_search(single_operators, code[i + 1],ChArraySize(single_operators)) || CH_search(words_splitter, code[i + 1],ChArraySize(words_splitter)))) {
+            continue;
+        }
+        //=>continue if ' ' is after
+        if (!is_string && i - 1 >= 0 && code[i] == ' '
+            && (CH_search(single_operators, code[i - 1],ChArraySize(single_operators)) || CH_search(words_splitter, code[i - 1],ChArraySize(words_splitter)))) {
+            continue;
+        }
+        printf("@@@continue\n");
+        //=>append to ret
+        ret = CH_append(ret, code[i]);
+    }
+    //=>return
+    //  printf("@Code:%s=>%s$\n", code, ret);
+    return ret;
+}
+//******************************************************
+/**
  * split every code line of main source code and append these as tokens, these tokens can parsed later!
  * @author madkne
- * @version 1.0
+ * @version 1.1
  * @since 2019.12.18
  * @return void
  */ 
@@ -485,12 +741,12 @@ void PARSER_get_tokens() {
                 bras--;
             }
             //=>append to buffer and word
-            if (!is_string && (CH_search(token_splitters, inst[i]) || i + 1 == STR_length(inst))) {
+            if (!is_string && (CH_search(token_splitters, inst[i],ChArraySize(token_splitters)) || i + 1 == STR_length(inst))) {
                 uint32 instlen=STR_length(inst);
                 //=>simicolon is end of a word of inst
                 Boolean is_simi = false;
                 //=>complete word at end of inst
-                if (i + 1 == instlen && !CH_search(token_splitters, inst[i])) {
+                if (i + 1 == instlen && !CH_search(token_splitters, inst[i],ChArraySize(token_splitters))) {
                     word = CH_append(word, inst[i]);
                     is_simi = true;
                 }
@@ -512,7 +768,7 @@ void PARSER_get_tokens() {
                 }
                 //=>append any separator char as a token
                 if ((inst[i] != ' ' && i + 1 != instlen) ||
-                    (i + 1 == instlen && CH_search(token_splitters, inst[i]))) {
+                    (i + 1 == instlen && CH_search(token_splitters, inst[i],ChArraySize(token_splitters)))) {
                     _soco_append(TOKENS_SOURCE_CODE, line,CH_to_string(inst[i]));
                 }
                 //=>if end of inst, then append a ';' as a token

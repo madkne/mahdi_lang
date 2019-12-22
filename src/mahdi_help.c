@@ -67,7 +67,7 @@ Boolean MHELP_starter(StrList argvs, uint32 argvs_len) {
     for (uint8 i = 0; i < argvs_len; i++) params[i] = argvs[i];
     //=>if list is requested
     int8 list_ind = 0;
-    if ((list_ind = STR_search_index(params, "-l", 3)) > -1)MHELP_list(list_ind, params, &not_exist);
+    if ((list_ind = STR_search_index(params, "-l",StrArraySize(params))) > -1)MHELP_list(list_ind, params, &not_exist);
       //if article is requested
     else MHELP_article(params, &not_exist);
     //-----------------------if not exist file
@@ -151,7 +151,7 @@ int8 MHELP_print_article(String path, String part, Boolean generate_list) {
       //=>list items format
       if (lines[i][0] == '*') {
         if (!generate_list && c1 == 0)printf("%s\n", header_full);
-        int32 ind = CH_last_indexof(lines[i], '@');
+        int32 ind = CH_last_indexof(lines[i], '@',lines_co);
         String sub = 0;
         if (ind > -1) {
           sub = STR_substring(lines[i], ind + 1, 0);

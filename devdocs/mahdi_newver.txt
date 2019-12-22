@@ -7,8 +7,8 @@
 Influence by:
 C,PHP,MPL,PYTHON,JAVA
 -----------------------------
-step 1   :import all files
-step 2   :detect all functions , packages , instructions
+step 1   :import all files [OK]
+step 2   :detect all functions , packages , instructions [..]
 step 3   :resolve all inherit packages
 step 3.1 :if debug mode is on, then go to mdebug and wait!
 step 3.2 :if build mode is on, then go to mbuild and compile execute file!
@@ -37,7 +37,7 @@ list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/
 map methods: get(key),set(key,var)
 -----------------predefined functions
 - these functions just called by mahdi, not programmer!
-_bootup_(string),_init_(),_plus_(package),_len_():num,_str_():str,_equal_(package):bool,_index_(number):pack/*pack1[0]*/,_minus_(package),_empty_():bool/*nil(pack1)*/
+_bootup_(string),_init_(),_plus_(package):package,_len_():num,_str_():str,_equal_(package):bool,_index_(number):package/*pack1[0]*/,_empty_():bool/*nil(pack1)*/,_del_():void/*del(pack1)*/
 -----------------Extensions
 - mah    : mahdi source files
 - mahlib : mahdi lib bytecode files
@@ -86,6 +86,7 @@ pack pk1(){
 }
 -----------------switch structure
 - if not set true item(default case), occurs an warning and if not all conditions, occurs an error!
+- can not define another choose into the other
 choose(var){
    -> 43:
    //do something
@@ -94,15 +95,6 @@ choose(var){
    -> true:
    //do something
 }
------------------conditional assign
-def delta=4
-def g=choose(delta){
-	-> 3: return 3*6
-	-> 4: 
-	def t=delta*2
-	return t
-	->true: return -1
-} //=>g=8
 -----------------declare variables and arrays
 - variable attributes: static (func), private,public (pack)
 - static variables just declared in functions

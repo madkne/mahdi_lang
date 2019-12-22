@@ -24,6 +24,30 @@ pack pk1(){
 func _bootup_(argvs){
 
 }
+----------------APP4--------------------
+import mod:core:console
+func _bootup_(argvs){
+	def f=45
+	if(f>20){
+		if(f+1<30)
+			console.print("H1")
+		elif(f+2==30){
+			console.print("H2")
+			console.print("H3")
+		}
+		else
+			console.print("H4")
+	}else{
+		loop(def g=0;g<10;g++){
+			choose(g){
+				->1 or 2:console.print("H1")
+				->3 or 4:console.print("H2")
+				->5 or 6:console.print("H3")
+				->true  :console.print("Hn")
+			}
+		}
+	}
+}
 ----------------APP2--------------------
 import mod:core:console
 func _bootup_(argvs){

@@ -14,6 +14,8 @@ Longint PARSER_get_last_active_is_in_stru_id();
 void PARSER_manage_import(uint32 *i);
 void PARSER_manage_package(uint32 *i);
 void PARSER_manage_function(uint32 *i);
+void PARSER_manage_structure(uint32 *i, String lbl);
+String PARSER_trim_inst_code(String code);
 void PARSER_get_tokens();
 
 

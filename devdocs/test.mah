@@ -1,9 +1,23 @@
-pack pk1(){
-	@public_methods
-	static func h2(s:string,g=56*4+2/*OR g:number*/,ll=[65-12,67.7]){}
-	@private_methods
-	override static func h1(xx:number=45.3,s='hello'*3,k={'f':0/6,'v':00.5}){}
-}
+import mod:core:console
 func _bootup_(argvs){
-
+	def f=45
+	if(f>20){
+		if(f+1<30)
+			console.print("H1")
+		elif(f+2==30){
+			console.print("H2")
+			console.print("H3")
+		}
+		else
+			console.print("H4")
+	}else{ 
+		loop(def g=0;g <10;g++){
+			choose(g){
+				->1 or 2:console.print("H1")
+				->3 or 4:console.print("H2")
+				->5 or 6:console.print("H3")
+				->true  :console.print("Hn")
+			}
+		}
+	}
 }

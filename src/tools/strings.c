@@ -118,7 +118,7 @@ String STR_replace(String s, String old_s, String new_s, int8 num) {
 }
 
 //******************************************
-Boolean STR_search(StrList list, String s, uint32 size) {
+Boolean STR_search(StrList list, String s,uint32 size) {
   if (s == 0)return false;
   for (uint32 i = 0; i < size; i++) {
     if (STR_equal(s, list[i]))
@@ -127,7 +127,7 @@ Boolean STR_search(StrList list, String s, uint32 size) {
   return false;
 }
 //******************************************
-int32 STR_search_index(StrList list, String s, uint32 size) {
+int32 STR_search_index(StrList list, String s,uint32 size) {
   if (s == 0)return -1;
   for (uint32 i = 0; i < size; i++) {
     if (STR_equal(s, list[i]))
@@ -274,7 +274,7 @@ String STR_trim_space(String s) {
   Boolean is_first = false, is_last = false;
   //trim from first
   for (uint32 i = 0; i < len; i++) {
-    if (is_first || !CH_search(WHITE_SPACES, s[i])) {
+    if (is_first || !CH_search(WHITE_SPACES, s[i],STR_length(WHITE_SPACES))) {
       is_first = true;
       tmp1 = CH_append(tmp1, s[i]);
     }
@@ -287,7 +287,7 @@ String STR_trim_space(String s) {
   tmp2 = STR_reverse(tmp2);
   //trim from last
   for (uint32 i = 0; i < len; i++) {
-    if (is_last || !CH_search(WHITE_SPACES, tmp2[i])) {
+    if (is_last || !CH_search(WHITE_SPACES, tmp2[i],STR_length(WHITE_SPACES))) {
       is_last = true;
       ret = CH_append(ret, tmp2[i]);
     }

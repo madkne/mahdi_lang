@@ -200,7 +200,7 @@ Boolean IMPORT_open_file(imin s)
               EXP_print_error(line_number, "bad_place_using_utf8", s.name, USTR_to_bytes_str(buffer), 0,"IMPORT_open_file");
               //printf("CXXXX:%s\n",);
               //=>if programmer debug is enabled, then display main source and utf8 structures
-              if (is_programmer_debug >= 2){
+              if (is_programmer_debug >= 3){
                 COM_print_struct(PRINT_MAIN_SOURCE_ST);
                 COM_print_struct(PRINT_UTF8_ST);
               }

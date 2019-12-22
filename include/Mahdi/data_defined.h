@@ -52,6 +52,8 @@ void * mahdi_modules_instance[100];
 uint32 errcodes[MAX_ERROR_CODES];
 uint8 errcodes_len;
 String exceptions_group[16];
+String package_zones[2];
+String method_attributes[2];
 String exceptions_type[4];
 String keywords[26];
 // String keywords_out[13];
@@ -63,7 +65,7 @@ String boolean_operators[2];
 String basic_types[3];
 uint8 golden_bytes[5];
 uint8 token_splitters[11];
-uint8 words_splitter[13];
+uint8 words_splitter[16];
 uint8 sub_types[6];
 String control_chars[5];
 StrList program_argvs;
@@ -106,6 +108,15 @@ typedef struct exceptions_list_struct {
   struct exceptions_list_struct *next;
 } exli;
 
+//****************************predefined_methods struct
+typedef struct predefined_methods_struct {
+  uint32 id;
+  String name;
+  String paramtype;
+  String returntype;
+} prme;
+
+prme predefined_methods[8];
 //****************************virtual memory
 //runtime
 typedef struct var_memory_struct {
@@ -184,6 +195,7 @@ typedef struct block_structures_struct {
   StrList params; //for packs, is attributes vars
   uint32 params_len;
   Boolean is_simplified;
+  IntList func_attrs; //length is MAX_FUNCTION_ATTRIBUTES
 
   uint32 line;
   uint32 source_id;
@@ -490,6 +502,8 @@ struct entry_table_struct entry_table;
 //****************************functions
 void DEF_init();
 
+//=>prme functions
+int32 _prme_search(String funcname);
 //=>soco functions
 void _soco_append(uint8 type, uint32 line,String code);
 void _soco_clear(uint8 type);

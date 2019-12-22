@@ -98,6 +98,10 @@ void EXP_init() {
   EXP_define(13, ERROR_ID, "invalid_name_var", SyntaxError, "'!1@1!' is not a valid name for a variable");
   EXP_define(14, ERROR_ID, "invalid_next_inst", SyntaxError, "'next' instruction not accept any parameters");
   EXP_define(15, FATAL_ID, "define_pack_in", SyntaxError, "'!1@1!' is defined into another package");
+  EXP_define(16, FATAL_ID, "invalid_predefined_method", SyntaxError,
+                      "'!1@1!' is a predefined method name and not used in globally");
+  EXP_define(17, ERROR_ID, "invalid_predefined_attr_method", SyntaxError,
+                        "'!1@1!' is a predefined method and can not have private or static attributes");
   //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 	//ValueError
   EXP_define(1, ERROR_ID, "val_def_var", ValueError,
@@ -410,8 +414,8 @@ int8 EXP_print_error(Longint line_err, String name_err, String file_err, String 
   //=>change console color to red
   Boolean is_color_mode = false;
   if ((is_color_mode = CMD_enable_color_mode())) {
-    if (type_err == ERROR_ID || type_err == FATAL_ID)CMD_color_red();
-    else if (type_err == WARNING_ID)CMD_color_yellow();
+    if (type_err == ERROR_ID || type_err == FATAL_ID)CMD_color_red(stderr);
+    else if (type_err == WARNING_ID)CMD_color_yellow(stderr);
   }
 
   if (is_programmer_debug >= 1 && !is_user_defined) {
@@ -424,7 +428,7 @@ int8 EXP_print_error(Longint line_err, String name_err, String file_err, String 
     fprintf(stderr, "%s\n", exception_msg);
   }
   //=>reset console color
-  if (is_color_mode)CMD_color_reset();
+  if (is_color_mode)CMD_color_reset(stderr);
   //=>add exeption message to logfile is enabled!
   if (logfile_path != 0) EXP_set_to_logfile(exception_msg);
 

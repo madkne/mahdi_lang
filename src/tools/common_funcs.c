@@ -139,27 +139,29 @@ void COM_print_struct(uint8 which) {
   } 
   //=>print all nodes of soco struct (tokens)
   else if (which == 0 || which == PRINT_TOKENS_SOURCE_ST) {
-      soco *tmp1 = entry_table.soco_tokens_start;
-      if (tmp1 == 0) return;
-      printf("=====Print source_code_tokens_struct :\n");
-      for (;;) {
-        printf("id:%i,code:%s\n", tmp1->line, tmp1->code);
-        tmp1 = tmp1->next;
-        if (tmp1 == 0) break;
-      }
-      printf("=====End printed\n");
-    } 
-// else if (which == 0 || which == PRINT_FUNC_ST) {
-//     blst *tmp1 = entry_table.blst_func_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print func_block_struct :\n");
-//     for (;;) {
-//       printf("id:%li,name:%s,params:%s\n", tmp1->id, tmp1->lbl, print_str_list(tmp1->params, tmp1->params_len));
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_INSTRU_ST) {
+    soco *tmp1 = entry_table.soco_tokens_start;
+    if (tmp1 == 0) return;
+    printf("=====Print source_code_tokens_struct :\n");
+    for (;;) {
+      printf("line:%i,code:%s\n", tmp1->line, tmp1->code);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of blst funcs struct (functions)
+  else if (which == 0 || which == PRINT_FUNC_ST) {
+    blst *tmp1 = entry_table.blst_func_start;
+    if (tmp1 == 0) return;
+    printf("=====Print func_block_struct :\n");
+    for (;;) {
+      printf("[id:%li,pid:%li],%s,name:%s,params:%s\n", tmp1->id,tmp1->pack_id,ILIST_print(tmp1->func_attrs,MAX_FUNCTION_ATTRIBUTES), tmp1->label, SLIST_print(tmp1->params, tmp1->params_len));
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+// else if (which == 0 || which == PRINT_INSTRU_ST) {
 //     instru *tmp1 = entry_table.instru_start;
 //     if (tmp1 == 0) return;
 //     printf("=====Print instructions_struct :\n");
@@ -192,18 +194,19 @@ void COM_print_struct(uint8 which) {
     }
     printf("=====End printed\n");
   } 
-// else if (which == 0 || which == PRINT_STRU_ST) {
-//     blst *tmp1 = entry_table.blst_stru_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print block_structure_struct :\n");
-//     for (;;) {
-//       printf("id:%li,lbl[%i]:%s,(fid:%li,sid:%li),argvs:%s\n", tmp1->id, tmp1->type, tmp1->lbl, tmp1->func_id,
-//              tmp1->stru_id, print_str_list(tmp1->params, tmp1->params_len));
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } else if (which == 0 || which == PRINT_STRUCT_DES_ST) {
+  //=>print all nodes of blst stru struct (structures)
+  else if (which == 0 || which == PRINT_STRU_ST) {
+    blst *tmp1 = entry_table.blst_stru_start;
+    if (tmp1 == 0) return;
+    printf("=====Print block_structure_struct :\n");
+    for (;;) {
+      printf("id:%li,lbl[%i]:%s,(pid:%li,fid:%li,sid:%li),argvs:%s\n", tmp1->id, tmp1->type, tmp1->label, tmp1->pack_id,tmp1->func_id,tmp1->stru_id, SLIST_print(tmp1->params, tmp1->params_len));
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+// else if (which == 0 || which == PRINT_STRUCT_DES_ST) {
 //     stde *tmp1 = entry_table.stde_start;
 //     if (tmp1 == 0) return;
 //     printf("=====Print struct descriptor :\n");
@@ -308,6 +311,8 @@ double I32_power(double base, int32 power) {
   }
   return ret;
 }
+//******************************************
+
 
 //******************************************
 

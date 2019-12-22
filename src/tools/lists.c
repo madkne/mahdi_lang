@@ -78,6 +78,45 @@ String LLIST_print(LintList s, uint32 len) {
   return ret;
 }
 
+//=>int32 List Functions
+//******************************************
+void ILIST_init(IntList *s, IntList val, uint32 len) {
+  if (len == 0 || val==0) {
+    (*s) = 0;
+    return;
+  }
+  if(*s!=NULL){
+    free(*s);
+  }
+  (*s) = (IntList) malloc(len * sizeof(IntList));
+  for (uint32 i = 0; i < len; i++) {
+    (*s)[i] = val[i];
+  }
+}
+//******************************************
+void ILIST_reset(IntList s,uint32 len){
+  // printf("reset:%i\n",len);
+  for (uint32 i = 0; i < len; i++){
+    s[i]=0;
+  }
+}
+//******************************************
+String ILIST_print(IntList s,uint32 len){
+  String ret=0;
+  STR_init(&ret,"[");
+  for (uint32 i = 0; i < len; i++){
+    ret=STR_append(ret,STR_from_int32(s[i]));
+    if(i+1<len)ret=CH_append(ret,',');
+  }
+  return CH_append(ret,']');
+}
+//******************************************
+Boolean ILIST_search(IntList s,int32 s2,uint32 len){
+  for (uint32 i = 0; i < len; i++){
+    if(s[i]==s2)return true;
+  }
+  return false;
+}
 
 // Str List Functions
 //******************************************
@@ -127,11 +166,15 @@ void SLIST_append(StrList *s, String s1, uint32 len) {
 }
 //*************************************************************
 void SLIST_init(StrList *s, StrList val, uint32 len) {
-  if (len == 0) {
+  if (len == 0||val==0) {
     (*s) = 0;
     return;
   }
-  free(*s);
+  // printf("ghjghjk:%i,%i,%i\n",&s,val,len);
+  if(*s!=NULL){
+    free(*s);
+  }
+  
   (*s) = (StrList) malloc(len * sizeof(StrList));
   for (uint32 i = 0; i < len; i++) {
     //str_init(&(*s)[i],val[i]);

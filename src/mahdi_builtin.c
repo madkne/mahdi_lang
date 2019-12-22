@@ -47,8 +47,8 @@ void _bifs_append(uint32 parent,uint32 id, String func_name, String params, Stri
     q->id = id;
     q->parent_type=parent;
     //=>get params and returns count
-    par_len = CH_search_count(params, ';');
-    ret_len = CH_search_count(returns, ';');
+    par_len = CH_search_count(params, ';',STR_length(params));
+    ret_len = CH_search_count(returns, ';',STR_length(returns));
     q->params_len = par_len;
     q->returns_len = ret_len;
     STR_init(&q->func_name, func_name);

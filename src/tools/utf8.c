@@ -275,7 +275,7 @@ UString USTR_trim_space(UString s)
 	//trim from first
 	for (uint32 i = 0; i < len; i++)
 	{
-		if (is_first || !IS_ONE_BYTE(s[i]) || !CH_search(WHITE_SPACES, (uint8)s[i]))
+		if (is_first || !IS_ONE_BYTE(s[i]) || !CH_search(WHITE_SPACES, (uint8)s[i],STR_length(WHITE_SPACES)))
 		{
 			is_first = true;
 			tmp1 = UCH_append(tmp1, s[i]);
@@ -291,7 +291,7 @@ UString USTR_trim_space(UString s)
 	//trim from last
 	for (uint32 i = 0; i < len; i++)
 	{
-		if (is_last || !IS_ONE_BYTE(tmp2[i]) || !CH_search(WHITE_SPACES, (uint8)tmp2[i]))
+		if (is_last || !IS_ONE_BYTE(tmp2[i]) || !CH_search(WHITE_SPACES, (uint8)tmp2[i],STR_length(WHITE_SPACES)))
 		{
 			is_last = true;
 			ret = UCH_append(ret, tmp2[i]);

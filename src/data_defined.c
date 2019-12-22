@@ -55,24 +55,26 @@ Boolean build_mode = false;
 String buildfile_path = 0;
 //-------------------------------------------------------
 String exceptions_group[] = {
-    "ImportError",          //0
-    "MahlibError",          //1
-    "SyntaxError",          //2
-    "InterruptedError",     //3
-    "ValueError",           //4
-    "NotExistError",        //5
-    "RuntimeError",         //6
-    "IOError",              //7
-    "NotAccessError",       //8
-    "OSError",              //9
-    "OverflowError",        //10
-    "TypeError",            //11
-    "FloatingPointError",   //12
-    "CommandError",         //13
-    "DebuggerError",        //14
-    "BuilderError"          //15
+    "ImportError",          //0 (parser)
+    "MahlibError",          //1 (parser)
+    "SyntaxError",          //2 (parser)
+    "InterruptedError",     //3 (runtime)
+    "ValueError",           //4 (runtime,parser)
+    "NotExistError",        //5 (runtime)
+    "RuntimeError",         //6 (runtime)
+    "IOError",              //7 (runtime)
+    "NotAccessError",       //8 (runtime)
+    "OSError",              //9 (runtime)
+    "OverflowError",        //10 (runtime)
+    "TypeError",            //11 (runtime)
+    "FloatingPointError",   //12 (runtime)
+    "CommandError",         //13 (init)
+    "DebuggerError",        //14 (runtime)
+    "BuilderError"          //15 (runtime)
 };
 
+String package_zones[2]={"@private_methods","@public_methods"};
+String method_attributes[2]={"override","static"};
 String exceptions_type[4] = {"CANCEL", "FATAL", "ERROR", "WARNING"};
 
 String keywords[26] = {"func","pack","override","static","true","false","if","elif","else","choose","and","or","not","next","break","loop","def","number","string","boolean","manage","return","self","this","import","config"};
@@ -96,7 +98,7 @@ uint8 golden_bytes[] = {7, 11, 27, 127, 223};
 
 uint8 token_splitters[11] = {' ', '(', ')', '=', '[', ']', '{', '}', ';', ',',':'};
 
-uint8 words_splitter[13] = {':', ' ', '{', '=', '(', ',', '.', '[', ']', '}', ')', ';','-'};
+uint8 words_splitter[16] = {':', ' ', '{', '=', '(', ',', '.', '[', ']', '}', ')', ';','-','<','>','!'};
 
 uint8 sub_types[6] = {'b','s','u','i','f','h'};
 
@@ -222,6 +224,28 @@ void DEF_init() {
 }
 
 //*************************************************************
+//***************predefined_methods functions******************
+//*************************************************************
+prme predefined_methods[8]={
+  {1,"_init_","unknown",0},
+  {2,"_plus_","package","package"},
+  {3,"_len_",0,"number"},
+  {4,"_str_",0,"string"},
+  {5,"_equal_","package","boolean"},
+  {6,"_index_","number","unknown"},
+  {7,"_empty_",0,"boolean"},
+  {8,"_del_",0,0},
+};
+//*************************************************************
+int32 _prme_search(String funcname){
+  uint32 len=(sizeof(predefined_methods)/sizeof(prme));
+  for (uint32 i = 0; i < len; i++){
+    prme tmp=predefined_methods[i];
+    if(STR_equal(tmp.name,funcname)) return i;
+  }
+  return -1;
+}
+//*************************************************************
 //*******************source_code functions*********************
 //*************************************************************
 void _soco_append(uint8 type, uint32 line,String code) {
@@ -254,7 +278,7 @@ void _soco_append(uint8 type, uint32 line,String code) {
   }
 }
 
-// //*************************************************************
+//*************************************************************
 void _soco_clear(uint8 type) {
   //soco_main
   if (type == MAIN_SOURCE_CODE && entry_table.soco_main_start > 0) {
@@ -331,12 +355,17 @@ void _blst_append(blst s) {
   q->is_simplified=s.is_simplified;
   q->source_id = s.source_id;
   q->params_len = s.params_len;
+  q->func_attrs=0;
+  q->inherit=0;
+  q->params=0;
   STR_init(&q->label, s.label);
   SLIST_init(&q->params, s.params, s.params_len);
   q->next = 0;
   //blst_func
   if (s.type == FUNC_BLOCK_ID) {
     q->id = ++entry_table.func_id;
+    ILIST_init(&q->func_attrs,s.func_attrs,MAX_FUNCTION_ATTRIBUTES);
+    
     if (entry_table.blst_func_start == 0)
       entry_table.blst_func_start = entry_table.blst_func_end = q;
     else {
@@ -345,7 +374,7 @@ void _blst_append(blst s) {
     }
   }
   //blst_pack
-  if (s.type == PACK_BLOCK_ID) {
+  else if (s.type == PACK_BLOCK_ID) {
     STR_init(&q->inherit, s.inherit);
     q->id = ++entry_table.pack_id;
     if (entry_table.blst_pack_start == 0)

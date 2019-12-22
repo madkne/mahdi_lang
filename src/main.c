@@ -81,7 +81,12 @@ int main(int argc, char **argv) {
 //  print_struct(PRINT_UTF8_ST);
 
 // printf("PPP:%s\n",RUNKIT_get_firstitem_listormap("[{'q1':[6,89],'q2':8+3}]"));
-
+// printf("\033[1;31m bold red text \033[0m\n");
+// int32 o[]={5,7,9};
+// I32_array_reset(o);
+// printf("fffff:%i,%i,%i\n",o[0],o[1],o[2]);
+// int32 fg[5]={9,91,92,93,94};
+// printf("DDDDDD:%i\n",CH_search_index(words_splitter,'f'));
 
   //-------------------------time of end program
   APP_exit(EXIT_NORMAL);

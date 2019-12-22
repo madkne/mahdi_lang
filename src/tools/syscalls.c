@@ -1,8 +1,7 @@
 
 #include <Mahdi/system.h>
-
 //******************************************
-String CALL__hostname() {
+String CALL_hostname() {
   #if WINDOWS_PLATFORM == true
   return getenv("COMPUTERNAME");
   #elif LINUX_PLATFORM == true
@@ -54,8 +53,8 @@ String CALL_parent_path(String path){
 String CALL_abspath(String path) {
   if(path==0)return 0;
   #if LINUX_PLATFORM == 1
-    const uint8 abs_path[PATH_MAX+1];
-    uint8 stat=realpath(path,abs_path);
+    char abs_path[PATH_MAX+1];
+    char *stat=realpath(path,abs_path);
     // printf("abspath:%s=>%s(%i,%i,%i)\n",path,abs_path,stat,errno,ENOENT);
     if(errno==0)return STR_from_const(abs_path);
     //=>has an error
@@ -106,7 +105,7 @@ String CALL_stdin() {
 int32 CALL_read_file(String path, StrList *lines, Boolean skip_empty_lines) {
   FILE *fp = fopen(path, "r");
   if (fp == NULL)return -1;
-//   printf ("PATH:%s\n", path);
+  //   printf ("PATH:%s\n", path);
   Boolean is_end = false;
   int32 lines_co = 0;
   for (;;) {
@@ -120,15 +119,15 @@ int32 CALL_read_file(String path, StrList *lines, Boolean skip_empty_lines) {
       if (buf == 0)continue;
       if ('\n' == buf || '\r' == buf)break;
       line = CH_append(line, buf);
-//      printf("-----%s\n", line);
+  //      printf("-----%s\n", line);
     }
-//    printf("CO:%i\n",++co);
+  //    printf("CO:%i\n",++co);
     if (skip_empty_lines) {
       line = STR_trim_space(line);
       if (line == 0 && !is_end)continue;
       else if (line == 0 && is_end)break;
     }
-//    printf ("LI:%s\n", line);
+  //    printf ("LI:%s\n", line);
     SLIST_append(&(*lines), line, lines_co++);
     if (is_end)break;
   }
@@ -137,7 +136,7 @@ int32 CALL_read_file(String path, StrList *lines, Boolean skip_empty_lines) {
 
 }
 //******************************************
-Boolean CALL__write_file(String path, String s) {
+Boolean CALL_write_file(String path, String s) {
   FILE *fp = fopen(path, "w");
   if (fp == NULL)return false;
   //=>write to file
@@ -146,7 +145,7 @@ Boolean CALL__write_file(String path, String s) {
   return true;
 }
 //******************************************
-Boolean CALL__exist_file(String path) {
+Boolean CALL_exist_file(String path) {
   FILE *fp = fopen(path, "r");
   if (fp == NULL)return false;
   fclose(fp);
@@ -237,7 +236,27 @@ Boolean CALL_binary_copy(String src, String dst) {
   fclose(out);
   return true;
 }
-
+//******************************************
+String CALL_shell(String command) {
+  //=>INIT VARS
+  String ret = 0;
+  FILE *fp;
+  uint8 line[1035];
+  StrList lines = 0;
+  //=>Open the command for reading.
+  fp = popen(command, "r");
+  if (fp == NULL) {
+    EXP_set_errcode(BAD_SHELL_ERRC);
+    return 0;
+  }
+  //=>Read the output a line at a time - output it.
+  while (fgets(line, sizeof(line) - 1, fp) != NULL) {
+    ret = STR_append(ret, line);
+  }
+  //=>close file
+  pclose(fp);
+  return ret;
+}
 //******************************************
 #if WINDOWS_PLATFORM == true
 String CALL_reg_value(HKEY hkey, String path, String key) {

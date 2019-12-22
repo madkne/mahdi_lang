@@ -67,9 +67,8 @@ uint32 CH_split(String s, uint8 sp, StrList *ret, Boolean is_remove_empty) {
 }
 
 //******************************************
-Boolean CH_search(uint8 list[], uint8 c) {
-  uint32 len = STR_length(list);
-  for (uint32 i = 0; i < len; i++) {
+Boolean CH_search(uint8 list[], uint8 c,uint32 size) {
+  for (uint32 i = 0; i < size; i++) {
     if (c == list[i])
       return true;
   }
@@ -77,9 +76,9 @@ Boolean CH_search(uint8 list[], uint8 c) {
 }
 
 //******************************************
-int32 CH_search_index(uint8 list[], uint8 c) {
-  uint32 len = STR_length(list);
-  for (uint32 i = 0; i < len; i++) {
+int32 CH_search_index(uint8 list[], uint8 c,uint32 size) {
+  // printf("QQQQQ:%s,%c,%i\n",list,c,len);
+  for (uint32 i = 0; i < size; i++) {
     if (c == list[i])
       return i;
   }
@@ -87,12 +86,11 @@ int32 CH_search_index(uint8 list[], uint8 c) {
 }
 
 //******************************************
-uint32 CH_search_count(String s, uint8 c) {
+uint32 CH_search_count(String s, uint8 c,uint32 size) {
   if (s == 0 || c == 0)return 0;
-  uint32 count = 0, len = 0;
-  while (s[len] != 0) {
-    if (s[len] == c)count++;
-    len++;
+  uint32 count = 0;
+  for (uint32 i = 0; i < size; i++){
+    if (s[i] == c)count++;
   }
   return count;
 }
@@ -104,10 +102,9 @@ String CH_to_string(uint8 c) {
 }
 
 //******************************************
-int32 CH_last_indexof(String s, uint8 ch) {
-  uint32 len = STR_length(s);
-  if (len < 1)return -1;
-  for (uint32 i = len - 1; i >= 0; i--) {
+int32 CH_last_indexof(String s, uint8 ch,uint32 size) {
+  if (size < 1)return -1;
+  for (uint32 i = size - 1; i >= 0; i--) {
     if (i == -1)break;
     if (s[i] == ch) return i;
   }
@@ -115,11 +112,13 @@ int32 CH_last_indexof(String s, uint8 ch) {
 }
 
 //******************************************
-String CH_backspace(String s) {
+/**
+ * remove last char of string
+ */ 
+String CH_backspace(String s,uint32 size) {
   //printf ("$BACKSPACE:%s\n", s);
-  uint32 len = STR_length(s);
-  if (len == 0)return 0;
-  s[len - 1] = 0;
+  if (size == 0)return 0;
+  s[size - 1] = 0;
   return s;
 }
 

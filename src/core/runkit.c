@@ -21,7 +21,7 @@ Boolean RUNKIT_is_valid_name(String name, Boolean is_array){
         return false;
     }
     //=>check name is mahdi keyword, not valid
-    if (STR_search(keywords, name, StrArraySize(keywords))) {
+    if (STR_search(keywords, name,StrArraySize(keywords))) {
         return false;
     }
     //=>if must check array and splite name and index
@@ -265,12 +265,12 @@ String RUNKIT_detect_basic_type_value(String value,uint8 *sub_type){
                 break;
             }
             //=>is number operators like +,-,*,..
-            if(CH_search(single_operators, value[i]) && STR_is_num(word)){
+            if(CH_search(single_operators, value[i],ChArraySize(single_operators)) && STR_is_num(word)){
                 STR_init(&final_type, "number");
                 final_sub='n';
             }
             //=>is boolean operators like and , or
-            if (!is_string && STR_search(boolean_operators, word, StrArraySize(boolean_operators))) {
+            if (!is_string && STR_search(boolean_operators, word,StrArraySize(boolean_operators))) {
                 STR_init(&final_type, "boolean");
                 final_sub='b';
             }
@@ -279,7 +279,7 @@ String RUNKIT_detect_basic_type_value(String value,uint8 *sub_type){
                 final_sub='b';
             }
             //=>append to word
-            if (!is_string && (CH_search(words_splitter, value[i]) || CH_search(single_operators, value[i]))) {
+            if (!is_string && (CH_search(words_splitter, value[i],ChArraySize(single_operators)) || CH_search(single_operators, value[i],ChArraySize(single_operators)))) {
                 word = 0;
             } else {
                 word = CH_append(word, value[i]);

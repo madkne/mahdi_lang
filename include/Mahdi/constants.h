@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.0.83"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 8          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.01.010"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 10          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -66,6 +66,7 @@
 #define   MAX_INTO_IN_FUNCTION_CALLS    30
 #define   MAX_OPENED_FILES              20
 #define   MAX_ERROR_CODES               5
+#define   MAX_FUNCTION_ATTRIBUTES       5
 #define   END_OF_FILE                  -10
 #define   SYSTEM_STRING_DEFINE          "SYS__STR_"
 #define   RETURN_TMP_NAME               "@ret"
@@ -82,11 +83,18 @@
 #define   DEBUG_MODE                    "DebugMode"
 #define   DEBUG_QUESTION                "[mdebug]: "
 #define   DEBUG_ANSWER                  "[mdebug]$ "
+//------------------------------------------function attributes
+#define   PUBLIC_METHOD_FATTR           1
+#define   PRIVATE_METHOD_FATTR          2
+#define   OVERRIDE_METHOD_FATTR         3
+#define   STATIC_METHOD_FATTR           4
+#define   PREDEFINED_METHOD_FATTR       5
+#define   BOOTUP_FUNCTION_FATTR         6
 //------------------------------------------import struct
-#define IMPORT_FILE                     1
-#define IMPORT_MAHLIB                   2 
-#define IMPORT_EMBEDDED                 3
-#define IMPORT_MODULE                   4
+#define   IMPORT_FILE                   1
+#define   IMPORT_MAHLIB                 2 
+#define   IMPORT_EMBEDDED               3
+#define   IMPORT_MODULE                 4
 //------------------------------------------used as exit status for exit syscall
 #define   EXIT_NORMAL                   0
 #define   EXIT_ERROR                    1
@@ -102,6 +110,7 @@
 #define   BAD_MAP_ERRC                  2
 #define   BAD_FIRST_ITEM_ERRC           3
 #define   INVALID_VALUE_ERRC            4
+#define   BAD_SHELL_ERRC                5
 //------------------------------------------used as instruction types
 #define   UNKNOWN_LBL_INST              0
 #define   STRUCTURE_LBL_INST            1
@@ -234,6 +243,7 @@ typedef uint32** UStrList;
 typedef uint32* UString;
 typedef uint64 Longint;
 typedef Longint* LintList;
+typedef int32* IntList; 
 typedef unsigned char Boolean;
 
 #endif //MAHDI_CONSTANTS_H

@@ -21,11 +21,14 @@ TODO
  - [x] reading source file as utf8
  - [x] remove comments and convert utf8 to ascii
  - [x] extract tokens
- - [.] parsing tokens
+ - [x] parsing tokens
  - [x] get the other imports from main source file
  - [x] parsing package block
  - [x] parsing function headers
- - [.] parsing if,elif,loop,... structures
+ - [x] parsing function attributes
+ - [x] config colors on console for print errors
+ - [x] parsing if,elif,loop,... structures
+ - [.] manage instruction orders
  - [.] parsing the other instructions
  - [.] complete parsing package block by its attribute vars
  - [.] init runtime global variables

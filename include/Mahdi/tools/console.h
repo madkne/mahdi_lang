@@ -10,10 +10,10 @@
 #endif
 
 Boolean CMD_enable_color_mode();
-void CMD_color_red();
-void CMD_color_yellow();
-void CMD_color_bold();
-void CMD_color_underline();
-void CMD_color_reverse();
-void CMD_color_reset();
+void CMD_color_red(FILE *__restrict __stream);
+void CMD_color_yellow(FILE *__restrict __stream);
+void CMD_color_bold(FILE *__restrict __stream);
+void CMD_color_underline(FILE *__restrict __stream);
+void CMD_color_reverse(FILE *__restrict __stream);
+void CMD_color_reset(FILE *__restrict __stream);
 #endif //__MAHDI_CONSOLE_H
