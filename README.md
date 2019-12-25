@@ -1,4 +1,4 @@
-**mAh_:** MAHDI Programming Language - MAHDI (BETA-0.0)
+**mAh_:** MAHDI Programming Language - MAHDI (BETA-0.1)
 ============================================
 
 > _This is a small,fast interpreter also Assemble all the good features of programming languages_
@@ -28,14 +28,24 @@ TODO
  - [x] parsing function attributes
  - [x] config colors on console for print errors
  - [x] parsing if,elif,loop,... structures
- - [.] manage instruction orders
- - [.] parsing the other instructions
- - [.] complete parsing package block by its attribute vars
+ - [x] manage instruction orders
+ - [x] parsing the other instructions
+ - [.] test import all files as recursive
+ - [x] init inheritance
+ - [x] create inheritance data structure
+ - [.] organization function parameters (verify,split,simplify)
+ - [.] organization package attributes (verify,split,simplify)
+ - [x] calculate number expressions
+ - [x] determine type of number like 'i','f','h'
+ - [x] convert radix numbers to decimal
+ - [.] calculate string expressions
+ - [.] calculate boolean expressions
+ - [.] inheritance packages if needed
  - [.] init runtime global variables
  - [.] init runtime app controller
  - [.] init runtime instruction executor
  - [.] set label for types of instructions
- - [.] boot app from "_ bootup_" function
+ - [.] boot app from "_ bootup_" function :)
 
 ### ((:publish MAHDI-BETA version of MAHDI (for linux):))
 

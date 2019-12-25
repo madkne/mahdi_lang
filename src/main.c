@@ -87,7 +87,16 @@ int main(int argc, char **argv) {
 // printf("fffff:%i,%i,%i\n",o[0],o[1],o[2]);
 // int32 fg[5]={9,91,92,93,94};
 // printf("DDDDDD:%i\n",CH_search_index(words_splitter,'f'));
-
+// map* st=0;
+// map* en=0;
+// _map_push(&st,&en,"H1","hello...");
+// _map_push(&st,&en,"H2","Amin");
+// _map_push(&st,&en,"H3","Delavar");
+// _map_popleft(&st,&en);
+// _map_popleft(&st,&en);
+// map j=_map_popleft(&st,&en);
+// printf("map is:%s=>%s\n",j.key,_map_print(st));
+  // printf("math:%s\n",RUNKIT_calc_number_exp("2+(4|5*2)/3+32%5",'_',0));
   //-------------------------time of end program
   APP_exit(EXIT_NORMAL);
   return 0;
@@ -102,6 +111,23 @@ Boolean INTR_start() {
   Boolean ret0 = IMPORT_run();
   //printf("VVVVVV:%i\n",ret0);
   if (!ret0) return false;
+  //-----------------------solve inherits packages
+	if(entry_table.need_inheritance){
+		STR_init(&interpreter_level, "inherit");
+		Boolean ret1 =INHERIT_run();
+    if (!ret0) return false;
+	}
+  //=>if programmer debug is enabled, then show all structs
+  if(is_programmer_debug>=2){
+    COM_print_struct(PRINT_UTF8_ST);
+    COM_print_struct(PRINT_IMPORT_ST);
+    COM_print_struct(PRINT_PACK_ST);
+    COM_print_struct(PRINT_FUNC_ST);
+    COM_print_struct(PRINT_DATA_TYPES_ST);
+    COM_print_struct(PRINT_STRU_ST);
+    COM_print_struct(PRINT_INSTRU_ST);
+    COM_print_struct(PRINT_FUNC_PACK_PARAMS_ST);
+  }
 //   //-----------------------meaning&running instructions
 //   str_init(&interpreter_level, "runtime");
 //   Boolean ret3 = start_runtime();
@@ -114,6 +140,7 @@ Boolean INTR_start() {
 //   }
 //   //-----------------------free memory
 //   str_init(&interpreter_level, "free");
+return true;
 }
 
 //************************************************

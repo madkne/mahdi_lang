@@ -39,12 +39,12 @@
 //---------------------------------core functions
 #include "core/importer.h"
 #include "core/parser.h"
+#include "core/inheritance.h"
 #include "core/starter.h"
 
 #include "core/runkit.h"
 // #include "core/run_mgr.h"
 #include "core/memory.h"
-// #include "core/magic_macro.h"
 //---------------------------------tools functions
 #include "tools/common_funcs.h"
 #include "tools/strings.h"

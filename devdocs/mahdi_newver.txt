@@ -8,8 +8,8 @@ Influence by:
 C,PHP,MPL,PYTHON,JAVA
 -----------------------------
 step 1   :import all files [OK]
-step 2   :detect all functions , packages , instructions [..]
-step 3   :resolve all inherit packages
+step 2   :detect all functions , packages , instructions [OK]
+step 3   :resolve all inherit packages [..]
 step 3.1 :if debug mode is on, then go to mdebug and wait!
 step 3.2 :if build mode is on, then go to mbuild and compile execute file!
 step 4   :start from first instruction of bootup function and run codes line by line
@@ -73,15 +73,15 @@ import lib:..other:pkg1,pkg2,@fun1 //import from "/home/am/Desktop/proj/other.ma
 import file:..src.all //import from "/home/am/Desktop/proj/src/all.mah" all packages and all global functions
 -----------------package methods
 pack pk1(){
-	@public_methods
+	@public
 	static func h2(){}
-	@private_methods
+	@private
 	override static func h1(){}
 }
 OR
 pack pk1(){
 	static func h2(){}
-	@private_methods
+	@private
 	override static func h1(){}
 }
 -----------------switch structure
@@ -250,16 +250,24 @@ pack main(){
 @public_method
 func _init_(s:string,y:string){}
 }
+-----------------package attributes
+pack pk1(){
+def GG=45
+override def aa=11 //in child package, can redefined like 'def aa=12' type can not changed
+static def v=3
+def q:string
+def z1,z2,z3=3,true and true,"hello"
+}
 -----------------inherit packages
 - if a method override, then in next package that inherit it, can define a method with same name else error! 
 - example of override: override func _str_(){}
 pack pkg1(){
-   @public_method
+   @public
    override func ps1(){}
    func ps3(k:number){
       this.ps2(56)
    }
-   @private_method
+   @private
    func ps2(j:number){}
    
 }

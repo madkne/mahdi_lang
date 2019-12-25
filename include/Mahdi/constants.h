@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.01.010"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 10          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.01.038"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 13          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -18,9 +18,9 @@
 #define  LICENCE                        "MAHDI-LICENCE"
 #define  OFFICIAL_WEBSITE               "http://mahdi-lang.ir"
 #define  COPYRIGHT                      "Copyright (C) 2019"
-#define  C_CORE_CODE_LINES              0       //0.6.31 - 0.6.90
-#define  H_CORE_CODE_LINES              0
-#define  MODULES_CODE_LINES             0           //+=16757
+#define  C_CORE_CODE_LINES              4536       //0.1.0-0.1.90
+#define  H_CORE_CODE_LINES              935
+#define  MODULES_CODE_LINES             0           //+=5471
 #define  LANGUAGE_CREATOR               "madkne"
 #define  CREATOR_SIGNATURE              "48441415431625231"
 #define  TRUST_LEVEL                    0          //100%
@@ -67,6 +67,8 @@
 #define   MAX_OPENED_FILES              20
 #define   MAX_ERROR_CODES               5
 #define   MAX_FUNCTION_ATTRIBUTES       5
+#define   MAX_INTO_IN_INHERITANCE       20
+#define   MAX_MATH_USED_OPERANDS        100
 #define   END_OF_FILE                  -10
 #define   SYSTEM_STRING_DEFINE          "SYS__STR_"
 #define   RETURN_TMP_NAME               "@ret"
@@ -111,6 +113,8 @@
 #define   BAD_FIRST_ITEM_ERRC           3
 #define   INVALID_VALUE_ERRC            4
 #define   BAD_SHELL_ERRC                5
+#define   INVALID_TYPE_ERRC             6
+#define   INVALID_NUMBER_VAL_ERRC       7
 //------------------------------------------used as instruction types
 #define   UNKNOWN_LBL_INST              0
 #define   STRUCTURE_LBL_INST            1
@@ -155,13 +159,14 @@
 #define PRINT_PACK_ST                   7
 #define PRINT_INSTRU_ST                 8
 #define PRINT_STRU_ST                   9
-#define PRINT_MAGIC_MACROS_ST           10
+#define PRINT_FUNC_PACK_PARAMS_ST       10
 #define PRINT_STRUCT_DES_ST             11
 #define PRINT_FUNCTIONS_STACK_ST        12
 #define PRINT_STRUCTURES_STACK_ST       13
 #define PRINT_CONDITION_LEVEL_ST        14
 #define PRINT_LOOP_LEVEL_ST             15
 #define PRINT_DATA_TYPES_ST             16
+#define PRINT_INHERIT_ST                17
 //------------------------------------------
 #define   BOOL_SUB_TYPE_ID              1
 #define   STR_SUB_TYPE_ID               2
@@ -221,8 +226,8 @@ typedef unsigned int uint32;
 typedef __int64_t           int64;
 typedef __uint64_t          uint64;
 #elif LINUX_PLATFORM == true && x86_OS == true
-typedef __int64_t           uint64;
-typedef __uint64_t          int64;
+typedef __uint64_t           uint64;
+typedef __int64_t          int64;
 #elif WINDOWS_PLATFORM == true && x64_OS == true
 typedef unsigned long int   uint64;
 typedef signed long int     int64;

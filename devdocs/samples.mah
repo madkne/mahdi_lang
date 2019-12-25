@@ -16,9 +16,9 @@ func _bootup_(){
 }
 ----------------APP3--------------------
 pack pk1(){
-	@public_methods
+	@public
 	static func h2(s:string,g=56*4+2/*OR g:number*/,ll=[65-12,67.7]){}
-	@private_methods
+	@private
 	override static func h1(xx:number=45.3,s='hello'*3,k={'f':0/6,'v':00.5}){}
 }
 func _bootup_(argvs){
@@ -26,7 +26,7 @@ func _bootup_(argvs){
 }
 ----------------APP4--------------------
 import mod:core:console
-func _bootup_(argvs){
+func _bootup_(argvs:string){
 	def f=45
 	if(f>20){
 		if(f+1<30)
@@ -48,6 +48,29 @@ func _bootup_(argvs){
 		}
 	}
 }
+----------------APP5--------------------
+pack pk0(){
+@private
+def g:number
+func f1(){
+def h=this.g
+}
+override func f2(d:string){}
+@public
+def bb=[3,6,7]
+}
+pack pk1(pk0){
+static func f2(h:number,d:string){}
+override func f3(f:boolean){}
+def g=456
+}
+pack pk2(pk1){
+func f3(){}
+func f4(){}
+@private
+def g:string
+}
+func _bootup_(){}
 ----------------APP2--------------------
 import mod:core:console
 func _bootup_(argvs){

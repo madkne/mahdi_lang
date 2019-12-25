@@ -96,7 +96,15 @@ Boolean RUNKIT_is_valid_name(String name, Boolean is_array){
     return true;
 }
 //******************************************************
-uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_store[],Boolean just_syntax) {
+/**
+ * get a list of defined vars without 'def' and attributes and split, verify and simplify them
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.24
+ * @param code : an instruction code include string or ...
+ * @return uint8 : count of vars detect or -1
+ */ 
+uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_store[],Boolean just_syntax,Boolean just_basic_types) {
     /**
         1- x1,x2,x3:string 								        ---..---
         2- x1,x2=(3+5)*x3 								        ---..---
@@ -119,6 +127,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
         String name;
         String type;
         String value;
+        String typeval;
     };
     //=>iterate define vars list
     for(uint32 k = 0; k < defvars_len; k++){
@@ -175,19 +184,24 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             EXP_handler("invalid_name_var", __func__, var.name, "");
             return 0;
         }
-        //=>get value data type
-        String valtype=RUNKIT_detect_basic_type_value(var.value,0);
-        //=>check for invalid value error
-        if(EXP_check_errcode(INVALID_VALUE_ERRC)){
-            EXP_handler("invalid_value", __func__, var.value, "");
-            return 0;
-        }
-        //=>if not have basic type
-        if(valtype==0){
-            //TODO:
-        }
-        //=>comparison between var type(if exist) and val type
-        if(var.type!=0 && !STR_equal(var.type,valtype)){
+        //=>if var has a value
+        if(var.value!=0){
+            //=>get value data type
+            var.typeval=RUNKIT_detect_basic_type_value(var.value,0);
+            //=>check for invalid value error
+            if(EXP_check_errcode(INVALID_VALUE_ERRC)){
+                EXP_handler("invalid_value", __func__, var.value, "");
+                return 0;
+            }
+            //=>if not have basic type, if not just basic types
+            if(!just_basic_types && var.typeval==0){
+                //TODO:
+            }
+            //=>comparison between var type(if exist) and val type
+            if(var.type!=0 && !STR_equal(var.type,var.typeval)){
+                //TODO:
+            }
+            //=>simplify value of var
             //TODO:
         }
         //=>more check if just_syntax is false!
@@ -204,17 +218,631 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
         //=>fill vars store
         vars_counter++;
         STR_init(&vars_store[vars_counter].type_var,var.type);
-        // STR_init(&vars_store[vars_counter].type_var,var.type);
-        //TODO:
+        STR_init(&vars_store[vars_counter].name_var,var.name);
+        STR_init(&vars_store[vars_counter].value_var,var.value);
+        if(!just_syntax){
+            // vars_store[vars_counter].fid
+            // vars_store[vars_counter].pid
+            // vars_store[vars_counter].sid
+            //TODO:
+        }
+        
     }
     return vars_counter + 1;
 }
 
 //******************************************************
 /**
- * get a value like 'H'*3 , {'q1':true and false} , 4.5+12 and detect main data type and its sub type if possible!
+ * get a value string and its type like number and then if need simplify value and return sub_type of value
  * @author madkne
  * @version 1.0
+ * @since 2019.12.24
+ * @param value
+ * @param type
+ * @param ret_value : (pointer)
+ * @param ret_subtype : (pointer)
+ */
+void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 *ret_subtype) {
+    //=>init vars
+    uint8 sub_type = '0';
+    //  printf("@@@@:%s,%s\n", value, type);
+    //=>if value is null
+    if (type == 0) {
+        EXP_set_errcode(INVALID_VALUE_ERRC);
+        return;
+    }
+    //=>search for basic types
+    uint32 basic_ind=STR_search_index(basic_types, type, StrArraySize(basic_types));
+    //=>if type is a number,string,boolean
+    if (basic_ind!=-1) {
+        //=>if value is a variable
+        if (RUNKIT_is_valid_name(value, true)) {
+            //TODO:
+            //     Mpoint m = return_var_memory_value(value);
+            //     if (m.id > 0) {
+            //         if (!str_equal(convert_sub_type_to_type(m.type_data), type)) {
+            //         //TODO:error
+            //         printf("#ERR3567:%s,%c,%s\n", value, m.type_data, type);
+            //         return;
+            //         }
+            // //        printf("!!!:%s,%i;%s\n",value,m.id,m.data);
+            //         (*ret_value) = str_reomve_quotations(m.data, type);
+            //         (*ret_subtype) = m.type_data;
+            //         return;
+            //     }
+        }
+        if (basic_ind==1/*number*/) {
+            (*ret_value)=RUNKIT_calc_number_exp(value, '_', &(*ret_subtype));
+        } else if (basic_ind==0/*string*/) {
+            //TODO:
+            // calculate_string_expression(value, &(*ret_value), &(*ret_subtype));
+            //printf("STRING:%s=>%s(%c)\n", value, *ret_value, *ret_subtype);
+        } else if (basic_ind==2/*boolean*/) {
+            //TODO:
+            // (*ret_value) = calculate_boolean_expression(value, &sub_type);
+            // (*ret_subtype) = sub_type;
+        }  
+    }
+    //=>if type is a package
+    else if (_datas_search(type,0,true).id != 0) {
+        //TODO:
+        // (*ret_value) = calculate_struct_expression(value, type, &sub_type);
+        // (*ret_subtype) = sub_type;
+    } 
+    else {
+        EXP_set_errcode(INVALID_TYPE_ERRC);
+        return;
+    }
+}
+//******************************************************
+/**
+ * get an math expression with a target type and calculate it and return it.
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.25
+ * @order unknown
+ * @param exp
+ * @param target_type
+ * @param rettype
+ * @return String : solved value number or null if faild
+ */
+String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype){
+    //=>init vars
+    struct math_tree{
+        uint32 id; uint8 op; String num1; String num2; String res;
+    } nodes[MAX_MATH_USED_OPERANDS];
+    uint32 nodes_len=0;
+    uint32 pars_level=0;
+    uint32 max_pars_level=0;
+    Boolean exist=true;
+    map* queue_start=0;
+    map* queue_end=0;
+    uint8 type_exp=target_type;
+    //=>trim exp
+    exp = STR_trim_space(exp);
+    //=>if exp is '0'
+    if (exp==0) {
+        EXP_set_errcode(INVALID_NUMBER_VAL_ERRC);
+        return 0;
+    }
+    //=>if exp has ()
+    if(exp[0]=='('){
+        exp = RUNKIT_remove_unused_parenthesis(exp);
+    }
+    //=>get length of exp
+    uint32 len_exp = STR_length(exp);
+    //=>if exp length is 1 and not a digit!
+    if (len_exp == 1 && (exp[0] < '0' || exp[0] > '9')) {
+        EXP_set_errcode(INVALID_NUMBER_VAL_ERRC);
+        return 0;
+    }
+    //=>if exp length is 1 and is a digit!
+    else if(len_exp == 1){
+        if(rettype!=0) (*rettype) = 'i';
+        return exp;
+    }
+    //=>calc max pars level
+    for (uint32 i = 0; i < len_exp; i++){
+        //=>count pars
+        if(exp[i]=='(')max_pars_level++;
+    }
+    //=>append exp as first item in queue
+    _map_push(&queue_start,&queue_end,"0",exp);
+    //=>level 1 : create math tree
+    while(queue_start!=0){
+        //=>reset vars
+        exist=false;
+        uint8 lessop='0';
+        uint32 lessop_ind=0;
+        uint8 pars=0;
+        Boolean isexp1=false;
+        map expp=_map_popleft(&queue_start,&queue_end);
+        String ex=expp.value;
+        uint32 len_ex=STR_length(ex);
+        //=>if exp has ()
+        if(ex[0]=='(' && ex[len_ex-1]==')'){
+            ex = RUNKIT_remove_unused_parenthesis(ex);
+        }
+        //=>find less operand and lastest on pars_level!
+        for (uint32 i = 0; i < len_ex; i++){
+            //=>count pars
+            if(ex[i]=='(')pars++;
+            else if(ex[i]==')')pars--;
+            //=>if find '-' or '+' as less operands
+            if(pars_level==pars && (ex[i]=='-'||ex[i]=='+')){
+                lessop=ex[i];
+                lessop_ind=i;
+                break;
+            }
+            //=>if find '*' or... set, nut until lastest!
+            if(pars_level==pars && CH_search(single_operators, ex[i],ChArraySize(single_operators))){
+                lessop=ex[i];
+                lessop_ind=i;
+            }
+        }
+        //=>if not found any operands, increase pars_level
+        if(lessop=='0'){
+            pars_level++;
+            //=>check if pars level is bigger than max
+            if(pars_level>max_pars_level){
+                break;
+            }
+            //=>push back expp to queue
+            _map_push(&queue_start,&queue_end,expp.key,ex);
+        }
+        //=>if found less operand
+        else{
+            //=>get num1 string before less operand index
+            String num1=STR_substring(ex,0,lessop_ind);
+            uint8 subtyp1=type_exp;
+            //=>check if num1 is number or var
+            String num11=RUNKIT_determine_number(num1,type_exp,&subtyp1);
+            //=>if not a number (is a expression), push to stack and set num1 as next id
+            if(num11==0&&EXP_check_errcode(INVALID_NUMBER_VAL_ERRC)){
+                _map_push(&queue_start,&queue_end,STR_from_int32(nodes_len+1),num1);
+                num1=STR_append("#",STR_from_int32(nodes_len+1));
+                isexp1=true;
+            }else{
+                STR_init(&num1,num11);
+            }
+            //=>get num2 string after less operand index
+            String num2=STR_substring(ex,lessop_ind+1,len_ex);
+            uint8 subtyp2=type_exp;
+            //=>check if num2 is number or var
+            String num22=RUNKIT_determine_number(num2,type_exp,&subtyp2);
+            //=>if not a number (is a expression), push to stack and set num1 as next id
+            if(num22==0&&EXP_check_errcode(INVALID_NUMBER_VAL_ERRC)){
+                uint32 count=(isexp1)?nodes_len+2:nodes_len+1;
+                _map_push(&queue_start,&queue_end,STR_from_int32(count),num2);
+                num2=STR_append("#",STR_from_int32(count));
+            }else{
+                STR_init(&num2,num22);
+            }
+            //=>detrmine type_exp, if subtyp1 or subtyp2 is not '_'
+            if(subtyp1 != '_' || subtyp2 != '_') {
+                type_exp=RUNKIT_priority_number_types(type_exp,subtyp1);
+                type_exp = RUNKIT_priority_number_types(type_exp, subtyp2);
+            }
+            struct math_tree tmp1={(uint32)STR_to_int32(expp.key),lessop,num1,num2};
+            nodes[nodes_len++]=tmp1;
+        }
+        // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    }
+    // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    //=>level 2 : solve math tree
+    //=>iterate nodes from last
+    for (uint32 i = nodes_len-1; i >=0; i--){
+        if(i==-1)break;
+        //=>get num1,num2
+        String num1=nodes[i].num1;
+        String num2=nodes[i].num2;
+        //=>check if num1 or num2 is id
+        if(num1[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(num1,1,0));
+            STR_init(&num1,nodes[ind].res);
+        }
+        if(num2[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(num2,1,0));
+            STR_init(&num2,nodes[ind].res);
+        }
+        //=>calculate num1,num2 with op
+        String result=RUNKIT_calc_two_numbers(num1,num2,nodes[i].op,type_exp);
+        //=>resize result
+        if (type_exp == 'i' && (STR_length(result) > MAX_INT_LEN || STR_indexof(result, ".", 0) >= 0)) {
+            result = RUNKIT_resize_to_int(result);
+        } else if (type_exp == 'f' && STR_length(result) > MAX_FLOAT_LEN) {
+            result = RUNKIT_resize_to_float(result);
+        }
+        printf("RRRR(%i):%s{%c}%s=%s[%c]\n",nodes[i].id,num1,nodes[i].op,num2,result,type_exp);
+        nodes[i].res=result;
+    }
+    //=>print math tree
+    for (uint32 i = 0; i < nodes_len; i++){
+        printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].num1,nodes[i].num2,nodes[i].res);
+    }
+    //=>return sub type and value
+    if(rettype!=0) (*rettype) = type_exp;
+    return nodes[0].res;
+}
+//******************************************************
+/**
+ * get a string and check if is a number or a var(number type) and return its value and sub_type
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.25
+ * @param s
+ * @param main_type
+ * @param sub_type : (pointer)
+ * @return String
+ */
+String RUNKIT_determine_number(String s,uint8 main_type,uint8 *sub_type){
+    //=>init vars
+    Boolean is_valid_val=false;
+    //=>check if is number
+    if (STR_is_num(s)) {
+        is_valid_val = true;
+        (*sub_type) = RUNKIT_determine_type_numbers(&s, 0);
+        //=>check if number is hex,bin,oct
+        if (STR_indexof(s, "0x", 0) >= 0 || STR_indexof(s, "0b", 0) >= 0 || STR_indexof(s, "0o", 0) >= 0) {
+            s = RUNKIT_is_radix_number(s, (*sub_type));
+        }
+    } 
+    //=>if s is a var
+    else {
+        //TODO:in runtime
+        // Mpoint mpoint = return_var_data_from_name(buf, "num", true);
+        // if (mpoint.id == 0) {
+        // (*rettype) = '0';
+        // return;
+        // }
+        // str_init(&num1, mpoint.data);
+        // is_valid_val = true;
+        // type_exp = RUNKIT_priority_number_types(type_exp, mpoint.type_data);
+        // ty1 = type_exp;
+    }
+    //=>if s is not valid as a number
+    if (!is_valid_val) {
+        EXP_set_errcode(INVALID_NUMBER_VAL_ERRC);
+        return 0;
+    }
+    return s;
+}
+
+//******************************************************
+/**
+ * determine a string is a radix number and then convert it to decimal number and return it
+ * @version 1.0
+ * @author madkne
+ * @since 2019.12.25
+ * @param buf
+ * @param type_exp
+ * @return String
+ */
+String RUNKIT_is_radix_number(String buf, uint8 type_exp) {
+  Boolean is_neg = false;
+  if (STR_length(buf) > 1 && (buf[0] == '-' || buf[0] == '+')) {
+    if (buf[0] == '-') {
+      is_neg = true;
+    }
+    buf = STR_substring(buf, 1, 0);
+  }
+  if (STR_indexof(buf, "0b", 0) == 0)
+    buf = RUNKIT_radix_to_dec(buf, 2, type_exp);
+  else if (STR_indexof(buf, "0o", 0) == 0)
+    buf = RUNKIT_radix_to_dec(buf, 8, type_exp);
+  else if (STR_indexof(buf, "0x", 0) == 0)
+    buf = RUNKIT_radix_to_dec(buf, 16, type_exp);
+
+  if (is_neg) {
+    buf = STR_multi_append("-", buf, 0, 0, 0, 0);
+  }
+  return buf;
+}
+//******************************************************
+/**
+ * get a string base and convert it based on radix number and type char and then return a string decimal
+ * @version 1.0
+ * @author madkne
+ * @since 2019.12.25
+ * @param base
+ * @param radix
+ * @param type_exp
+ * @return String
+ */
+String RUNKIT_radix_to_dec(String base, uint8 radix, uint8 type_exp) {
+  //msg("&^^", base, radix)
+  String final = 0, int_s = 0, float_s = 0;
+  uint8 start_x, after_point = 1;
+  Boolean is_point = false, is_base = false;
+  double res_ii = 0, res_ff = 0;
+  String nmb = 0;
+  switch (radix) {
+    case 2: start_x = 'b';
+      STR_init(&nmb, "01");
+      break;
+    case 8: start_x = 'o';
+      STR_init(&nmb, "01234567");
+      break;
+    case 16: start_x = 'x';
+      STR_init(&nmb, "0123456789abcdef");
+      break;
+  }
+
+  //*******************
+  if (base[0] == '-') {
+    final = CH_append(final, '-');
+  }
+  base = STR_to_lower_case(base);
+  //printf("JJJJ:%s\n",base);
+  //*******************split int and float of radix number to int_s,float_s
+  uint32 len_base = STR_length(base);
+  for (uint32 i = 0; i < len_base; i++) {
+    if (base[i] == '.') {
+      is_point = true;
+      continue;
+    }
+    if (base[i] == start_x && i > 0 && base[i - 1] == '0') {
+      is_base = true;
+      continue;
+    }
+    if (!is_point && is_base && CH_search(nmb, base[i],radix)) {
+      int_s = CH_append(int_s, base[i]);
+    } else if (is_point && is_base && CH_search(nmb, base[i],radix)) {
+      float_s = CH_append(float_s, base[i]);
+    }
+  }
+
+  //*******************convert int_s to decimal
+  int32 b = STR_length(int_s) - 1;
+  for (uint32 i = 0; i < STR_length(int_s); i++) {
+    double n3 = I32_power(radix, b);
+    b--;
+
+    int32 n4 = CH_search_index(nmb, int_s[i],radix);
+    res_ii += (n4 * n3);
+  }
+  //******************convert float_s radix to decimal
+  if (type_exp != 'i' && type_exp != '_' && type_exp != '0') {
+    b = -1;
+    for (uint32 i = 0; i < STR_length(float_s); i++) {
+      double n3 = I32_power(radix, b);
+      b--;
+      int32 n4 = CH_search_index(nmb, float_s[i],radix);
+      res_ff += (n4 * n3);
+      //printf("GGGGG:%i,%i,%f#%i,%f=>%f\n",radix, b,n3,n4,n4 * n3,res_ff);
+    }
+    res_ii += res_ff;
+    switch (radix) {
+      case 2: after_point = (uint8) STR_length(float_s);
+        break;
+      case 8: after_point = (uint8) STR_length(float_s);
+        break;
+      case 16: after_point = (uint8) STR_length(float_s) * 2;
+        break;
+    }
+  }
+  //*****************
+  String fin = STR_from_double(res_ii, after_point);
+  //printf("CCCCC:%s,%s=>%f,%i,%s\n", int_s, float_s, res_ii, str_length(float_s), fin);
+  final = STR_append(final, fin);
+  return final;
+}
+//******************************************************
+/**
+ * get num1,num2 and determine their sub_type and if need change num1,num2
+ * @version 1.0
+ * @author madkne
+ * @since 2019.12.25
+ * @param num11
+ * @param num22
+ * @return uint8
+ */
+uint8 RUNKIT_determine_type_numbers(String *num11, String *num22) {
+    //=>init vars
+    String num1 = 0;
+    String num2 = 0;
+    STR_init(&num1, (*num11));
+    if (num22 != 0)STR_init(&num2, (*num22));
+    uint8 type_exp = '0';
+    Boolean is_hex1 = false, is_hex2 = false;
+    //=>determine length of num1,num2
+    uint32 num1_len = STR_length(num1);
+    uint32 num2_len = (num22 != 0) ? STR_length(num2) : 0;
+    //=>check num1 and num2 is hex
+    if (num1_len > 2 && num1[0] == '0' && num1[1] == 'x') {
+        is_hex1 = true;
+    } else if (num2_len > 2 && num2[0] == '0' && num2[1] == 'x') {
+        is_hex2 = true;
+    }
+    //=>determine type of num1,num2
+    uint8 num2_t = '0';
+    uint8 num1_t = RUNKIT_determine_type_number(num1);
+    if (num2 != 0) {
+        num2_t = RUNKIT_determine_type_number(num2);
+    }
+    //=>if type of any num1,num2 is '0', return '0'
+    if (num1_t == '0' || (num2_t == '0' && num2 != 0)) {
+        STR_init(&(*num11), num1);
+        if (num22 != 0)STR_init(&(*num22), num2);
+        return '0';
+    } 
+    //=>if type of num1 or num2 is 'h' 
+    else if (num1_t == 'h' || num2_t == 'h')
+        type_exp = 'h';
+    //=>if type of num1 or num2 is 'f' 
+    else if (num1_t == 'f' || num2_t == 'f')
+        type_exp = 'f';
+    else type_exp = 'i';
+    //=>if num1 not hex and last is 'i' or 'f' or 'h'
+    if (num1_len > 0 && !is_hex1 &&
+        ((num1[num1_len - 1] == 'i' && type_exp == 'i') || (num1[num1_len - 1] == 'f' && type_exp == 'f') ||
+            (num1[num1_len - 1] == 'h' && type_exp == 'h'))) {
+        num1 = STR_substring(num1, 0, num1_len - 1);
+    }
+    //=>if num2 not hex and last is 'i' or 'f' or 'h'
+    if (num2_len > 0 && !is_hex2 &&
+        ((num2[num2_len - 1] == 'i' && type_exp == 'i') || (num2[num2_len - 1] == 'f' && type_exp == 'f') ||
+            (num2[num2_len - 1] == 'h' && type_exp == 'h'))) {
+        num2 = STR_substring(num2, 0, num2_len - 1);
+    }
+    //printf("DDFFFF:%s,%i\n", num1, num2_len);
+    //msg("&XXX", string(type_exp), num1, num2, string(num1_t), string(num2_t))
+    STR_init(&(*num11), num1);
+    if (num22 != 0)STR_init(&(*num22), num2);
+    return type_exp;
+}
+//******************************************************
+/**
+ * get a num and determine its sub_type and return 'i','f','h' or '0'
+ * @version 1.0
+ * @author madkne
+ * @since 2019.12.25
+ * @param num
+ * @return uint8
+ */
+uint8 RUNKIT_determine_type_number(String num) {
+    //=>init vars
+    uint8 num_type = '0';
+    Boolean is_hex = false;
+    //=>get length of num
+    uint32 len = STR_length(num);
+    //=>var is_neg=false
+    if (len > 3 && (num[0] == '-' || num[0] == '+') && num[1] == '0' &&
+        (num[2] == 'b' || num[2] == 'o' || num[2] == 'x')) {
+        if (num[0] == '-') {
+        //is_neg=true
+        }
+        num = STR_substring(num, 1, 0);
+    }
+    //=>if num is null, return '0' as type
+    if (len == 0) {
+        return num_type;
+    }
+    //=>check num is hex
+    if (len > 2 && STR_indexof(num, "0x", 0) == 0) {
+        is_hex = true;
+    }
+    //=>analyze hexdecimal
+    if (is_hex) {
+        int32 ind = STR_indexof(num, ".", 0);
+        if (ind == -1) {
+            return 'd';
+        } else {
+            return 'i';
+        }
+    }
+    //=>analyze 1 : if num not hex and has 'i'or 'f' or 'h' on last
+    if (len > 1 && !is_hex && (num[len - 2] >= '0' && num[len - 2] <= '9')) {
+        if(num[len - 1]=='i'||num[len - 1]=='f'||num[len - 1]=='h')
+            return num[len - 1];
+    }
+    //=>if num not number
+    if (!STR_is_num(num)) {
+        return '0';
+    }
+    //=>analyze 2 
+    int32 before = 0, after = 0, max_before = 0, max_after = 0;
+    Boolean is_point = false;
+    //=>iterate chars on num
+    for (uint32 i = 0; i < len; i++) {
+        //=>check for '.'
+        if (num[i] == '.') {
+            is_point = true;
+            continue;
+        }
+        if (num[i] == ',') {
+            if (after > max_after) {
+                max_after = after;
+            }
+            if (before > max_before) {
+                max_before = before;
+            }
+            after = 0, before = 0;
+            is_point = false;
+            continue;
+        }
+        if (!is_point && num[i] >= '0' && num[i] <= '9') {
+            before++;
+        } else if (is_point && num[i] >= '0' && num[i] <= '9') {
+            after++;
+        }
+    }
+    if (after > max_after) {
+        max_after = after;
+    }
+    if (before > max_before) {
+        max_before = before;
+    }
+    //=>if num length less than MAX_INT_LEN
+    if (max_after == 0 && max_before < MAX_INT_LEN)
+        return 'i';
+    //=>if num length less than MAX_FLOAT_LEN
+    if (max_after > 0 && max_before + max_after < MAX_FLOAT_LEN)
+        return 'f';
+    else
+        return 'h';
+}
+//******************************************************
+/**
+ * get expression string and remove its unused parenthesis
+ * @version 1.1
+ * @author madkne
+ * @since 2019.12.25
+ * @param value
+ * @return String
+ */
+String RUNKIT_remove_unused_parenthesis(String value) {
+    /**
+    - (56+6) => 56+6
+    - ((5+5)+6) => (5+5)+6
+    - ((6-7)*(6-6)) => (6-7)*(6-6)
+    - (5-7)*(6*9) => (5-7)*(6*9)
+    - (((5*7)+3)) => (5*7)+3
+    */
+    //=>init vars
+    Boolean exist=true;
+    while(exist){
+        exist=false;
+        //=>get length of value
+        uint32 len = STR_length(value);
+        //=>if value has ()
+        if (len > 2 && value[0] == '(' && value[len - 1] == ')') {
+            Boolean is_remove = false, is_string = false, is_br = false;
+            uint8 pars = 0;
+            //=>check if is string
+            for (uint32 i = 0; i < len; i++) {
+                if (value[i] == '\"' && (i == 0 || value[i - 1] != '\\')) {
+                    is_string = BOOL_switch(is_string);
+                }
+                //=>count pars
+                if (!is_string && value[i] == '(')pars++;
+                else if (!is_string && value[i] == ')') {
+                    pars--;
+                    //=>check if can remove ()
+                    if (i + 1 == len && pars == 0) {
+                        is_remove = true;
+                        is_br = true;
+                    } else if (i + 1 < len && pars == 0) {
+                        is_br = true;
+                    }
+                }
+                if (is_br) {
+                    break;
+                }
+            }
+            if (is_remove) {
+                exist=true;
+                value = STR_substring(value, 1, len - 1);
+            }
+        }
+    }
+    return value;
+}
+//******************************************************
+/**
+ * get a value like 'H'*3 , {'q1':true and false} , 4.5+12 and detect main data type and its sub type if possible!
+ * @author madkne
+ * @version 1.1
  * @since 2019.12.20
  * @param value : value of var
  * @param sub_type : (pointer) set sub type of value
@@ -226,6 +854,11 @@ String RUNKIT_detect_basic_type_value(String value,uint8 *sub_type){
     Boolean is_string=false;
     String final_type=0,word=0;
     uint8 final_sub=0;
+    //=>check if value not null
+    if(value==0){
+        EXP_set_errcode(INVALID_VALUE_ERRC);
+        return 0;
+    }
     //=>if value is a list or map, then just get its first item
     if(value[0]=='[' || value[0]=='{'){
         STR_init(&value,RUNKIT_get_firstitem_listormap(value));
@@ -346,6 +979,12 @@ String RUNKIT_get_firstitem_listormap(String value){
     return 0;
 }
 //******************************************************
+/**
+ * get a value that is list and split its items
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.20
+ */ 
 uint32 RUNKIT_get_list_items(String list,StrList *items){
     //=>init vars
     uint32 len=STR_length(list);
@@ -388,6 +1027,12 @@ uint32 RUNKIT_get_list_items(String list,StrList *items){
     return items_len;
 }
 //******************************************************
+/**
+ * get a value that is map and split its values and keys
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.20
+ */ 
 uint32 RUNKIT_get_map_items(String map,StrList *values,StrList *keys){
     //=>init vars
     uint32 len=STR_length(map);
@@ -445,8 +1090,200 @@ uint32 RUNKIT_get_map_items(String map,StrList *values,StrList *keys){
     return items_len;
 }
 //******************************************************
+/**
+ * get two sub_types and comparison and priority for them
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.25
+ * @param type_exp
+ * @param tmp1
+ * @return uint8
+ */
+uint8 RUNKIT_priority_number_types(uint8 type_exp, uint8 tmp1) {
+    if(type_exp=='_') return tmp1;
+    if(tmp1=='_') return type_exp;
+    if (tmp1 == 'h' || type_exp == 'h') return 'h';
+    if (tmp1 == 'f' || type_exp == 'f') return 'f';
+    if (tmp1 == 'i' && type_exp == 'i') return 'i';
+    return 'i';
+}
 //******************************************************
+/**
+ * get two string numbers and based of operator and sub_type(i,f,h),calculate their and return result of it
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.25
+ * @param num1
+ * @param num2
+ * @param op
+ * @param type_exp
+ * @return String
+ */
+String RUNKIT_calc_two_numbers(String num1, String num2, uint8 op, uint8 type_exp) {
+    //=>init vars
+    String result = 0;
+    STR_init(&result, "0");
+    //=>search for errors and warnings
+    if (op == '/' && STR_equal(num2, "0")) {
+        EXP_handler("zero_division", __func__, STR_multi_append(num1, "/", num2, 0, 0, 0), 0);
+        return "0";
+    } else if (op == '%' && (type_exp == 'f' || type_exp == 'h')) {
+        //com_type, _, _ := fitting_value(string(type_exp), "", "com_type")
+        //exception_handler("wrong_remainder", __func__, com_type, "")
+        //TODO:error
+        return "0";
+    }
+
+    //=>calculate num1,num2
+    //----------------int
+    if (type_exp == 'i') {
+        num1 = RUNKIT_resize_to_int(num1);
+        num2 = RUNKIT_resize_to_int(num2);
+        int32 n1 = STR_to_int32(num1);
+        int32 n2 = STR_to_int32(num2);
+
+        if (op == '/' && n2 == 0) {
+            EXP_handler("zero_division", __func__, STR_multi_append(num1, "/", num2, 0, 0, 0), "");
+            return "0";
+        }
+        //=>operands on int numbers
+        switch (op) {
+            case '+': result = STR_from_int32(n1 + n2);
+                break;
+            case '-': result = STR_from_int32(n1 - n2);
+                break;
+            case '*': result = STR_from_int32(n1 * n2);
+                break;
+            case '/':
+            case '|':
+            result = STR_from_int32(n1 / n2);
+                break;
+            case '%': result = STR_from_int32(n1 % n2);
+                break;
+            case '^': {
+                double ret = I32_power((double) n1, n2);
+                if (ret > MAX_INT_NUMBER) {
+                    EXP_handler("out_of_range_integer", "calculate_two_numbers",STR_multi_append(num1, "^", num2, 0, 0, 0), "");
+                    return "0";
+                }
+                //printf("DDDDDDD:%li\n",ret);
+                result = STR_from_int32((int32) ret);
+                break;
+            }
+        }
+    }
+    //----------------float
+    else if (type_exp == 'f') {
+        double n1 = STR_to_double(num1);
+        double n2 = STR_to_double(num2);
+        switch (op) {
+            case '+': result = STR_from_double(n1 + n2, (uint8) STR_length(num1) / 2);
+                break;
+            case '-': result = STR_from_double(n1 - n2, (uint8) STR_length(num1) / 2);
+                break;
+            case '*': result = STR_from_double(n1 * n2, (uint8) STR_length(num1));
+                break;
+            case '/': result = STR_from_double(n1 / n2, (uint8) STR_length(num1));
+                break;
+            case '|': result = STR_from_int64((int32)n1 / (int32)n2);
+                break;
+            case '^': {
+                double ret = I32_power(n1, (int32) n2);
+                if (ret > MAX_FLOAT_NUMBER) {
+                    EXP_handler("out_of_range_float", __func__, STR_multi_append(num1, "^", num2, 0, 0, 0), "");
+                    return "0";
+                }
+                //printf("DDDDDDD:%f\n",ret);
+                result = STR_from_double(ret, (uint8) (STR_length(num1) * 2));
+                break;
+            }
+        }
+    }
+    //----------------huge
+    else if (type_exp == 'h') {
+        //TODO:
+        //printf("&HHH:%s,%s,%c\n", num1, num2, op);
+        // switch (op) {
+        // case '+': result = sum_huge_numbers(num1, num2, false);
+        //     break;
+        // case '-': result = sum_huge_numbers(num1, num2, true);
+        //     break;
+        // case '*': result = muliply_huge_numbers(num1, num2);
+        //     break;
+        // case '/': result = divide_huge_numbers(num1, num2);
+        //     break;
+        // case '^': {
+        //     str_detachment_float(num2, &num2, 0);
+        //     int32 n2 = str_to_int32(num2);
+        //     //printf("$$RR:%s=>%i\n",num2,n2);
+        //     Boolean is_neg = false;
+        //     int32 b = 0;
+        //     String res = 0;
+        //     str_init(&res, "1");
+        //     if (n2 < 0) {
+        //     is_neg = true;
+        //     n2 = -n2;
+        //     }
+        //     for (uint32 b = 0; b < n2; b++) {
+        //     res = muliply_huge_numbers(res, num1);
+        //     }
+        //     if (is_neg) {
+        //     res = divide_huge_numbers("1", res);
+        //     }
+        //     str_init(&result, res);
+        //     break;
+        // }
+        // }
+    }
+
+    return result;
+}
 //******************************************************
+/**
+ * get a string number and resize it to integer number
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.25
+ * @param str_val
+ * @return String
+ */
+String RUNKIT_resize_to_int(String str_val) {
+  String fin_res = 0;
+  for (uint32 i = 0; i < STR_length(str_val); i++) {
+    if (str_val[i] == '.' || STR_length(fin_res) > MAX_INT_LEN) {
+      break;
+    }
+    fin_res = CH_append(fin_res, str_val[i]);
+  }
+  return fin_res;
+}
+
+//******************************************************
+/**
+ * get a string number and resize it to float number
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.25
+ * @param str_val
+ * @return String
+ */
+String RUNKIT_resize_to_float(String str_val) {
+  String fin_res = 0;
+  uint32 count = 0;
+  for (uint32 i = 0; i < STR_length(str_val); i++) {
+    if (count >= MAX_FLOAT_LEN) {
+      break;
+    }
+    if (str_val[i] != '-' && str_val[i] != '+' && str_val[i] != '.') {
+      count++;
+    }
+    fin_res = CH_append(fin_res, str_val[i]);
+  }
+  if (fin_res[STR_length(fin_res) - 1] == '.') {
+    fin_res = CH_append(fin_res, '0');
+  }
+  return fin_res;
+}
 //******************************************************
 
 //******************************************************

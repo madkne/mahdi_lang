@@ -222,7 +222,7 @@ Boolean IMPORT_open_file(imin s)
     free(glob_buffer);
     free(glob_collect);
     //=>if programmer debug is enabled, then display main source and utf8 structures
-    if (is_programmer_debug >= 2){
+    if (is_programmer_debug >= 3){
       COM_print_struct(PRINT_MAIN_SOURCE_ST);
       COM_print_struct(PRINT_UTF8_ST);
     }

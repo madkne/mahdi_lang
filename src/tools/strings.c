@@ -476,11 +476,11 @@ String STR_from_int64(int64 x) {
     x *= -1;
     is_neg = true;
   }
-
   while (x) {
     ret = CH_append(ret, (x % 10) + '0');
     x = x / 10;
   }
+  
   if (is_neg) ret = CH_append(ret, '-');
   ret = STR_reverse(ret);
   return ret;

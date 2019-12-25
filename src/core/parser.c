@@ -5,7 +5,7 @@
 Longint Aline = 0; //=>current line number
 Boolean is_in_func = false;
 Boolean is_in_pack=false;
-//=>detect and get tokens like '@private_method' in package
+//=>detect and get tokens like '@private' in package
 uint8 pack_zone=PUBLIC_METHOD_FATTR;
 //=>get tokens like 'override','static' in package
 int32 pack_method_attrs[MAX_FUNCTION_ATTRIBUTES];
@@ -22,6 +22,14 @@ Longint cur_stru_id = 0;
 Boolean is_inline_stru = false;
 stoi is_in_stru[MAX_INTO_IN_STRUCTURES];
 //******************************************************
+/**
+ * analyze and parse source code, first get its tokens and then analyze ana manage tokens, finally fill all parsing data structures like blst,imin,...
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.23
+ * @param i : (pointer) index of token 
+ * @return Boolean : if success analyzing or faild
+ */ 
 Boolean PARSER_analyze_source_code() {
     //=>clear all tokens of source code
     _soco_clear(TOKENS_SOURCE_CODE);
@@ -43,7 +51,7 @@ Boolean PARSER_analyze_source_code() {
     pack_method_attrs_len=0;
     //=>get tokens of source code
     PARSER_get_tokens();
-    if(is_programmer_debug>=2){
+    if(is_programmer_debug>=4){
         COM_print_struct(PRINT_TOKENS_SOURCE_ST);
     }
     //=>init vars
@@ -112,20 +120,26 @@ Boolean PARSER_analyze_source_code() {
         }
         //=>if is in a package and out of any functions
         if(cur_pack_id>0 && cur_func_id==0){
+            Boolean exist=false;
             if(pack_method_attrs_len==3) pack_method_attrs_len=0;
             //=>check for zone methods in package
-            if(STR_equal(Acode,"@public_methods")){
+            if(STR_equal(Acode,"@public")){
                 pack_zone=PUBLIC_METHOD_FATTR;
-            }else if(STR_equal(Acode,"@private_methods")){
+                exist=true;
+            }else if(STR_equal(Acode,"@private")){
                 pack_zone=PRIVATE_METHOD_FATTR;
+                exist=true;
             }
             //=>get method attributes
             else if(STR_equal(Acode,"override")){
                 pack_method_attrs[pack_method_attrs_len++]=OVERRIDE_METHOD_FATTR;
+                exist=true;
             }
             else if(STR_equal(Acode,"static")){
                 pack_method_attrs[pack_method_attrs_len++]=STATIC_METHOD_FATTR;
+                exist=true;
             }
+            if(exist) continue;
         }
         //if token is import keyword
         if (state == 0 && STR_equal("import", Acode)) {
@@ -180,46 +194,35 @@ Boolean PARSER_analyze_source_code() {
             }
             continue;
         }
-//     //-------------normal instructions
-//     if (state == 0 && !str_ch_equal(Acode, '{') && !str_ch_equal(Acode, '}') && !str_ch_equal(Acode, ';')) {
-//       manage_normal_instructions(&i);
-//     }
-//     //-------------inline stru
-//     if (block_id > 0 && !str_ch_equal(Acode, ';')) {
-//       uint8 c = block_id;
-//       for (;;) {
-//         c--;
-//         if (is_in_stru[c].is_inline && is_in_stru[c].is_active) {
-//           is_in_stru[c].is_active = false;
-//           is_in_stru[c].is_inline = false;
-//           //println("GGGG:", is_in_stru[c].id)
-//           break;
-//         }
-//         if (c == 0) break;
-//       }
-//       cur_stru_id = get_last_id_active_is_in_stru();
-//     }
-
-  }
-//   //-------------check for syntax error
-//   //msg("&%%%", parse_pars)
-//   if (parse_pars > 0) {
-//     print_error(Aline, "not_end_acod", entry_table.cur_ascii_source_path, "", "", "analyze_source_code");
-//     return false;
-//   } else if (parse_pars < 0) {
-//     print_error(Aline, "not_start_acod", entry_table.cur_ascii_source_path, "", "", "analyze_source_code");
-//     return false;
-//   }
+        //=>else if token is part of normal instructions
+        if (state == 0 && !STR_CH_equal(Acode, '{') && !STR_CH_equal(Acode, '}') && !STR_CH_equal(Acode, ';')) {
+            PARSER_manage_instruction(&i);
+        }
+        //=>manage inline stru
+        if (block_id > 0 && !STR_CH_equal(Acode, ';')) {
+        uint8 c = block_id;
+        for (;;) {
+            c--;
+            if (is_in_stru[c].is_inline && is_in_stru[c].is_active) {
+            is_in_stru[c].is_active = false;
+            is_in_stru[c].is_inline = false;
+            //println("GGGG:", is_in_stru[c].id)
+            break;
+            }
+            if (c == 0) break;
+        }
+        cur_stru_id = PARSER_get_last_active_is_in_stru_id();
+        }
+    }
+    //=>check for syntax error
+    if (parse_pars > 0) {
+        EXP_print_error(Aline, "not_end_acod", entry_table.current_source_path, 0, 0, "PARSER_analyze_source_code");
+        return false;
+    } else if (parse_pars < 0) {
+        EXP_print_error(Aline, "not_start_acod", entry_table.current_source_path, 0, 0,"PARSER_analyze_source_code");
+        return false;
+    }
   //--------------------------------
-  //=>if programmer debug is enabled, then show all structs
-  if(is_programmer_debug>=2){
-    COM_print_struct(PRINT_IMPORT_ST);
-    COM_print_struct(PRINT_PACK_ST);
-    COM_print_struct(PRINT_FUNC_ST);
-    COM_print_struct(PRINT_DATA_TYPES_ST);
-    COM_print_struct(PRINT_STRU_ST);
-  }
-  //print_struct(7);*/
   return true;
 }
 //******************************************************
@@ -337,7 +340,7 @@ void PARSER_manage_import(uint32 *i) {
 /**
  * get i pointer of token index in source code and detect package header and append it to imin struct
  * @author madkne
- * @version 1.0
+ * @version 1.1
  * @since 2019.12.20
  * @param i : (pointer) index of token 
  * @return void
@@ -382,6 +385,10 @@ void PARSER_manage_package(uint32 *i) {
         EXP_print_error(Aline,"invalid_name_block",entry_table.current_source_path,name,0,"PARSER_manage_package");
         return;
     }
+    //=>if exist inherit package
+    if(inherit!=0){
+        entry_table.need_inheritance=true;
+    }
     //=>append to blst pack struct
     blst tmp1 = {0, 0, 0,0, PACK_BLOCK_ID, name, inherit, 0,0,true,0, Aline, Apath, 0};
     _blst_append(tmp1);
@@ -409,11 +416,12 @@ void PARSER_manage_function(uint32 *i){
     uint32 params_len = 0;
     uint8 pars = 0;
     uint8 param_bra=0,param_acol=0;
+    defvar main_params[MAX_VAR_ALLOC_INSTRUCTIONS];
     int32 func_attrs[MAX_FUNCTION_ATTRIBUTES];
     ILIST_reset(func_attrs,MAX_FUNCTION_ATTRIBUTES);
     //=>iterate tokens of function header
     for (; *i < entry_table.soco_tokens_count; (*i)++) {
-        //=>get token after pack
+        //=>get token after func
         soco token_item = _soco_get(TOKENS_SOURCE_CODE, *i);
         String Acode =0;
         STR_init(&Acode,token_item.code);
@@ -502,6 +510,34 @@ void PARSER_manage_function(uint32 *i){
     //=>empty method attributes array 
     ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
     pack_method_attrs_len=0;
+    //=>analyzing, verifying and spliting parameters,if exist params
+    if(params_len>0){
+        uint8 vars_counter = RUNKIT_defvars_analyzing(parameters, params_len, main_params,true,true);
+        for (uint32 i = 0; i < vars_counter; i++)
+        {defvar f=main_params[i];
+            printf("@@@@:[p:%i,f:%i]:%s;%s;%s\n",f.pid,f.fid,f.name_var,f.type_var,f.value_var);
+        }
+        
+    //printf("#############:%s\n",params);
+    //   if (vars_counter == 0) {
+    //     parameters = 0;
+    //     params_len = 0;
+    //   } else {
+    //     for (uint32 i = 0; i < vars_counter; i++) {
+    //       //-------check for syntax errors
+    //       if (!str_is_empty(main_params[i].value_var)) {
+    //         print_error(Aline, "param_def_val", entry_table.cur_ascii_source_path, main_params[i].name_var, name,
+    //                     "manage_functions");
+    //       }
+    //       String val = str_multi_append(main_params[i].main_type, ";", main_params[i].name_var, ";",
+    //                                     main_params[i].index_var, 0);
+
+    //       str_list_append(&parameters, val, params_len++);
+    //       //printf("FFFFFFFF:%s=>%i\n",val,vars_counter);
+    //     }
+    //   }
+    }
+
     // printf("func_header:%s;%s;%i\n",name,SLIST_print(parameters,params_len),params_len);
     //=>append to blst_func
     blst tmp1 = {0, cur_pack_id, 0,0, FUNC_BLOCK_ID, name,0, parameters, params_len,false,(IntList)func_attrs, Aline, Apath, 0};
@@ -558,8 +594,8 @@ void PARSER_manage_structure(uint32 *i, String lbl) {
             else if (str_ch_equal(Acode, '}'))parse_pars--;*/
             //=>append to buf
             buf = STR_append(buf, Acode);
-            if ((*i) + 1 < entry_table.soco_tokens_count && !CH_search(words_splitter, Acode[0],ChArraySize(words_splitter)) &&
-                !CH_search(words_splitter, _soco_get(TOKENS_SOURCE_CODE, (*i) + 1).code[0],ChArraySize(words_splitter))) {
+            if ((*i) + 1 < entry_table.soco_tokens_count && !CH_STR_search(words_splitter, Acode,ChArraySize(words_splitter)) &&
+                !CH_STR_search(words_splitter, _soco_get(TOKENS_SOURCE_CODE, (*i) + 1).code,ChArraySize(words_splitter))) {
                 buf = CH_append(buf, ' ');
             }
         }
@@ -642,13 +678,63 @@ void PARSER_manage_structure(uint32 *i, String lbl) {
     is_in_stru[block_id - 1].id = cur_stru_id;
     is_in_stru[block_id - 1].stru_pars = parse_pars;
     //printf("PPP:%i,%s\n",block_id,lbl);
-    //=>
-    // Longint order = get_order(cur_func_id, sid_t);
-    // set_order(cur_func_id, sid_t, ++order);
-    // //=>append to instru
-    // instru tmp2 = {0, cur_func_id, sid_t, order, inst, STRUCTURE_LBL_INST, Aline, Apath, 0};
-    // append_instru(tmp2);
+    //=>get instruction order for cureent stru,func,pack
+    Longint order = _inor_get(cur_pack_id, cur_func_id, sid_t);
+    //=>update instruction order for current stru header instruction
+    _inor_set(cur_pack_id,cur_func_id, sid_t, ++order);
+    //=>append to instru
+    instru tmp2 = {0,cur_pack_id, cur_func_id, sid_t, order, inst, STRUCTURE_LBL_INST, Aline, Apath, 0};
+    _instru_append(tmp2);
     //printf("GGGGGGGGGGGG:%s\n",inst);
+}
+//******************************************************
+/**
+ * get i pointer of token index in source code and coolect tokens of an instruction like function call or assign a variable
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.22
+ * @param i : (pointer) index of token 
+ * @return void
+ */
+void PARSER_manage_instruction(uint32 *i) {
+    //=>init vars
+    String code = 0, last = 0;
+    uint32 order = 0;
+    uint32 len=entry_table.soco_tokens_count;
+    //=>analyze instruction
+    for (; *i < len; (*i)++) {
+        uint32 ind = *i;
+        //=>get token
+        soco token_item = _soco_get(TOKENS_SOURCE_CODE, *i);
+        String Acode =0;
+        STR_init(&Acode,token_item.code);
+        Aline = token_item.line;
+        //=>simicolon exception if ...);[]
+        if (STR_CH_equal(Acode, ';') && ind - 1 > 0 && ind + 1 < len &&
+            STR_CH_equal(last, ')') && STR_CH_equal(_soco_get(TOKENS_SOURCE_CODE, ind + 1).code, '[')){
+            continue;
+        }
+        //=>end of instruction
+         if (STR_CH_equal(Acode, ';')) break;
+        //=>append to code
+        code = STR_append(code, Acode);
+        if (ind + 1 < len && !CH_STR_search(words_splitter, Acode,ChArraySize(words_splitter)) &&
+            !CH_STR_search(words_splitter, _soco_get(TOKENS_SOURCE_CODE, ind + 1).code,ChArraySize(words_splitter))) {
+            code = CH_append(code, ' ');
+        }
+        STR_init(&last, Acode);
+    }
+    // printf("TTTT:%s\n",code);
+    //=>get current inst order and update for current inst
+    order = _inor_get(cur_pack_id, cur_func_id, cur_stru_id);
+    _inor_set(cur_pack_id,cur_func_id, cur_stru_id, ++order);
+    //=>trim code
+    code = PARSER_trim_inst_code(code);
+    //=>append to instru
+    instru tmp1 = {0, cur_pack_id,cur_func_id, cur_stru_id, order, code, UNKNOWN_LBL_INST, Aline, Apath, 0};
+    //  printf("XXSSSS:fid:%i,sid:%i,line:%i=>%s\n", cur_func_id, cur_stru_id, tmp1.line, code);
+    _instru_append(tmp1);
+    //  printf("PPPP:%li,%s(%li,%li,%li)\n",order,code,pid,fid,sid);
 }
 //******************************************************
 /**
@@ -680,7 +766,6 @@ String PARSER_trim_inst_code(String code) {
             && (CH_search(single_operators, code[i - 1],ChArraySize(single_operators)) || CH_search(words_splitter, code[i - 1],ChArraySize(words_splitter)))) {
             continue;
         }
-        printf("@@@continue\n");
         //=>append to ret
         ret = CH_append(ret, code[i]);
     }

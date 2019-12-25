@@ -84,7 +84,6 @@ void COM_print_struct(uint8 which) {
     printf("=====Print import_inst_struct :\n");
     for (;;) {
       printf("Active:%i,id:%li,type:%i,name:%s,packs:%s,funcs:%s,path:%s,line:%i,source:[%i][ERR%i]\n", tmp1->is_active, tmp1->id, tmp1->type,tmp1->name,SLIST_print(tmp1->packages,tmp1->pack_len),SLIST_print(tmp1->functions,tmp1->func_len),tmp1->path, tmp1->line,tmp1->source_index,tmp1->err_code);
-      printf("\n");
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }
@@ -161,25 +160,33 @@ void COM_print_struct(uint8 which) {
     }
     printf("=====End printed\n");
   } 
-// else if (which == 0 || which == PRINT_INSTRU_ST) {
-//     instru *tmp1 = entry_table.instru_start;
-//     if (tmp1 == 0) return;
-//     printf("=====Print instructions_struct :\n");
-//     for (;;) {
-//       printf("(id:%li,fid:%li,sid:%li,order:%li,type:%i,line:%i),code:%s\n\tfile:%s[%i]\n",
-//              tmp1->id,
-//              tmp1->func_id,
-//              tmp1->stru_id,
-//              tmp1->order,
-//              tmp1->type,
-//              tmp1->line,
-//              tmp1->code,
-//              utf8_to_bytes_string(source_paths[tmp1->source_id]), tmp1->line);
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//     printf("=====End printed\n");
-//   } 
+  //=>print all nodes of fpp struct (function params and package attrs)
+  else if (which == 0 || which == PRINT_FUNC_PACK_PARAMS_ST) {
+    fpp *tmp1 = entry_table.fpp_start;
+    if (tmp1 == 0) return;
+    printf("=====Print func_pack_params_struct :\n");
+    for (;;) {
+      printf("[typ:%i,refid:%li,ord:%i]:%s|%s|%s,name:%s,params:%s[over:%i,stat:%i]\n", tmp1->type,tmp1->refid,tmp1->porder, tmp1->pname,tmp1->ptype,tmp1->pvalue,tmp1->is_static,tmp1->is_override);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of instru struct (instructions)
+  else if (which == 0 || which == PRINT_INSTRU_ST) {
+      instru *tmp1 = entry_table.instru_start;
+      if (tmp1 == 0) return;
+      printf("=====Print instructions_struct :\n");
+      for (;;) {
+        printf("(id:%li,pid:%li,fid:%li,sid:%li,order:%li,type:%i,line:%i),code:%s\n",
+              tmp1->id,tmp1->pack_id,tmp1->func_id,tmp1->stru_id,tmp1->order,tmp1->type,tmp1->line,tmp1->code
+              // entry_table.sources_list[tmp1->source_id], tmp1->line
+              );
+        tmp1 = tmp1->next;
+        if (tmp1 == 0) break;
+      }
+      printf("=====End printed\n");
+    } 
   //=>print all nodes of blst packs struct (packages)
   else if (which == 0 || which == PRINT_PACK_ST) {
     blst *tmp1 = entry_table.blst_pack_start;
@@ -189,6 +196,18 @@ void COM_print_struct(uint8 which) {
       if(tmp1->type==PACK_BLOCK_ID){
         printf("id:%li,pid:%li,name:%s,inherit:%s,params:%s\n", tmp1->id, tmp1->pack_id, tmp1->label,tmp1->inherit, SLIST_print(tmp1->params, tmp1->params_len));
       }
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of inpk struct (inherit packages)
+  else if (which == 0 || which == PRINT_INHERIT_ST) {
+    inpk *tmp1 = entry_table.inpk_start;
+    if (tmp1 == 0) return;
+    printf("=====Print inherit_package_struct :\n");
+    for (;;) {
+      printf("pid:%li,name:%s[iid:%li,inherit:%s]\n", tmp1->parent_id, tmp1->parent_name, tmp1->inherit_id,tmp1->inherit_name);
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }

@@ -74,6 +74,15 @@ Boolean CH_search(uint8 list[], uint8 c,uint32 size) {
   }
   return false;
 }
+//******************************************
+Boolean CH_STR_search(uint8 list[], String s,uint32 size) {
+  if(STR_length(s)!=1)return false;
+  for (uint32 i = 0; i < size; i++) {
+    if (s[0] == list[i])
+      return true;
+  }
+  return false;
+}
 
 //******************************************
 int32 CH_search_index(uint8 list[], uint8 c,uint32 size) {

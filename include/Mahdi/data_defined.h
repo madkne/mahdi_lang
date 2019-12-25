@@ -97,6 +97,13 @@ typedef struct source_code_struct {
 
   struct source_code_struct *next;
 } soco;
+//****************************map struct
+typedef struct map_struct {
+  String key;
+  String value;
+
+  struct map_struct *next;
+} map;
 //****************************exceptions_list struct
 typedef struct exceptions_list_struct {
   uint32 id;
@@ -159,7 +166,7 @@ typedef struct utf8_strings_struct {
 } utst;
 //****************************instructions struct
 /**
- * store all instructions except block headers
+ * store all instructions except block headers(funcs,packs)
  */ 
 typedef struct instructions_struct {
   Longint id;
@@ -302,6 +309,32 @@ typedef struct define_variable_struct {
 
 } defvar;
 
+//****************************inherit_package struct
+/**
+ * (inherit) store all packages that inherit from ther other package
+ */ 
+typedef struct inherit_package_struct {
+  Longint parent_id;
+  String parent_name;
+  Longint inherit_id;
+  String inherit_name;
+  struct inherit_package_struct *next;
+} inpk;
+//****************************func_pack_params struct
+/**
+ * (parser) store all packages and functions attributes and parameters as simplify
+ */ 
+typedef struct func_pack_params_struct {
+  Longint refid; //=>pack id OR func_id
+  uint8 type; //=>pack OR func
+  uint32 porder; //=>for function parameters
+  String pname;
+  String ptype;
+  String pvalue;
+  Boolean is_static; //=>for package attributes
+  Boolean is_override; //=>for package attributes
+  struct func_pack_params_struct *next;
+} fpp;
 // //**********************vals_array_struct
 // typedef struct vals_array_struct {
 //   Longint data_id;
@@ -462,6 +495,14 @@ struct entry_table_struct {
   debr *debr_end;
   uint32 debr_len;
 
+  inpk *inpk_start;
+  inpk *inpk_end;
+  Longint inpk_id;
+
+  fpp *fpp_start;
+  fpp *fpp_end;
+  Longint fpp_id;
+
   Boolean debug_is_run;
   Boolean debug_is_next;
 
@@ -484,7 +525,9 @@ struct entry_table_struct {
   Longint cur_sid;
   Longint cur_order;
   Longint parent_fin;
-
+  //=>parsing global vars
+  Boolean need_inheritance;
+  //=>runtime global vars
   String Rsrc;
   Longint return_fin;
   uint32 Rorder, Rline;
@@ -508,7 +551,11 @@ int32 _prme_search(String funcname);
 void _soco_append(uint8 type, uint32 line,String code);
 void _soco_clear(uint8 type);
 soco _soco_get(uint8 type, uint32 ind);
-
+//=>map functions
+void _map_push(map **map_start,map **map_end, String key,String value);
+String _map_get(map *map_start,String key);
+String _map_print(map *map_start);
+map _map_popleft(map **map_start,map **map_end);
 // soco get_soco(uint8 type, uint32 ind);
 // Boolean edit_soco(uint8 type, uint32 line, String new_data);
 //=>stoi functions
@@ -518,6 +565,16 @@ void _blst_append(blst s);
 //=>datas functions
 void _datas_append(Longint pack_id,uint8 type,String name);
 datas _datas_search(String name,Longint pack_id,Boolean name_or_packid);
+//=>inor functions
+void _inor_append(inor s);
+uint32 _inor_get(Longint pid, Longint fid, Longint sid);
+void _inor_set(Longint pid, Longint fid, Longint sid, uint32 order);
+//=>instru functions
+void _instru_append(instru s);
+//=>inpk functions
+void _inpk_append(inpk s);
+//=>fpp functions
+void _fpp_append(fpp s);
 //=>utst functions
 void _utst_append(utst s);
 Longint _utst_add(uint32 line, UString str, uint8 max_bytes);

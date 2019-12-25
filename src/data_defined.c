@@ -73,7 +73,7 @@ String exceptions_group[] = {
     "BuilderError"          //15 (runtime)
 };
 
-String package_zones[2]={"@private_methods","@public_methods"};
+String package_zones[2]={"@private","@public"};
 String method_attributes[2]={"override","static"};
 String exceptions_type[4] = {"CANCEL", "FATAL", "ERROR", "WARNING"};
 
@@ -197,9 +197,15 @@ void DEF_init() {
   //=>init debug breakpoints struct
   entry_table.debr_start = 0;
   entry_table.debr_len = 0;
+  //=>init inherit package struct
+  entry_table.inpk_start=0;
+  entry_table.inpk_end=0;
+  entry_table.inpk_id=1;
   //=>init break,next instructions vars states
   entry_table.next_break_inst = 0;
   entry_table.break_count = 0;
+  //=>init parsing vars states
+  entry_table.need_inheritance=false;
   //=>init runtime vars states
   entry_table.Rsrc = 0;
   entry_table.return_fin = 0;
@@ -330,6 +336,66 @@ soco _soco_get(uint8 type, uint32 ind) {
   return ret;
 }
 //*************************************************************
+//***********************map functions*************************
+//*************************************************************
+void _map_push(map **map_start,map **map_end, String key,String value) {
+  map *q;
+  q = (map *) malloc(sizeof(map));
+  if (q == 0) return;
+  STR_init(&q->key, key);
+  STR_init(&q->value, value);
+  q->next = 0;
+  if ((*map_start) == 0) {
+    (*map_start) = (*map_end) = q;
+  } else {
+    (*map_end)->next = q;
+    (*map_end) = q;
+  }
+}
+//*************************************************************
+String _map_get(map *map_start,String key) {
+  map *st = map_start;
+  if (st == 0) return 0;
+  for (;;) {
+    if (STR_equal(st->key, key)) return st->value;
+    st = st->next;
+    if (st == 0) break;
+  }
+  return 0;
+}
+//*************************************************************
+String _map_print(map *map_start){
+  map *st = map_start;
+  if (st == 0) return 0;
+  String ret="{";
+  for (;;) {
+    ret=STR_multi_append(ret," ",st->key,": \"",st->value,"\" ");
+    st = st->next;
+    if (st == 0) break;
+    ret=CH_append(ret,',');
+  }
+  return CH_append(ret,'}');
+}
+//*************************************************************
+map _map_popleft(map **map_start,map **map_end){
+  map ret = {0, 0, 0};
+  map *tmp1 = (*map_start);
+  if (tmp1 == 0) return ret;
+  ret.key = (*tmp1).key;
+  ret.value = (*tmp1).value;
+  //=>if exist just one item
+  if ((*map_start)->next==0) {
+    free(tmp1);
+    (*map_start) = (*map_end) = 0;
+  }
+  //=>else exist more items
+  else {
+    (*map_start)=(*map_start)->next;
+    free(tmp1);
+  }
+  return ret;
+}
+//*************************************************************
 //***************stru_to_in_struct functions*******************
 //*************************************************************
 void _stoi_empty(stoi s[], uint32 size) {
@@ -428,6 +494,149 @@ datas _datas_search(String name,Longint pack_id,Boolean name_or_packid) {
     if (st == 0) break;
   }
   return null;
+}
+//*************************************************************
+//***************instructions_order functions******************
+//*************************************************************
+void _inor_append(inor s) {
+  inor *q;
+  q = (inor *) malloc(sizeof(inor));
+  if (q == 0) return;
+  q->pid=s.pid;
+  q->fid = s.fid;
+  q->sid = s.sid;
+  q->order = s.order;
+  q->next = 0;
+  entry_table.inor_count++;
+  if (entry_table.inor_start == 0) {
+    entry_table.inor_start = entry_table.inor_end = q;
+  } else {
+    entry_table.inor_end->next = q;
+    entry_table.inor_end = q;
+  }
+}
+
+//*************************************************************
+uint32 _inor_get(Longint pid, Longint fid, Longint sid) {
+  inor *tmp1 = entry_table.inor_start;
+  if (tmp1 == 0) return 0;
+  for (;;) {
+    if (tmp1->pid == pid && tmp1->fid == fid && tmp1->sid == sid) {
+      return tmp1->order;
+    }
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+  return 0;
+}
+
+//*************************************************************
+void _inor_set(Longint pid, Longint fid, Longint sid, uint32 order) {
+  //=>init vars
+  uint32 index = 0;
+  Boolean is_exist = false;
+  //search and check for exist
+  inor *tmp1 = entry_table.inor_start;
+  if (tmp1 != 0) {
+    for (;;) {
+      index++;
+      if (tmp1->pid==pid && tmp1->fid == fid && tmp1->sid == sid) {
+        is_exist = true;
+        break;
+      }
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+  }
+  //=>set order if not exist
+  if (!is_exist) {
+    inor tmp2 = {pid,fid, sid, order, 0};
+    _inor_append(tmp2);
+  } 
+  //=>if exist, just update its
+  else {
+    uint32 ind = 0;
+    inor *tmp1 = entry_table.inor_start;
+    for (;;) {
+      ind++;
+      if (ind == index) {
+        tmp1->order = order;
+        break;
+      }
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+  }
+}
+
+//*************************************************************
+//******************instructions functions*********************
+//*************************************************************
+void _instru_append(instru s) {
+  instru *q;
+  q = (instru *) malloc(sizeof(instru));
+  if (q == 0) return;
+  q->id = entry_table.inst_id++;
+  q->pack_id=s.pack_id;
+  q->func_id = s.func_id;
+  q->stru_id = s.stru_id;
+  q->order = s.order;
+  q->line = s.line;
+  q->type = s.type;
+  q->source_id = s.source_id;
+  STR_init(&q->code, s.code);
+  q->next = 0;
+  if (entry_table.instru_start == 0)
+    entry_table.instru_start = entry_table.instru_end = q;
+  else {
+    entry_table.instru_end->next = q;
+    entry_table.instru_end = q;
+  }
+}
+//*************************************************************
+//*****************inherit_package functions*******************
+//*************************************************************
+void _inpk_append(inpk s) {
+  inpk *q;
+  q = (inpk *) malloc(sizeof(inpk));
+  if (q == 0) return;
+  q->parent_id=s.parent_id;
+  q->inherit_id = s.inherit_id;
+  STR_init(&q->inherit_name,s.inherit_name);
+  STR_init(&q->parent_name,s.parent_name);
+  q->next = 0;
+  entry_table.inpk_id++;
+  if (entry_table.inpk_start == 0) {
+    entry_table.inpk_start = entry_table.inpk_end = q;
+  } else {
+    entry_table.inpk_end->next = q;
+    entry_table.inpk_end = q;
+  }
+}
+//*************************************************************
+//****************func_pack_params functions*******************
+//*************************************************************
+void _fpp_append(fpp s) {
+  fpp *q;
+  q = (fpp *) malloc(sizeof(fpp));
+  if (q == 0) return;
+  entry_table.fpp_id++;
+
+  q->type = s.type;
+  q->refid=s.refid;
+  q->porder=s.porder;
+  q->is_override=s.is_override;
+  q->is_static=s.is_static;
+  STR_init(&q->pname, s.pname);
+  STR_init(&q->ptype, s.ptype);
+  STR_init(&q->pvalue, s.pvalue);
+  q->next = 0;
+  if (entry_table.fpp_start == 0)
+    entry_table.fpp_start = entry_table.fpp_end = q;
+  else {
+    entry_table.fpp_end->next = q;
+    entry_table.fpp_end = q;
+  }
 }
 //*************************************************************
 //******************utf8_strings functions*********************
@@ -595,29 +804,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 
 
 
-// //*************************************************************
-// //******************instructions functions*********************
-// //*************************************************************
-// void append_instru(instru s) {
-//   instru *q;
-//   q = (instru *) malloc(sizeof(instru));
-//   if (q == 0) return;
-//   q->id = entry_table.inst_id++;
-//   q->func_id = s.func_id;
-//   q->stru_id = s.stru_id;
-//   q->order = s.order;
-//   q->line = s.line;
-//   q->type = s.type;
-//   q->source_id = s.source_id;
-//   str_init(&q->code, s.code);
-//   q->next = 0;
-//   if (entry_table.instru_start == 0)
-//     entry_table.instru_start = entry_table.instru_end = q;
-//   else {
-//     entry_table.instru_end->next = q;
-//     entry_table.instru_end = q;
-//   }
-// }
+
 
 // //*************************************************************
 // instru get_instru_by_id(long_int id) {
@@ -660,75 +847,6 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 //     if (st == 0) break;
 //   }
 //   return null;
-// }
-// //*************************************************************
-// //***************instructions_order functions******************
-// //*************************************************************
-// void append_inor(inor s) {
-//   inor *q;
-//   q = (inor *) malloc(sizeof(inor));
-//   if (q == 0) return;
-//   q->fid = s.fid;
-//   q->sid = s.sid;
-//   q->order = s.order;
-//   q->next = 0;
-//   entry_table.inor_count++;
-//   if (entry_table.inor_start == 0) {
-//     entry_table.inor_start = entry_table.inor_end = q;
-//   } else {
-//     entry_table.inor_end->next = q;
-//     entry_table.inor_end = q;
-//   }
-// }
-
-// //*************************************************************
-// uint32 get_order(long_int fid, long_int sid) {
-//   inor *tmp1 = entry_table.inor_start;
-//   if (tmp1 == 0) return 0;
-//   for (;;) {
-//     if (tmp1->fid == fid && tmp1->sid == sid) {
-//       return tmp1->order;
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-//   return 0;
-// }
-
-// //*************************************************************
-// void set_order(long_int fid, long_int sid, uint32 order) {
-//   uint32 index = 0;
-//   Boolean is_exist = false;
-//   //***************search
-//   inor *tmp1 = entry_table.inor_start;
-//   if (tmp1 != 0) {
-//     for (;;) {
-//       index++;
-//       if (tmp1->fid == fid && tmp1->sid == sid) {
-//         is_exist = true;
-//         break;
-//       }
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//   }
-//   //**************set
-//   if (!is_exist) {
-//     inor tmp2 = {fid, sid, order, 0};
-//     append_inor(tmp2);
-//   } else {
-//     uint32 ind = 0;
-//     inor *tmp1 = entry_table.inor_start;
-//     for (;;) {
-//       ind++;
-//       if (ind == index) {
-//         tmp1->order = order;
-//         break;
-//       }
-//       tmp1 = tmp1->next;
-//       if (tmp1 == 0) break;
-//     }
-//   }
 // }
 
 

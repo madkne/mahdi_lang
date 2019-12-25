@@ -1,0 +1,51 @@
+() (not)
+++,-- (not)
+*,/,|,%,^
++,-
+----------------------------------
+
+2+(4|5*2)/3+32%5 => 4
+
++(0)=>2,+(1)
++(1)=>/,%
+/=>*,3
+*=>|,2
+|=>4,5
+%=>32,5
+			
+----------------------------------
+struct tree{
+	uint32 id;
+	uint8 op;
+	string num1; //number(34,86.5),var(e[0],e++,--u),operand(*,/,+)
+	string num2; //number(34,86.5),var(e[0],e++,--u),operand(*,/,+)
+}
+1) make a queue and for init has [exp]
+1) iterate queue and get one to analyze
+2) find less and last operand (+,- or *,/,%,^)
+3) set in tree and set its childs if is a number or not push to queue
+4) go to (1) until queue is empty
+
+5) start solving from last id to first
+6) result is solving result of tree(id=0)
+----------------------------------
+var=1;
+4/(var++-2%7-(4+4*2))^2 => −0.09
+
+(0) ^=>(1),2      => (1)=4/(var++-2%7-(4+4*2))
+(1) /=>4,(2)      => (2)=var++-2%7-(4+4*2)
+(2) -=>(3),(5)    => (3)=var++-2%7 , (5)=4+4*2
+(3) -=>var++,(4)  => (4)=2%7
+(4) %=>2,7
+(5) +=>4,(6)	  => (6)=4*2
+(6) *=>4,2
+
+(6) 4*2=8
+(5) 4+8=12
+(4) 2%7=2
+(3) (var++)-2=1-2=-1
+(2) -1+12=11
+(1) 4/11=0.36
+(0) 0.36^2=0.13
+result=0.13
+

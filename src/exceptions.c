@@ -148,6 +148,8 @@ void EXP_init() {
                        "not found '!1@1!' function in '!2@2!' module");
   EXP_define(9, ERROR_ID, "not_load_module", NotExistError,
                        "'!1@1!' module not load in memory and not available for using");
+  EXP_define(10, ERROR_ID, "not_found_inherit", NotExistError,
+  "'!1@1!' package can not find to inherit from it");
   //\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 	//RuntimeError
   EXP_define(1, ERROR_ID, "unknown_instruction", RuntimeError, "'!1@1!' is not a valid instruction");
