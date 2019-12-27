@@ -421,6 +421,47 @@ int32 STR_indexof(String s, String s1, uint32 start) {
   }
   return -1;
 }
+//******************************************
+Boolean STR_equal_indexof(String s, String s1, uint32 index) {
+  if (s == 0 || s1 == 0)return false;
+  uint32 len = STR_length(s);
+  uint32 len1 = STR_length(s1);
+  if (index + len1 > len || len1 > len)return false;
+  uint32 ind = 0;
+  for (uint32 j = index; j < index + len1; j++) {
+    if (s[j] != s1[ind++]) {
+      return false;
+    }
+  }
+  return true;
+}
+//******************************************
+int32 STR_last_indexof(String s, String s1) {
+  if (s == 0 || s1 == 0)return -1;
+  uint32 len = STR_length(s);
+  uint32 len1 = STR_length(s1);
+  if (len1 > len)return -1;
+  for (uint32 i = len; i >=0; i--) {
+    if(i==-1) break;
+    Boolean is_exist = true;
+    if (i + len1 <= len) {
+      uint32 ind = 0;
+      //printf("WWWW:%i,%i,%i\n", i, i + len1, len);
+      for (uint32 j = i; j < i + len1; j++) {
+        if (s[j] != s1[ind++]) {
+          is_exist = false;
+          break;
+        }
+      }
+      if (is_exist) {
+        return i;
+      }
+    } else {
+      is_exist = false;
+    }
+  }
+  return -1;
+}
 
 //******************************************
 String STR_to_upper_case(String text) {

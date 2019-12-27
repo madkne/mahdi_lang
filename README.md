@@ -38,8 +38,8 @@ TODO
  - [x] calculate number expressions
  - [x] determine type of number like 'i','f','h'
  - [x] convert radix numbers to decimal
- - [.] calculate string expressions
- - [.] calculate boolean expressions
+ - [x] calculate string expressions
+ - [x] calculate boolean expressions
  - [.] inheritance packages if needed
  - [.] init runtime global variables
  - [.] init runtime app controller

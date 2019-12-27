@@ -204,11 +204,31 @@ a:=b
 a,b=sam()
 b,c,d=sam() //ERR
 v,n=e,u // OR v=e;n=u;
+-----------------operands on boolean
+and : true and false => false
+or  : true or false => true
+not : not true => false
+--samples
+true and (not false or (true and false)) => true
+=> (0) and : true , (1)    => (0)=true
+=> (1) or  : true , (2)    => (1)=true
+=> (2) and : true , false  => (2)=false
+false and not true or not false => true
+=> (0) or  : (1) , true  => (0)=true
+=> (1) and : false , false => (1)=false
+true and not (false and true) => true
+=> (0) and : true , (1)(n)  => (0)=true
+=> (1) and : false, true    => (1)=true
 -----------------operands on string
 + : "He"+"llo" => 'Hello'
-* : 'H'*5 => 'HHHHH' //ERROR: 5*'H' (not detect value)
 - : 'HelHello'-'Hel' => 'Hello' //'Hel'-'HelHello' => 'Hel'
-++,-- : last spaces
+++,-- : last spaces (on string variable)
+--samples
+("H"+"H"+"i")-"HH"=>"HHi"-"HH"=>"i"
+=> (0) - : (1) , "HH" => (0)="i"
+=> (1) + : (2) , "i"  => (1)="HHi"
+=> (2) + : "H" , "H"  => (2)="HH"
+
 -----------------if in if
 if(true)
   if(ty>7 and rt=='56'){

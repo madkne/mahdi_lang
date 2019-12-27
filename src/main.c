@@ -96,7 +96,8 @@ int main(int argc, char **argv) {
 // _map_popleft(&st,&en);
 // map j=_map_popleft(&st,&en);
 // printf("map is:%s=>%s\n",j.key,_map_print(st));
-  // printf("math:%s\n",RUNKIT_calc_number_exp("2+(4|5*2)/3+32%5",'_',0));
+// printf("CCCC:%i\n",STR_last_indexof("HelloHel","He"));
+  printf("string:%s\n",RUNKIT_calc_boolean_exp("false and not true or not false"));
   //-------------------------time of end program
   APP_exit(EXIT_NORMAL);
   return 0;

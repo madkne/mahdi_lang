@@ -9,7 +9,7 @@ void COM_print_struct(uint8 which);
 // Boolean functions
 //******************************************
 Boolean BOOL_switch(Boolean b);
-
+Boolean BOOL_switch_str(String b);
 // int32 functions
 //******************************************
 double I32_power(double base, int32 power);

@@ -312,6 +312,11 @@ Boolean BOOL_switch(Boolean b) {
   if (b) return false;
   return true;
 }
+//******************************************
+Boolean BOOL_switch_str(String b) {
+  if (STR_to_bool(b)) return false;
+  return true;
+}
 
 // int32 functions
 //******************************************

@@ -274,13 +274,10 @@ void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 
         if (basic_ind==1/*number*/) {
             (*ret_value)=RUNKIT_calc_number_exp(value, '_', &(*ret_subtype));
         } else if (basic_ind==0/*string*/) {
-            //TODO:
-            // calculate_string_expression(value, &(*ret_value), &(*ret_subtype));
-            //printf("STRING:%s=>%s(%c)\n", value, *ret_value, *ret_subtype);
+            (*ret_value)=RUNKIT_calc_string_exp(value,&(*ret_subtype));
         } else if (basic_ind==2/*boolean*/) {
-            //TODO:
-            // (*ret_value) = calculate_boolean_expression(value, &sub_type);
-            // (*ret_subtype) = sub_type;
+            (*ret_value) = RUNKIT_calc_boolean_exp(value);
+            (*ret_subtype)='b';
         }  
     }
     //=>if type is a package
@@ -324,10 +321,6 @@ String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype){
     if (exp==0) {
         EXP_set_errcode(INVALID_NUMBER_VAL_ERRC);
         return 0;
-    }
-    //=>if exp has ()
-    if(exp[0]=='('){
-        exp = RUNKIT_remove_unused_parenthesis(exp);
     }
     //=>get length of exp
     uint32 len_exp = STR_length(exp);
@@ -457,9 +450,9 @@ String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype){
         nodes[i].res=result;
     }
     //=>print math tree
-    for (uint32 i = 0; i < nodes_len; i++){
-        printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].num1,nodes[i].num2,nodes[i].res);
-    }
+    // for (uint32 i = 0; i < nodes_len; i++){
+        // printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].num1,nodes[i].num2,nodes[i].res);
+    // }
     //=>return sub type and value
     if(rettype!=0) (*rettype) = type_exp;
     return nodes[0].res;
@@ -508,6 +501,127 @@ String RUNKIT_determine_number(String s,uint8 main_type,uint8 *sub_type){
     return s;
 }
 
+//******************************************************
+/**
+ * get a string and check if is a string or a utf8 or a var(string type) and return its value and sub_type
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.27
+ * @param s
+ * @param sub_type : (pointer)
+ * @return String
+ */
+String RUNKIT_determine_string(String s,uint8 *sub_type){
+    //=>init vars
+    Boolean is_valid_val=false;
+    uint32 len=STR_length(s);
+    Boolean isstr=false;
+    (*sub_type)='s';
+    //=>check if is string like "hello"
+    if (len > 1){
+        for (uint32 i = 0; i < len; i++){
+            //=>check if is string
+            if (i < len && s[i] == '\"' && (i == 0 || s[i - 1] != '\\')){
+                isstr = BOOL_switch(isstr);
+                //=>if get "" and is end of string
+                if(!isstr && i+1==len){
+                    s = STR_substring(s, 1, len - 1);
+                    is_valid_val = true;
+                    break;
+                }
+                //=>else not a string with "", maybe ""+""
+                else if(!isstr){
+                    break;
+                }
+            }
+        }
+        
+    }
+    //=>check if is utf8 string 
+    else if (STR_indexof(s, UTF8_ID_LABEL, 0) == 0) {
+        (*sub_type)='u';
+        is_valid_val = true;
+        s = USTR_to_bytes_str(_utst_get_by_label(s).utf8_string);
+    } 
+    else {
+           //TODO:in runtime
+    //     Mpoint point = return_var_data_from_name(buf, "str", true);
+    //     if (point.id == 0) {
+    //       str_init(&(*value), 0);
+    //       (*sub_type) = '0';
+    //       return;
+    //     }
+    //     str_init(&str1, point.data);
+    //     is_valid_val = true;
+    //     if (point.type_data == 'u') {
+    //       type = 'u';
+    //       str1 = utf8_to_bytes_string(get_utst_by_label(str1).utf8_string);
+    //     }
+    //     //msg("&CCDDD:", str1, buf, string(tmp1))
+    }
+    //=>if s is not valid as a string
+    if (!is_valid_val) {
+        EXP_set_errcode(INVALID_STRING_VAL_ERRC);
+        return 0;
+    }
+    return s;
+}
+
+//******************************************************
+/**
+ * get a string and check if is a boolean or a var(boolean type) and return its value
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.27
+ * @param s
+ * @return String
+ */
+String RUNKIT_determine_boolean(String s){
+    //=>init vars
+    Boolean is_valid_val=false;
+    uint32 len=STR_length(s);
+    //=>trim s
+    s=STR_trim_space(s);
+    //=>check if is true or false
+    if(STR_is_bool(s)){
+        is_valid_val = true;
+    }
+    //=>check if is 'not true' or 'not false'
+    else if(STR_equal_indexof(s,"not",0)){
+        StrList ret=0;
+        uint32 ret_len=CH_split(s,' ',&ret,true);
+        if(ret_len==2 && STR_equal(ret[1],"true")){
+            STR_init(&s,"false");
+            is_valid_val = true;
+        }else if(ret_len==2 && STR_equal(ret[1],"false")){
+            STR_init(&s,"true");
+            is_valid_val = true;
+        }
+    }
+    //=>check if is a var
+    else {
+           //TODO:in runtime
+    //     Mpoint point = return_var_data_from_name(buf, "str", true);
+    //     if (point.id == 0) {
+    //       str_init(&(*value), 0);
+    //       (*sub_type) = '0';
+    //       return;
+    //     }
+    //     str_init(&str1, point.data);
+    //     is_valid_val = true;
+    //     if (point.type_data == 'u') {
+    //       type = 'u';
+    //       str1 = utf8_to_bytes_string(get_utst_by_label(str1).utf8_string);
+    //     }
+    //     //msg("&CCDDD:", str1, buf, string(tmp1))
+    }
+    //=>if s is not valid as a boolean
+    if (!is_valid_val) {
+        EXP_set_errcode(INVALID_BOOLEAN_VAL_ERRC);
+        return 0;
+    }
+    return s;
+}
 //******************************************************
 /**
  * determine a string is a radix number and then convert it to decimal number and return it
@@ -1285,7 +1399,372 @@ String RUNKIT_resize_to_float(String str_val) {
   return fin_res;
 }
 //******************************************************
+/**
+ * get a string value or a string expression and processing it and then return final string value with sub type
+ * string value can be an utf8 string like -!U8!_2
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.27
+ * @param exp
+ * @param sub_type : (pointer)
+ */
+String RUNKIT_calc_string_exp(String exp, uint8 *sub_type){
+    /**
+	1- "Ind: %i[0]%\n" ---..---
+	2- "Hello "+sd[0,1] ---..---
+	3- ""+"Hi" ---..---
+    4- ("H"+"H"+"i")-"HH" ---OK---
+    5- -!U8!_2 ---..---
+	*/
+    //=>init vars
+    struct str_exp_tree{
+        uint32 id; uint8 op; String str1; String str2; String res;
+    } nodes[MAX_STRING_USED_OPERANDS];
+    uint32 nodes_len=0;
+    uint32 pars_level=0;
+    uint32 max_pars_level=0;
+    Boolean exist=true;
+    map* queue_start=0;
+    map* queue_end=0;
+    uint8 type_exp='s';
+    //=>trim exp
+    exp = STR_trim_space(exp);
+    //=>if exp is null
+    if (exp==0) {
+        EXP_set_errcode(INVALID_STRING_VAL_ERRC);
+        return 0;
+    }
+    //=>get length of exp
+    uint32 len_exp = STR_length(exp);
+    //=>if exp is ""
+    if(STR_equal(exp, "\"\\\"")){
+        if(sub_type!=0) (*sub_type) = 's';
+        return exp;
+    }
+    //=>calc max pars level
+    for (uint32 i = 0; i < len_exp; i++){
+        //=>count pars
+        if(exp[i]=='(')max_pars_level++;
+    }
+    //=>append exp as first item in queue
+    _map_push(&queue_start,&queue_end,"0",exp);
+    //=>level 1 : create string tree
+    while(queue_start!=0){
+        //=>reset vars
+        exist=false;
+        uint8 lastop='0';
+        uint32 lastop_ind=0;
+        uint8 pars=0;
+        Boolean isexp1=false;
+        //=>pop from left of queue
+        map expp=_map_popleft(&queue_start,&queue_end);
+        String ex=expp.value;
+        uint32 len_ex=STR_length(ex);
+        //=>if exp has ()
+        if(ex[0]=='(' && ex[len_ex-1]==')'){
+            ex = RUNKIT_remove_unused_parenthesis(ex);
+        }
+        //=>find lastest operand on pars_level!
+        for (uint32 i = 0; i < len_ex; i++){
+            //=>count pars
+            if(ex[i]=='(')pars++;
+            else if(ex[i]==')')pars--;
+            //=>if find '+' or '-' set, until lastest!
+            if(pars_level==pars && (ex[i]=='+'||ex[i]=='-')){
+                lastop=ex[i];
+                lastop_ind=i;
+            }
+        }
+        //=>if not found any operands, increase pars_level
+        if(lastop=='0'){
+            pars_level++;
+            //=>check if pars level is bigger than max
+            if(pars_level>max_pars_level){
+                break;
+            }
+            //=>push back expp to queue
+            _map_push(&queue_start,&queue_end,expp.key,ex);
+        }
+        //=>if found last operand
+        else{
+            //=>get str1 string before last operand index
+            String str1=STR_substring(ex,0,lastop_ind);
+            uint8 subtyp1=type_exp;
+            //=>check if str1 is string or var
+            String str11=RUNKIT_determine_string(str1,&subtyp1);
+            //=>if not a string (is a expression), push to stack and set str1 as next id
+            if(str11==0&&EXP_check_errcode(INVALID_STRING_VAL_ERRC)){
+                _map_push(&queue_start,&queue_end,STR_from_int32(nodes_len+1),str1);
+                str1=STR_append("#",STR_from_int32(nodes_len+1));
+                isexp1=true;
+            }else{
+                STR_init(&str1,str11);
+            }
+            //=>get str2 string after last operand index
+            String str2=STR_substring(ex,lastop_ind+1,len_ex);
+            uint8 subtyp2=type_exp;
+            //=>check if str2 is string or var
+            String str22=RUNKIT_determine_string(str2,&subtyp2);
+            //=>if not a string (is a expression), push to stack and set str1 as next id
+            if(str22==0&&EXP_check_errcode(INVALID_STRING_VAL_ERRC)){
+                uint32 count=(isexp1)?nodes_len+2:nodes_len+1;
+                _map_push(&queue_start,&queue_end,STR_from_int32(count),str2);
+                str2=STR_append("#",STR_from_int32(count));
+            }else{
+                STR_init(&str2,str22);
+            }
+            //=>detrmine type_exp, by subtyp1 and subtyp2
+            type_exp=(subtyp1=='u'||subtyp2=='u')?'u':'s';
+            struct str_exp_tree tmp1={(uint32)STR_to_int32(expp.key),lastop,str1,str2};
+            nodes[nodes_len++]=tmp1;
+        }
+        // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    }
+    // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    //=>level 2 : solve string tree
+    //=>iterate nodes from last
+    for (uint32 i = nodes_len-1; i >=0; i--){
+        if(i==-1)break;
+        //=>get str1,str2
+        String str1=nodes[i].str1;
+        String str2=nodes[i].str2;
+        //=>check if str1 or str2 is id
+        if(str1[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(str1,1,0));
+            STR_init(&str1,nodes[ind].res);
+        }
+        if(str2[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(str2,1,0));
+            STR_init(&str2,nodes[ind].res);
+        }
+        //=>calculate str1,str2 with op
+        String result=RUNKIT_calc_two_strings(str1,str2,nodes[i].op);
+        // printf("RRRR(%i):%s{%c}%s=%s[%c]\n",nodes[i].id,num1,nodes[i].op,num2,result,type_exp);
+        nodes[i].res=result;
+    }
+    //=>print math tree
+    for (uint32 i = 0; i < nodes_len; i++){
+        printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].str1,nodes[i].str2,nodes[i].res);
+    }
+    //=>return sub type and value
+    if(sub_type!=0) (*sub_type) = type_exp;
+    return nodes[0].res;
+}
+//******************************************************
+/**
+ * get two strings and based of operator and sub_type(s,u),calculate their and return result of it
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.27
+ * @param str1
+ * @param str2
+ * @param op
+ * @return String
+ */
+String RUNKIT_calc_two_strings(String str1, String str2, uint8 op) {
+    //=>search for errors and warnings
+    if (op != '-' && op !='+') {
+        // TODO:error
+        return 0;
+    } 
+    //=>format str1,str2 if have '%%'
+    //TODO:runtime
+    // if (str_indexof(str1, "%", 0) > -1) {
+    //     str1 = format_string_expression(str1);
+    //     //printf("DDDDD:%s,%s\n",str1,str2);
+    //   }
+    //   if (str_indexof(str2, "%", 0) > -1) {
+    //     str2 = format_string_expression(str2);
+    //   }
+    //=>if op is '+'
+    if(op=='+'){
+        return STR_append(str1, str2);
+    }
+    //=>if op is '-'
+    else if(op=='-'){
+        uint32 len2=STR_length(str2);
+        int32 ind=STR_last_indexof(str1,str2);
+        //=>if find str2 in str1 from last
+        if(ind!=-1){
+            String s1=STR_substring(str1,0,ind);
+            String s2=STR_substring(str1,ind+len2,0);
+            return STR_append(s1, s2);
+        }
+        //=>if not found, return str1
+        return str1;
+    }
 
+    return 0;
+}
+//******************************************************
+/**
+ * get a boolean expression and processing it and then return final boolean value
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.27
+ * @param exp
+ */
+String RUNKIT_calc_boolean_exp(String exp){
+    /**
+	1- true and (not false or (true and false)) ---OK---
+	2- not(f==34) ---..---
+	3- true and not (false and true) ---OK---
+	4- false and not true or not false ---OK---
+	5- (buf!="" not exp=="tr") or not(exp=="DF") ---..---
+	*/
+    //=>init vars
+    struct bool_exp_tree{
+        uint32 id; uint8 op; String bool1; Boolean bool1_not; String bool2; Boolean bool2_not; String res;
+    } nodes[MAX_BOOLEAN_USED_OPERANDS];
+    uint32 nodes_len=0;
+    uint32 pars_level=0;
+    uint32 max_pars_level=0;
+    Boolean exist=true;
+    map* queue_start=0;
+    map* queue_end=0;
+    //=>trim exp
+    exp = STR_trim_space(exp);
+    //=>if exp is null
+    if (exp==0) {
+        EXP_set_errcode(INVALID_STRING_VAL_ERRC);
+        return 0;
+    }
+    //=>get length of exp
+    uint32 len_exp = STR_length(exp);
+    //=>if exp is true or false
+    if(STR_is_bool(exp)){
+        return exp;
+    }
+    //=>calc max pars level
+    for (uint32 i = 0; i < len_exp; i++){
+        //=>count pars
+        if(exp[i]=='(')max_pars_level++;
+    }
+    //=>append exp as first item in queue
+    _map_push(&queue_start,&queue_end,"0",exp);
+    //=>level 1 : create string tree
+    while(queue_start!=0){
+        //=>reset vars
+        exist=false;
+        uint8 lastop='0';
+        uint32 lastop_ind=0;
+        uint8 pars=0;
+        Boolean isexp1=false;
+        Boolean bool1_not=false;
+        Boolean bool2_not=false;
+        //=>pop from left of queue
+        map expp=_map_popleft(&queue_start,&queue_end);
+        String ex=expp.value;
+        //=>trim expp value
+        ex=STR_trim_space(ex);
+        uint32 len_ex=STR_length(ex);
+        //=>if exp has ()
+        if(ex[0]=='(' && ex[len_ex-1]==')'){
+            ex = RUNKIT_remove_unused_parenthesis(ex);
+        }
+        //=>find lastest operand on pars_level!
+        for (uint32 i = 0; i < len_ex; i++){
+            //=>count pars
+            if(ex[i]=='(')pars++;
+            else if(ex[i]==')')pars--;
+            //=>if find 'and' or 'or' set, until lastest!
+            if (pars_level==pars && i + 3 <= len_ex && (STR_equal_indexof(ex,"or",i)||STR_equal_indexof(ex,"and",i))) {
+                lastop=ex[i]; //'o' or 'a'
+                lastop_ind=i;
+                i+=(ex[i]=='o')?1:2;
+            }
+        }
+        //=>if not found any operands, increase pars_level
+        if(lastop=='0'){
+            pars_level++;
+            //=>check if pars level is bigger than max
+            if(pars_level>max_pars_level){
+                break;
+            }
+            //=>push back expp to queue
+            _map_push(&queue_start,&queue_end,expp.key,ex);
+        }
+        //=>if found last operand
+        else{
+            //=>get bool1 string before last operand index
+            String bool1=STR_trim_space(STR_substring(ex,0,lastop_ind));
+            //=>check if bool1 is boolean or var
+            String bool11=RUNKIT_determine_boolean(bool1);
+            //=>if not a string (is a expression), push to stack and set bool1 as next id
+            if(bool11==0&&EXP_check_errcode(INVALID_BOOLEAN_VAL_ERRC)){
+                //=>check if not in bool1, remove it from experssion
+                if(STR_equal_indexof(bool1,"not",0)&&(bool1[3]==' '||bool1[3]=='(')){
+                    bool1=STR_substring(bool1,3,0);
+                    bool1_not=true;
+                }
+                _map_push(&queue_start,&queue_end,STR_from_int32(nodes_len+1),bool1);
+                bool1=STR_append("#",STR_from_int32(nodes_len+1));
+                isexp1=true;
+            }else{
+                STR_init(&bool1,bool11);
+            }
+            //=>if 'and' indent is 3 and if 'or' is 2
+            uint8 indent=(lastop=='a')?3:2;
+            //=>get bool2 string after last operand index
+            String bool2=STR_trim_space(STR_substring(ex,lastop_ind+indent,len_ex));
+            //=>check if bool2 is string or var
+            String bool22=RUNKIT_determine_boolean(bool2);
+            //=>if not a string (is a expression), push to stack and set bool2 as next id
+            if(bool22==0&&EXP_check_errcode(INVALID_BOOLEAN_VAL_ERRC)){
+                //=>check if not in bool2, remove it from experssion
+                if(STR_equal_indexof(bool2,"not",0)&&(bool2[3]==' '||bool2[3]=='(')){
+                    bool2=STR_substring(bool2,3,0);
+                    bool2_not=true;
+                }
+                uint32 count=(isexp1)?nodes_len+2:nodes_len+1;
+                _map_push(&queue_start,&queue_end,STR_from_int32(count),bool2);
+                bool2=STR_append("#",STR_from_int32(count));
+            }else{
+                STR_init(&bool2,bool22);
+            }
+            
+            //=>append new node to tree
+            struct bool_exp_tree tmp1={(uint32)STR_to_int32(expp.key),lastop,bool1,bool1_not,bool2,bool2_not,0};
+            nodes[nodes_len++]=tmp1;
+        }
+        // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    }
+    // printf("queue is :%s[%i]\n",_map_print(queue_start),pars_level);
+    //=>level 2 : solve string tree
+    //=>iterate nodes from last
+    for (uint32 i = nodes_len-1; i >=0; i--){
+        if(i==-1)break;
+        //=>get bool1,bool2
+        String bool1=nodes[i].bool1;
+        String bool2=nodes[i].bool2;
+        //=>check if bool1 or bool2 is id
+        if(bool1[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(bool1,1,0));
+            STR_init(&bool1,nodes[ind].res);
+        }
+        if(bool2[0]=='#'){
+            int32 ind=STR_to_int32(STR_substring(bool2,1,0));
+            STR_init(&bool2,nodes[ind].res);
+        }
+        //=>calculate bool1,bool2 with op
+        Boolean b1=STR_to_bool(bool1);
+        if(nodes[i].bool1_not)b1=!b1;
+        Boolean b2=STR_to_bool(bool2);
+        if(nodes[i].bool2_not)b2=!b2;
+        if(nodes[i].op=='a'/*and*/){
+            nodes[i].res=STR_from_bool(b1 && b2);
+        }else if(nodes[i].op=='o'/*or*/){
+            nodes[i].res=STR_from_bool(b1 || b2);
+        }
+    }
+    //=>print math tree
+    // for (uint32 i = 0; i < nodes_len; i++){
+    //     printf("(%i) %c : %s(%i) , %s(%i) = %s\n",nodes[i].id,nodes[i].op,nodes[i].bool1,nodes[i].bool1_not,nodes[i].bool2,nodes[i].bool2_not,nodes[i].res);
+    // }
+    //=>return value
+    return nodes[0].res;
+}
 //******************************************************
 //******************************************************
-
+//******************************************************
+//******************************************************

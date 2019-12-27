@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.01.038"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 13          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.01.048"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 14          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -69,6 +69,8 @@
 #define   MAX_FUNCTION_ATTRIBUTES       5
 #define   MAX_INTO_IN_INHERITANCE       20
 #define   MAX_MATH_USED_OPERANDS        100
+#define   MAX_BOOLEAN_USED_OPERANDS     100
+#define   MAX_STRING_USED_OPERANDS      50
 #define   END_OF_FILE                  -10
 #define   SYSTEM_STRING_DEFINE          "SYS__STR_"
 #define   RETURN_TMP_NAME               "@ret"
@@ -115,6 +117,8 @@
 #define   BAD_SHELL_ERRC                5
 #define   INVALID_TYPE_ERRC             6
 #define   INVALID_NUMBER_VAL_ERRC       7
+#define   INVALID_STRING_VAL_ERRC       8
+#define   INVALID_BOOLEAN_VAL_ERRC      9
 //------------------------------------------used as instruction types
 #define   UNKNOWN_LBL_INST              0
 #define   STRUCTURE_LBL_INST            1

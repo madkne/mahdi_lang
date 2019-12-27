@@ -664,6 +664,21 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
   _utst_append(tmp1);
   return entry_table.utf8_strings_id;
 }
+//*************************************************************
+utst _utst_get_by_label(String s) {
+  utst ret = {0, 0, 0, 0,0};
+  Longint uid = STR_to_Longint(STR_substring(s, UTF8_ID_LBL_LEN, 0));
+  if (uid == 0)return ret;
+  utst *tmp1 = entry_table.utst_start;
+  for (;;) {
+    if (tmp1->id == uid) {
+      return (*tmp1);
+    }
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+  return ret;
+}
 // //*************************************************************
 // utst get_utst(long_int id) {
 //   utst ret = {0, 0, 0, 0};
@@ -702,21 +717,7 @@ Longint _utst_add(uint32 line, UString str, uint8 max_bytes) {
 //     return nil;
 
 // }
-// //*************************************************************
-// utst get_utst_by_label(String s) {
-//   utst ret = {0, 0, 0, 0};
-//   long_int uid = str_to_long_int(str_substring(s, UTF8_ID_LBL_LEN, 0));
-//   if (uid == 0)return ret;
-//   utst *tmp1 = entry_table.utst_start;
-//   for (;;) {
-//     if (tmp1->id == uid) {
-//       return (*tmp1);
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-//   return ret;
-// }
+
 
 // //*************************************************************
 // Boolean edit_soco(uint8 type, uint32 line, String new_data) {

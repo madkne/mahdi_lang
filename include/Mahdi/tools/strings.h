@@ -34,6 +34,8 @@ Boolean STR_is_empty(String s);
 void STR_swap(String *s1, String *s2);
 String STR_substring(String s, uint32 start, uint32 end);
 int32 STR_indexof(String s, String s1, uint32 start);
+Boolean STR_equal_indexof(String s, String s1, uint32 index);
+int32 STR_last_indexof(String s, String s1);
 String STR_to_upper_case(String text);
 String STR_to_lower_case(String text);
 String STR_from_int32(int32 x);
