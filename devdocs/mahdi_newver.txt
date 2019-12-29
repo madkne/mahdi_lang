@@ -101,6 +101,7 @@ choose(var){
 - all variables must get default value when declared
 - you can set default value for all rooms of array
 - for define every variable, must determine its data type (as clean or by value)
+static def g:number,k=0,''
 def list=[4,6,9,-3] OR def list:number=[] //=>def g=list[2] //g=9
 def j,d:string,b= 56.6,['t','o'],true
 def x,e,u=45
@@ -272,7 +273,7 @@ func _init_(s:string,y:string){}
 }
 -----------------package attributes
 pack pk1(){
-def GG=45
+def GG=(45*2)+5
 override def aa=11 //in child package, can redefined like 'def aa=12' type can not changed
 static def v=3
 def q:string

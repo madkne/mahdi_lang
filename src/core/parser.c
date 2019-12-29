@@ -141,13 +141,13 @@ Boolean PARSER_analyze_source_code() {
             }
             if(exist) continue;
         }
-        //if token is import keyword
+        //=>if token is import keyword
         if (state == 0 && STR_equal("import", Acode)) {
             i++;
             PARSER_manage_import(&i);
             continue;
         }
-        //if token is pack keyword
+        //=>if token is pack keyword
         if (state == 0 && STR_equal(Acode, "pack") && i + 3 < entry_table.soco_tokens_count) {
             //if is_in_pack
             if (is_in_pack) {
@@ -194,6 +194,12 @@ Boolean PARSER_analyze_source_code() {
             }
             continue;
         }
+        //=>if token is package attribute
+        if (state == 0 && is_in_pack && !is_in_func && STR_equal(Acode, "def") && i + 2 < entry_table.soco_tokens_count) {
+            i++;
+            PARSER_manage_package_attributes(&i);
+            continue;
+        }
         //=>else if token is part of normal instructions
         if (state == 0 && !STR_CH_equal(Acode, '{') && !STR_CH_equal(Acode, '}') && !STR_CH_equal(Acode, ';')) {
             PARSER_manage_instruction(&i);
@@ -222,8 +228,8 @@ Boolean PARSER_analyze_source_code() {
         EXP_print_error(Aline, "not_start_acod", entry_table.current_source_path, 0, 0,"PARSER_analyze_source_code");
         return false;
     }
-  //--------------------------------
-  return true;
+    //=>return success parsing
+    return true;
 }
 //******************************************************
 Longint PARSER_get_last_active_is_in_stru_id() {
@@ -401,10 +407,101 @@ void PARSER_manage_package(uint32 *i) {
 }
 //******************************************************
 /**
+ * get i pointer of token index in source code and detect package attribute and append it to fpp struct
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.28
+ * @param i : (pointer) index of token 
+ * @return void
+ */
+void PARSER_manage_package_attributes(uint32 *i) {
+    //=>init vars
+    Boolean is_par = false;
+    String inst=0;
+    STR_init(&inst,"def ");
+    String name = 0,param_buf=0;
+    uint8 pars = 0;
+    uint8 param_bra=0,param_acol=0;
+    defvar main_params[MAX_VAR_ALLOC_INSTRUCTIONS];
+    Boolean is_private=false; //=>default is public
+    Boolean is_static=false;
+    StrList defvars=0;
+    uint32 defvars_len=0;
+
+    //=>iterate tokens of package attribute
+    for (; *i < entry_table.soco_tokens_count; (*i)++) {
+        //=>get token after def
+        soco token_item = _soco_get(TOKENS_SOURCE_CODE, *i);
+        String Acode =0;
+        STR_init(&Acode,token_item.code);
+        Aline = token_item.line;
+        uint32 next = (*i) + 1;
+        // printf("SSSS:%s\n", Acode);
+        if (STR_CH_equal(Acode, ';'))break;
+        //=>count pars
+        if (STR_CH_equal(Acode, '('))pars++;
+        else if (STR_CH_equal(Acode, ')')) pars--;
+        //=>append to inst
+        inst=STR_append(inst,Acode);
+        //=>append ' ', if needed
+        if ((*i) + 1 < entry_table.soco_tokens_count && !CH_STR_search(words_splitter, Acode,ChArraySize(words_splitter)) &&
+                !CH_STR_search(words_splitter, _soco_get(TOKENS_SOURCE_CODE, (*i) + 1).code,ChArraySize(words_splitter))) {
+                inst = CH_append(inst, ' ');
+            }
+    }
+    //=>determine public or private define var
+    if(pack_zone==PRIVATE_METHOD_FATTR){
+        is_private=true;
+    }
+    //=>determine is static define var
+    for (uint8 i = 0; i < pack_method_attrs_len; i++){
+        if(pack_method_attrs[i]==STATIC_METHOD_FATTR){
+            is_static=true;
+            break;
+        }
+    }
+    //=>empty method attributes array 
+    ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
+    pack_method_attrs_len=0;
+    
+    //=>analyzing, spliting define vars as package attributes in inst
+    defvars_len=RUNKIT_simplify_define_vars(inst,&defvars,0);
+    // printf("inst is:%s=>%s[priv:%i,stat:%i]\n",inst,SLIST_print(defvars,defvars_len),is_private,is_static);
+    //=>if occur an error
+    if(defvars_len==0 && EXP_check_errcode(BAD_DEFINE_VARS_ERRC)){
+        //TODO:fatal
+        printf("ERR46454\n");
+        return;
+    }
+    //=>analyzing, verifying and spliting package attributes,if exist
+    if(defvars_len>0){
+        uint8 vars_counter = RUNKIT_defvars_analyzing(defvars, defvars_len, main_params,false,true);
+        // for (uint32 i = 0; i < vars_counter; i++)
+        // {defvar f=main_params[i];
+        //     printf("@@@@:%s;%s;%s\n",f.name_var,f.type_var,f.value_var);
+        // }
+        //=>check if has error
+        if(vars_counter==0 && EXP_check_errcode(BAD_DEFINE_VARS_ERRC)){
+            //TODO:fetal
+            printf("ERR3234\n");
+            return;
+        }else{
+            for (uint32 i = 0; i < vars_counter; i++) {
+                //=>append to fpp
+                fpp tmp2 = {cur_pack_id,PACK_BLOCK_ID,0, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,is_private,is_static,Aline, Apath, 0 };
+                _fpp_append(tmp2);
+            }
+        }
+    }
+
+}
+//******************************************************
+/**
  * get i pointer of token index in source code and detect function header and append it to imin struct
  * @author madkne
- * @version 1.3
- * @since 2019.12.20
+ * @version 1.4
+ * @update
+ * @since 2019.12.28
  * @param i : (pointer) index of token 
  * @return void
  */
@@ -510,34 +607,6 @@ void PARSER_manage_function(uint32 *i){
     //=>empty method attributes array 
     ILIST_reset(pack_method_attrs,MAX_FUNCTION_ATTRIBUTES);
     pack_method_attrs_len=0;
-    //=>analyzing, verifying and spliting parameters,if exist params
-    if(params_len>0){
-        uint8 vars_counter = RUNKIT_defvars_analyzing(parameters, params_len, main_params,true,true);
-        for (uint32 i = 0; i < vars_counter; i++)
-        {defvar f=main_params[i];
-            printf("@@@@:[p:%i,f:%i]:%s;%s;%s\n",f.pid,f.fid,f.name_var,f.type_var,f.value_var);
-        }
-        
-    //printf("#############:%s\n",params);
-    //   if (vars_counter == 0) {
-    //     parameters = 0;
-    //     params_len = 0;
-    //   } else {
-    //     for (uint32 i = 0; i < vars_counter; i++) {
-    //       //-------check for syntax errors
-    //       if (!str_is_empty(main_params[i].value_var)) {
-    //         print_error(Aline, "param_def_val", entry_table.cur_ascii_source_path, main_params[i].name_var, name,
-    //                     "manage_functions");
-    //       }
-    //       String val = str_multi_append(main_params[i].main_type, ";", main_params[i].name_var, ";",
-    //                                     main_params[i].index_var, 0);
-
-    //       str_list_append(&parameters, val, params_len++);
-    //       //printf("FFFFFFFF:%s=>%i\n",val,vars_counter);
-    //     }
-    //   }
-    }
-
     // printf("func_header:%s;%s;%i\n",name,SLIST_print(parameters,params_len),params_len);
     //=>append to blst_func
     blst tmp1 = {0, cur_pack_id, 0,0, FUNC_BLOCK_ID, name,0, parameters, params_len,false,(IntList)func_attrs, Aline, Apath, 0};
@@ -545,6 +614,26 @@ void PARSER_manage_function(uint32 *i){
     //=>set global vars
     cur_func_id = entry_table.func_id;
     cur_stru_id = 0;
+    //=>analyzing, verifying and spliting parameters,if exist params
+    if(params_len>0){
+        uint8 vars_counter = RUNKIT_defvars_analyzing(parameters, params_len, main_params,true,true);
+        // for (uint32 i = 0; i < vars_counter; i++)
+        // {defvar f=main_params[i];
+        //     printf("@@@@:%s;%s;%s\n",f.name_var,f.type_var,f.value_var);
+        // }
+        //=>check if has error
+        if(vars_counter==0 && EXP_check_errcode(BAD_DEFINE_VARS_ERRC)){
+            //TODO:fetal
+            printf("ERR3234\n");
+            return;
+        }else{
+            for (uint32 i = 0; i < vars_counter; i++) {
+                //=>append to fpp
+                fpp tmp2 = {cur_func_id,FUNC_BLOCK_ID,i, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,false,false,Aline, Apath, 0 };
+                _fpp_append(tmp2);
+            }
+        }
+    }
 }
 //******************************************************
 /**

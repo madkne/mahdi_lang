@@ -8,8 +8,10 @@
 
 //********************************
 Boolean RUNKIT_is_valid_name(String name, Boolean is_array);
+uint32 RUNKIT_simplify_define_vars(String inst,StrList *defvars,Boolean *is_static);
 uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_store[],Boolean just_syntax,Boolean just_basic_types);
-void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 *ret_subtype);
+String RUNKIT_calculate_listormap(String value,String type);
+String RUNKIT_calculate_value(String value, String type, uint8 *ret_subtype,Boolean ismaporlist);
 String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype);
 String RUNKIT_determine_number(String s,uint8 main_type,uint8 *sub_type);
 String RUNKIT_determine_string(String s,uint8 *sub_type);
@@ -30,6 +32,7 @@ String RUNKIT_resize_to_float(String str_val);
 String RUNKIT_calc_string_exp(String exp, uint8 *sub_type);
 String RUNKIT_calc_two_strings(String str1, String str2, uint8 op);
 String RUNKIT_calc_boolean_exp(String exp);
+String RUNKIT_append_number_subtype(String num,uint8 subtype);
 
 #endif /*__MAHDI_RUNKIT_H*/
 

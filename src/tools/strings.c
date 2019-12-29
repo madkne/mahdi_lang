@@ -225,6 +225,27 @@ Boolean STR_is_bool(String s){
   return false;
 }
 //******************************************
+Boolean STR_is_decimal(String str){
+  uint32 len = STR_length(str);
+  if (len == 1 && (str[0] < '0' || str[0] > '9')) {
+    return false;
+  }
+  if (len > 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'b' || str[1] == 'o')) {
+    return false;
+  }
+  for (uint32 i = 0; i < len; i++) {
+    if ((str[i] >= '0' && str[i] <= '9') || str[i] == '.' || (i == 0 && (str[i] == '+' || str[i] == '-'))) {
+      continue;
+    } else if (i == len - 1 && len > 1 && (str[i] == 'i' || str[i] == 'f' || str[i] == 'd' || str[i] == 'h') &&
+        (str[i - 1] >= '0' && str[i - 1] <= '9')) {
+      continue;
+    }  else {
+      return false;
+    }
+  }
+  return true;
+}
+//******************************************
 Boolean STR_is_num(String str) {
   uint32 len = STR_length(str);
   if (len == 1 && (str[0] < '0' || str[0] > '9')) {

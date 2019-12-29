@@ -625,8 +625,10 @@ void _fpp_append(fpp s) {
   q->type = s.type;
   q->refid=s.refid;
   q->porder=s.porder;
-  q->is_override=s.is_override;
+  q->is_private=s.is_private;
   q->is_static=s.is_static;
+  q->line=s.line;
+  q->source_id=s.source_id;
   STR_init(&q->pname, s.pname);
   STR_init(&q->ptype, s.ptype);
   STR_init(&q->pvalue, s.pvalue);

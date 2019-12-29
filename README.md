@@ -30,22 +30,25 @@ TODO
  - [x] parsing if,elif,loop,... structures
  - [x] manage instruction orders
  - [x] parsing the other instructions
- - [.] test import all files as recursive
+ - [x] test import all files as recursive
  - [x] init inheritance
  - [x] create inheritance data structure
- - [.] organization function parameters (verify,split,simplify)
- - [.] organization package attributes (verify,split,simplify)
  - [x] calculate number expressions
  - [x] determine type of number like 'i','f','h'
  - [x] convert radix numbers to decimal
  - [x] calculate string expressions
  - [x] calculate boolean expressions
+ - [x] organization function parameters (verify,split,simplify)
+ - [x] split and analyzing define vars
+ - [x] organization package attributes (verify,split,simplify)
  - [.] inheritance packages if needed
  - [.] init runtime global variables
  - [.] init runtime app controller
  - [.] init runtime instruction executor
  - [.] set label for types of instructions
  - [.] boot app from "_ bootup_" function :)
+
+ - [.] igonre duplicate import files,modules,libraries
 
 ### ((:publish MAHDI-BETA version of MAHDI (for linux):))
 

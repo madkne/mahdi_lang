@@ -97,7 +97,11 @@ int main(int argc, char **argv) {
 // map j=_map_popleft(&st,&en);
 // printf("map is:%s=>%s\n",j.key,_map_print(st));
 // printf("CCCC:%i\n",STR_last_indexof("HelloHel","He"));
-  printf("string:%s\n",RUNKIT_calc_boolean_exp("false and not true or not false"));
+  // printf("string:%s\n",RUNKIT_calc_boolean_exp("false and not true or not false"));
+  // StrList eee=0;
+  // Boolean iss=false;
+  // uint32 ee=RUNKIT_simplify_define_vars("def g=pkg('hello',56)",&eee,&iss);
+  // printf("DDDD:%s\n",RUNKIT_calculate_listormap("{\"q\"+\"1\":[5,8*2,5^2],\"q2\"-\"2\":[7+3,7]}","number"));
   //-------------------------time of end program
   APP_exit(EXIT_NORMAL);
   return 0;

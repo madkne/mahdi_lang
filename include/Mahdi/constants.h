@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.01.048"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 14          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.01.063"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 16          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -119,6 +119,8 @@
 #define   INVALID_NUMBER_VAL_ERRC       7
 #define   INVALID_STRING_VAL_ERRC       8
 #define   INVALID_BOOLEAN_VAL_ERRC      9
+#define   BAD_DEFINE_VARS_ERRC          10
+#define   BAD_MAPORLIST_VAL_ERRC        11
 //------------------------------------------used as instruction types
 #define   UNKNOWN_LBL_INST              0
 #define   STRUCTURE_LBL_INST            1

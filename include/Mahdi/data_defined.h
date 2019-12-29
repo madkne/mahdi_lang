@@ -327,12 +327,15 @@ typedef struct inherit_package_struct {
 typedef struct func_pack_params_struct {
   Longint refid; //=>pack id OR func_id
   uint8 type; //=>pack OR func
-  uint32 porder; //=>for function parameters
+  uint32 porder; //=>for function parameters, start from 0
   String pname;
   String ptype;
   String pvalue;
+  Boolean is_private; //=>for package attributes
   Boolean is_static; //=>for package attributes
-  Boolean is_override; //=>for package attributes
+
+  uint32 line;
+  uint32 source_id;
   struct func_pack_params_struct *next;
 } fpp;
 // //**********************vals_array_struct

@@ -57,7 +57,7 @@ def h=this.g
 }
 override func f2(d:string){}
 @public
-def bb=[3,6,7]
+static def bb=[3,6,7]
 }
 pack pk1(pk0){
 static func f2(h:number,d:string){}

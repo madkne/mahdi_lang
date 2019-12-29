@@ -166,7 +166,7 @@ void COM_print_struct(uint8 which) {
     if (tmp1 == 0) return;
     printf("=====Print func_pack_params_struct :\n");
     for (;;) {
-      printf("[typ:%i,refid:%li,ord:%i]:%s|%s|%s,name:%s,params:%s[over:%i,stat:%i]\n", tmp1->type,tmp1->refid,tmp1->porder, tmp1->pname,tmp1->ptype,tmp1->pvalue,tmp1->is_static,tmp1->is_override);
+      printf("[typ:%i,refid:%li,ord:%i]:%s|%s|%s\t[priv:%i,stat:%i,line:%i]\n", tmp1->type,tmp1->refid,tmp1->porder, tmp1->pname,tmp1->ptype,tmp1->pvalue,tmp1->is_private,tmp1->is_static,tmp1->line);
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }

@@ -97,26 +97,192 @@ Boolean RUNKIT_is_valid_name(String name, Boolean is_array){
 }
 //******************************************************
 /**
+ * get a instruction of define vars and split it to many define vars to use in RUNKIT_defvars_analyzing
+ * @author madkne
+ * @version 1.1
+ * @since 2019.12.29
+ * @param inst : a define vars instruction code 
+ * @param defvars : (pointer) list of splitted define vars
+ * @param is_static : (pointer) if define vars is static or not
+ * @return uint32 : count of define vars detect of StrList
+ */
+uint32 RUNKIT_simplify_define_vars(String inst,StrList *defvars,Boolean *is_static){
+    /**
+     * 1- def x1,x2,x3:string=''  ---OK---							
+     * 2- static def x1,x2=(3+5)*x3 ---OK---
+     * 3- def x1:number,x2,x3=0x3A4D,(5+7)/2,("we"+"He") ---OK---
+     * 4- def x1,st2=[[5,7.8],[1,7]],{"q":"Amin","f":st1[0]+"!"} ---OK---
+     * 5- def x1=x2[1][2]*2 ---OK---
+     * 6- def g=pkg('hello',56)  ---OK---
+    */
+    //=>if is empty inst
+    if (inst==0) return 0;
+    //=>init vars
+    defvar defv[MAX_VAR_ALLOC_INSTRUCTIONS];
+    uint32 defvars_len=0;
+    String word = 0, last_type = 0, data_type = 0;
+    Boolean is_string = false, is_equal = false,verify_static=false,is_def=false,has_type=false;
+    int16 vars_counter = 0, vals_counter = 0, pars = 0, bras = 0, acos = 0;
+    //=>trim inst
+    inst = STR_trim_space(inst);
+    //=>get inst length
+    uint32 len = STR_length(inst);
+    //=>iterate inst chars
+    for (uint32 i = 0; i < len; i++) {
+        //printf("@X:%c\n",inst[i]);
+        //=>check is string
+        if (inst[i] == '\"' && (i == 0 || inst[i - 1] != '\\')){
+            is_string = BOOL_switch(is_string);
+        }
+        //=>continue if ' '
+        if (!is_string && i + 1 < len && inst[i] == ' ' && (inst[i + 1] == '(' || inst[i + 1] == '[')) {
+            continue;
+        }
+        //=>count bras,pars,acos
+        if (!is_string) {
+        if (inst[i] == '(')pars++;
+        else if (inst[i] == ')')pars--;
+        else if (inst[i] == '{')acos++;
+        else if (inst[i] == '}')acos--;
+        else if (inst[i] == '[')bras++;
+        else if (inst[i] == ']')bras--;
+        else if (inst[i] == '=')is_equal = true;
+        }
+        //=>get 'static' attribute, if exist
+        if(!is_string && !is_def && inst[i]==' ' && STR_equal(word,"static")){
+            verify_static=true;
+            //=>reset word and ignore
+            word=0;
+            continue;
+        }
+        //=>get 'def' keyword
+        if(!is_string && !is_def && !is_equal && inst[i]==' ' && STR_equal(word,"def")){
+            is_def=true;
+            //=>reset word and ignore
+            word=0;
+            continue;
+        }
+        //=>get a variable
+        if (!is_string && !has_type && is_def && pars == 0 && acos == 0 && bras == 0 &&((!is_equal && (inst[i] == ',' || inst[i] == ':')) || inst[i] == '=')) {
+            //=>if char splitter is ':', enable has type
+            if(inst[i]==':'){
+                has_type=true;
+            }
+            //=>trim word
+            word = STR_trim_space(word);
+            //=>if var name not valid
+            if (!RUNKIT_is_valid_name(word, false)) {
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                EXP_handler("invalid_name_var", __func__, word, 0);
+                return 0;
+            }
+            //=>if vars count is bigger than max var alloc
+            if(vars_counter+1>MAX_VAR_ALLOC_INSTRUCTIONS){
+                //TODO:error
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            //=>append to defvar array
+            defv[vars_counter].type_var=0;
+            STR_init(&defv[vars_counter++].name_var,word);
+            //=>reset word and ignore
+            word = 0;
+            continue;
+        }
+        //=>get data type, if exist
+        if (!is_string && has_type && vars_counter >0 && is_def && pars == 0 && acos == 0 && bras == 0 && word != 0 && ((!is_equal && inst[i] == ',') || inst[i] == '=') ) {
+            //=>disable has type
+            has_type=false;
+            //=>trim word
+            word = STR_trim_space(word);
+            //=>if data type is valid
+            if(STR_search(basic_types,word,StrArraySize(basic_types)) || (STR_equal(interpreter_level, "parse") && RUNKIT_is_valid_name(word,false)) || _datas_search(word, 0, true).id != 0){
+                STR_init(&defv[vars_counter-1].type_var,word);
+            }
+            //=>if data type is not valid
+            else{
+                //TODO:error
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            //=>reset word and ignore
+            word = 0;
+            continue;
+        }
+        //=>allocate values to variables
+        if (is_equal && !is_string &&((inst[i] == ',' && pars == 0 && acos == 0 && bras == 0) || (i + 1 == len && acos < 2) || (i + 1 == len && bras < 2) || (i + 1 == len && pars < 2))){
+            //=>append last char to word
+            if (i + 1 == len) {
+                word = CH_append(word, inst[i]);
+                //=>count acos,bras,pars is last char
+                if (inst[i] == '}') acos--;
+                else if (inst[i] == ']')bras--;
+                else if (inst[i] == ')')pars--;
+                //=>check for rest all acos,bras,pars
+                if(acos > 0 || bras>0 || pars>0) continue;
+            }
+            //=>values is higher than vars
+            if(vals_counter+1>vars_counter){
+                //TODO:error
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            //=>trim word
+            word = STR_trim_space(word);
+            //=>append value to var by vals_counter
+            STR_init(&defv[vals_counter++].value_var, word);
+            //=>reset word and ignore
+            word = 0;
+            continue;
+        }
+        //=>append to word
+        word = CH_append(word, inst[i]);
+    }
+    //=>check if vars count higher than vals count
+    if(vars_counter>vals_counter){
+        //=>if values count is bigger than 1 or 0
+        if(vals_counter>1 || vals_counter==0){
+            //TODO:error
+            EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+            return 0;
+        }
+        //=>else all vars values is same!
+        for (uint32 i = 1; i < vars_counter; i++){
+            STR_init(&defv[i].value_var,defv[0].value_var);
+        }
+    }
+    //=>convert defv array defvars list
+    for (uint32 i = 0; i < vars_counter; i++){
+        //=>if has data type
+        if(defv[i].type_var==0){
+            SLIST_append(&(*defvars),STR_multi_append(defv[i].name_var,"=",defv[i].value_var,0,0,0),defvars_len++);
+        }
+        //=>if not have data type
+        else{
+            SLIST_append(&(*defvars),STR_multi_append(defv[i].name_var,":",defv[i].type_var,"=",defv[i].value_var,0),defvars_len++);
+        }
+    }
+    
+    //=>return count
+    if(is_static!=0) (*is_static)=verify_static;
+    return defvars_len;
+
+}
+//******************************************************
+/**
  * get a list of defined vars without 'def' and attributes and split, verify and simplify them
  * @author madkne
- * @version 1.0
+ * @version 1.1
  * @since 2019.12.24
  * @param code : an instruction code include string or ...
  * @return uint8 : count of vars detect or -1
  */ 
 uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_store[],Boolean just_syntax,Boolean just_basic_types) {
     /**
-        1- x1,x2,x3:string 								        ---..---
-        2- x1,x2=(3+5)*x3 								        ---..---
-        3- x1:number,x2,x3=0x3A4D,(5+7)/2,("we"*10)  	        ---..---
-        4- x1=45 										        ---..---
-        5- x1=true&&(f==45) 							        ---..---
-        6- x1=[[5,7.8],[1,7]]	 					            ---..---
-        7- x1=x2[1][2]*2 								        ---..---
-        8- st2={"q":"Amin","f":st1[0]*2+"!"} 			        ---..---
-        9- q1:number=[{'q1':67,'q2':-78},{'q1':0,'q2':45.4}] 	---..---
-        10- g=pkg('hello',56)                                   ---..---
-        */
+     * 1- h:number , d:string
+     * 2- d="hel"+"lo"
+     * 3- x1:string="hy" , x2:number=2+(5*5)
+    */
     //=>if is empty list
     if (defvars_len==0) return 0;
     //=>init vars
@@ -182,6 +348,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
         //=>check for var name is valid
         if(!RUNKIT_is_valid_name(var.name,false)){
             EXP_handler("invalid_name_var", __func__, var.name, "");
+            EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
             return 0;
         }
         //=>if var has a value
@@ -191,29 +358,53 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             //=>check for invalid value error
             if(EXP_check_errcode(INVALID_VALUE_ERRC)){
                 EXP_handler("invalid_value", __func__, var.value, "");
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
             }
             //=>if not have basic type, if not just basic types
             if(!just_basic_types && var.typeval==0){
-                //TODO:
+                //TODO:search in datas
             }
             //=>comparison between var type(if exist) and val type
             if(var.type!=0 && !STR_equal(var.type,var.typeval)){
                 //TODO:
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            //=>if var type is empty, set by value type
+            else if(var.type==0){
+                STR_init(&var.type,var.typeval);
             }
             //=>simplify value of var
-            //TODO:
+            uint8 sub_type='0';
+            var.value=RUNKIT_calculate_value(var.value,var.typeval,&sub_type,true);
+            if(sub_type=='0'||var.value==0){
+                //TODO:error
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            // printf("var value:%s(%s)=>%s\n",var.name,var.type,var.value);
         }
         //=>more check if just_syntax is false!
         if(!just_syntax){
             //=>a var must has a default value
             if(var.value==0){
                 //TODO:err
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
             }
             //=>verify var type (if exist)
             if(var.type!=0 && _datas_search(var.type,0,true).name==0){
                 //TODO:err
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
             }
+        }
+        //=>if type var is null
+        if(var.type==0){
+            //TODO:err
+            EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+            return 0;
         }
         //=>fill vars store
         vars_counter++;
@@ -233,23 +424,155 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
 
 //******************************************************
 /**
- * get a value string and its type like number and then if need simplify value and return sub_type of value
+ * get a value like [78,55] or {'q':5,'e':77} or combination of both and calculate its items and return it
  * @author madkne
  * @version 1.0
- * @since 2019.12.24
+ * @since 2019.12.29
+ * @param value : value of var as list or map
+ * @param type : type of all items like string,number,..
+ * @return String : calculated of list or map
+ */ 
+String RUNKIT_calculate_listormap(String value,String type){
+    /**
+     * 1- {"q"+"1":[5,8*2,-5^2],"q2"-"2":[7+3,7]}
+     * 2- ["he"+"llo",("H"+"J")-"J"]
+     * 3- {"q1":77,"q2":[4,8]} //=>error
+     * 4- ["He",980] OR [6,{"q":7}] //=>error
+     */ 
+    //=>init vars
+    String ret=0;
+    uint8 subtype='0';
+    //=>if value is map, then parse it!
+    if(value[0]=='{'){
+        StrList values=0,keys=0;
+        uint32 mapl=RUNKIT_get_map_items(value,&values,&keys);
+        //=>check for error
+        if(mapl==0 && EXP_check_errcode(BAD_MAP_ERRC)){
+            EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+            return 0;
+        }
+        //=>calculate map keys
+        for (uint32 i = 0; i < mapl; i++){
+            keys[i]=RUNKIT_calculate_value(keys[i],"string",&subtype,false);
+            //=>check for error
+            if(keys[i]==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
+                EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                return 0;
+            }
+        }
+        //=>when first value is checked, the other items use this!
+        Boolean value_is_maporlist=false;
+        //=>calculate map values
+        // printf("PPP:%s\n",SLIST_print(values,mapl));
+        for (uint32 i = 0; i < mapl; i++){
+            //=>if value item is a list or map
+            if(value_is_maporlist || values[i][0]=='[' || values[i][0]=='{'){
+                values[i]=RUNKIT_calculate_listormap(values[i],type);
+                //=>if an error to calculate of list or map
+                if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+                value_is_maporlist=true;
+            }
+            //=>if value item is simple
+            else{
+                values[i]=RUNKIT_calculate_value(values[i],type,&subtype,false);
+                //=>check for error
+                if(values[i]==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+            }
+        }
+        //=>create ret string from keys and values
+        ret = CH_append(ret, '{');
+        for (uint32 i = 0; i < mapl; i++) {
+            ret = STR_multi_append(ret, keys[i],":",values[i],0,0);
+            if (i + 1 < mapl) ret = CH_append(ret, ',');
+        }
+        ret = CH_append(ret, '}');
+    }
+    //=>if value is list, then parse it!
+    else if(value[0]=='['){
+        StrList items=0;
+        uint32 listl=RUNKIT_get_list_items(value,&items);
+        //=>check for error
+        if(EXP_check_errcode(BAD_LIST_ERRC)){
+            EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+            return 0;
+        }
+        //=>when first value is checked, the other items use this!
+        Boolean value_is_maporlist=false;
+        //=>calculate list items
+        for (uint32 i = 0; i < listl; i++){
+            //=>if value item is a list or map
+            if(value_is_maporlist || items[i][0]=='[' || items[i][0]=='{'){
+                items[i]=RUNKIT_calculate_listormap(items[i],type);
+                //=>if an error to calculate of list or map
+                if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+                value_is_maporlist=true;
+            }
+            //=>if item is simple
+            else{
+                items[i]=RUNKIT_calculate_value(items[i],type,&subtype,false);
+                //=>check for error
+                if(items[i]==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+            }
+            // printf("GGGG:%s\n",items[i]);
+        }
+        //=>create ret string from items
+        ret = CH_append(ret, '[');
+        for (uint32 i = 0; i < listl; i++) {
+            ret = STR_append(ret, items[i]);
+            if (i + 1 < listl) ret = CH_append(ret, ',');
+        }
+        ret = CH_append(ret, ']');
+    }
+    //=>if not, then error!
+    else{
+        EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+        return 0;
+    }
+    return ret;
+}
+//******************************************************
+/**
+ * get a value string and its type like number and then if need simplify value and return sub_type of value
+ * @author madkne
+ * @version 1.2
+ * @since 2019.12.29
  * @param value
  * @param type
- * @param ret_value : (pointer)
  * @param ret_subtype : (pointer)
+ * @param ismaporlist
+ * @return String
  */
-void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 *ret_subtype) {
+String RUNKIT_calculate_value(String value, String type, uint8 *ret_subtype,Boolean ismaporlist) {
     //=>init vars
     uint8 sub_type = '0';
     //  printf("@@@@:%s,%s\n", value, type);
     //=>if value is null
     if (type == 0) {
         EXP_set_errcode(INVALID_VALUE_ERRC);
-        return;
+        return 0;
+    }
+    //=>if value is a list or map, then simplify every items
+    if(ismaporlist && (value[0]=='[' || value[0]=='{')){
+        STR_init(&value,RUNKIT_calculate_listormap(value,type));
+        //=>if an error to calculate of list or map
+        if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+            EXP_set_errcode(INVALID_VALUE_ERRC);
+            return 0;
+        }
+        (*ret_subtype)=type[0];
+        return value;
     }
     //=>search for basic types
     uint32 basic_ind=STR_search_index(basic_types, type, StrArraySize(basic_types));
@@ -272,12 +595,12 @@ void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 
             //     }
         }
         if (basic_ind==1/*number*/) {
-            (*ret_value)=RUNKIT_calc_number_exp(value, '_', &(*ret_subtype));
+            return RUNKIT_calc_number_exp(value, '_', &(*ret_subtype));
         } else if (basic_ind==0/*string*/) {
-            (*ret_value)=RUNKIT_calc_string_exp(value,&(*ret_subtype));
+            return STR_convert_from(RUNKIT_calc_string_exp(value,&(*ret_subtype)));
         } else if (basic_ind==2/*boolean*/) {
-            (*ret_value) = RUNKIT_calc_boolean_exp(value);
             (*ret_subtype)='b';
+            return RUNKIT_calc_boolean_exp(value);
         }  
     }
     //=>if type is a package
@@ -288,15 +611,15 @@ void RUNKIT_calculate_value(String value, String type, String *ret_value, uint8 
     } 
     else {
         EXP_set_errcode(INVALID_TYPE_ERRC);
-        return;
+        return 0;
     }
 }
 //******************************************************
 /**
  * get an math expression with a target type and calculate it and return it.
  * @author madkne
- * @version 1.0
- * @since 2019.12.25
+ * @version 1.2
+ * @since 2019.12.29
  * @order unknown
  * @param exp
  * @param target_type
@@ -333,6 +656,13 @@ String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype){
     else if(len_exp == 1){
         if(rettype!=0) (*rettype) = 'i';
         return exp;
+    }
+    //=>if exp just a number
+    if(STR_is_num(exp)){
+        if(rettype!=0){
+            (*rettype)=RUNKIT_determine_type_number(exp);
+            return RUNKIT_append_number_subtype(exp,(*rettype));
+        }
     }
     //=>calc max pars level
     for (uint32 i = 0; i < len_exp; i++){
@@ -446,13 +776,15 @@ String RUNKIT_calc_number_exp(String exp, uint8 target_type, uint8 *rettype){
         } else if (type_exp == 'f' && STR_length(result) > MAX_FLOAT_LEN) {
             result = RUNKIT_resize_to_float(result);
         }
-        printf("RRRR(%i):%s{%c}%s=%s[%c]\n",nodes[i].id,num1,nodes[i].op,num2,result,type_exp);
+        // printf("RRRR(%i):%s{%c}%s=%s[%c]\n",nodes[i].id,num1,nodes[i].op,num2,result,type_exp);
         nodes[i].res=result;
     }
     //=>print math tree
     // for (uint32 i = 0; i < nodes_len; i++){
         // printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].num1,nodes[i].num2,nodes[i].res);
     // }
+    //=>set sub type on last of result
+    nodes[0].res= RUNKIT_append_number_subtype(nodes[0].res,type_exp);
     //=>return sub type and value
     if(rettype!=0) (*rettype) = type_exp;
     return nodes[0].res;
@@ -557,7 +889,6 @@ String RUNKIT_determine_string(String s,uint8 *sub_type){
     //       type = 'u';
     //       str1 = utf8_to_bytes_string(get_utst_by_label(str1).utf8_string);
     //     }
-    //     //msg("&CCDDD:", str1, buf, string(tmp1))
     }
     //=>if s is not valid as a string
     if (!is_valid_val) {
@@ -1068,7 +1399,7 @@ String RUNKIT_get_firstitem_listormap(String value){
             StrList values=0,keys=0;
             uint32 mapl=RUNKIT_get_map_items(firstitem,&values,&keys);
             //=>check for error
-            if(EXP_check_errcode(BAD_MAP_ERRC)){
+            if(mapl==0 && EXP_check_errcode(BAD_MAP_ERRC)){
                 EXP_set_errcode(BAD_FIRST_ITEM_ERRC);
                 return 0;
             }
@@ -1081,7 +1412,7 @@ String RUNKIT_get_firstitem_listormap(String value){
             StrList items=0;
             uint32 listl=RUNKIT_get_list_items(firstitem,&items);
             //=>check for error
-            if(EXP_check_errcode(BAD_LIST_ERRC)){
+            if(listl==0 && EXP_check_errcode(BAD_LIST_ERRC)){
                 EXP_set_errcode(BAD_FIRST_ITEM_ERRC);
                 return 0;
             }
@@ -1403,8 +1734,8 @@ String RUNKIT_resize_to_float(String str_val) {
  * get a string value or a string expression and processing it and then return final string value with sub type
  * string value can be an utf8 string like -!U8!_2
  * @author madkne
- * @version 1.0
- * @since 2019.12.27
+ * @version 1.1
+ * @since 2019.12.29
  * @param exp
  * @param sub_type : (pointer)
  */
@@ -1427,6 +1758,7 @@ String RUNKIT_calc_string_exp(String exp, uint8 *sub_type){
     map* queue_start=0;
     map* queue_end=0;
     uint8 type_exp='s';
+    uint8 tmp_subtype='s';
     //=>trim exp
     exp = STR_trim_space(exp);
     //=>if exp is null
@@ -1437,9 +1769,15 @@ String RUNKIT_calc_string_exp(String exp, uint8 *sub_type){
     //=>get length of exp
     uint32 len_exp = STR_length(exp);
     //=>if exp is ""
-    if(STR_equal(exp, "\"\\\"")){
+    if(STR_equal(exp, "\"\"")){
         if(sub_type!=0) (*sub_type) = 's';
-        return exp;
+        return 0;
+    }
+    //=>if exp is a string like "Hello" or a string var
+    String tmp=RUNKIT_determine_string(exp,&tmp_subtype);
+    if(tmp!=0){
+        if(sub_type!=0) (*sub_type) = tmp_subtype;
+        return tmp;
     }
     //=>calc max pars level
     for (uint32 i = 0; i < len_exp; i++){
@@ -1543,9 +1881,9 @@ String RUNKIT_calc_string_exp(String exp, uint8 *sub_type){
         nodes[i].res=result;
     }
     //=>print math tree
-    for (uint32 i = 0; i < nodes_len; i++){
-        printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].str1,nodes[i].str2,nodes[i].res);
-    }
+    // for (uint32 i = 0; i < nodes_len; i++){
+    //     printf("(%i) %c : %s , %s = %s\n",nodes[i].id,nodes[i].op,nodes[i].str1,nodes[i].str2,nodes[i].res);
+    // }
     //=>return sub type and value
     if(sub_type!=0) (*sub_type) = type_exp;
     return nodes[0].res;
@@ -1626,7 +1964,7 @@ String RUNKIT_calc_boolean_exp(String exp){
     exp = STR_trim_space(exp);
     //=>if exp is null
     if (exp==0) {
-        EXP_set_errcode(INVALID_STRING_VAL_ERRC);
+        EXP_set_errcode(INVALID_BOOLEAN_VAL_ERRC);
         return 0;
     }
     //=>get length of exp
@@ -1765,6 +2103,33 @@ String RUNKIT_calc_boolean_exp(String exp){
     return nodes[0].res;
 }
 //******************************************************
+/**
+ * get a a number and its sub type and check if not have last char, append sub type to it
+ * @author madkne
+ * @version 1.0
+ * @since 2019.12.29
+ * @param num
+ * @param subtype
+ * @return String
+ */
+String RUNKIT_append_number_subtype(String num,uint8 subtype){
+    //=>check if num is decimal
+    if(!STR_is_decimal(num)){
+        return num;
+    }
+    //=>check if last char of num is 'i' or 'f' or 'h'
+    uint32 len=STR_length(num);
+    if(len>1 && (num[len-1]=='i' || num[len-1]=='f' || num[len-1]=='h')){
+        //=>if last char not equal with subtype, replace it!
+        if(num[len-1]!=subtype){
+            num=CH_append(STR_substring(num,0,len-1),subtype);
+        }else{
+            return num;
+        }
+    }
+    //=>append subtype to num
+    return CH_append(num,subtype);
+}
 //******************************************************
 //******************************************************
 //******************************************************

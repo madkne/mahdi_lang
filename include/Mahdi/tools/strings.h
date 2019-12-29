@@ -23,6 +23,7 @@ int32 STR_to_int32(String s);
 Longint STR_to_Longint(String s);
 Boolean STR_is_int32(String s);
 Boolean STR_is_bool(String s);
+Boolean STR_is_decimal(String str);
 Boolean STR_is_num(String str);
 String STR_reverse(String s);
 String STR_trim_space(String s);
