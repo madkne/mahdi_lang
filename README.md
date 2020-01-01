@@ -1,13 +1,15 @@
-**mAh_:** MAHDI Programming Language - MAHDI (BETA-0.1)
+**mAh_:** MAHDI Programming Language - _MAHDI (BETA-0.1)_
 ============================================
 
-> _This is a small,fast interpreter also Assemble all the good features of programming languages_
- > Tags:
- interpreter, programming-language, programming, language, open-source, mahdi, mahdilang, c-programming, linux, object-oriented, beta
+> _This is a small,fast interpreter also Assemble all the good features of programming languages_ <br>
+> Tags:
+ interpreter, programming-language, programming, language, open-source, mahdi, mahdilang, c-programming, linux, object-oriented, beta <br>
+> Influenced by:
+ C,PHP,MPL,PYTHON,JAVA
 
 TODO
 --------
- 
+
  - [x] init git
  - [x] get first build
  - [x] get argvs and analyze options and file path
@@ -41,21 +43,32 @@ TODO
  - [x] organization function parameters (verify,split,simplify)
  - [x] split and analyzing define vars
  - [x] organization package attributes (verify,split,simplify)
- - [.] inheritance packages if needed
+ - [x] inheritance packages if needed
+ - [x] inheritance package attributes
+ - [x] inheritance package methods
  - [.] init runtime global variables
  - [.] init runtime app controller
  - [.] init runtime instruction executor
  - [.] set label for types of instructions
  - [.] boot app from "_ bootup_" function :)
-
- - [.] igonre duplicate import files,modules,libraries
+ - [.] implement define vars
+ - [.] set new var in memory
+ - [.] delete var in memory
+ - ...
+ - [.] run "Hello world" program
 
 ### ((:publish MAHDI-BETA version of MAHDI (for linux):))
 
-
-
-
-
+ - [.] igonre duplicate import files,modules,libraries
+ - ...
+ - [.] start official documentation of mahdi
+ - ...
+ - [.] preview of mahdi official website
+ - ...
+ - [.] **_complete main structure of mahdi_**
+ - ...
+ - [.] **_complete full structure of mahdi_**
+ - ...
 ### To be continued ...
 
 
@@ -67,24 +80,47 @@ MAHDI Modules
     - [.] console package
     - [.] bit package
     - [.] app package 
-    - [.] string package
+    - [.] strings package
     - [.] file package
+    - [.] os package
+    - [.] datetime package
+    - [.] thread package
+* db module
+    - [.] sqlite3 package
+    - [.] csv package
+    - [.] json package
+    - [.] mysql package
+    - [.] xml package
+* archive module
+    - [.] zip package
+    - [.] tar package
+* structs module
+    - [.] heap package
+    - [.] hash package
+* crypto module
+    - [.] md5 package
+    - [.] sha256 package
+* net module
+    - [.] parser package
+    - [.] email package
+    - [.] socket package
+    - [.] http package
+    - [.] smtp package
 
 MAHDI Language Features
 --------
 
 > [x] support utf8 strings <br>
 > [.] support radix numbers  <br>
-> [.] has boolean XOR operand  <br>
-> [.] support object oriented  <br>
+> [x] support object oriented  <br>
 > [.] support huge numbers <br>
 > [.] support override methods  <br>
 > [.] has built-in functions  <br>
 > [.] manage exceptions  <br>
 > [.] support multi dimensions arrays  <br>
-> [.] support dictionary(map) data structure <br>
+> [x] support dictionary(map) data structure <br>
 > [.] has built-in garbage collector(gc)  <br>
-> [.] expandability by c libraries  <br>
+> [.] expandability by c modules  <br>
 > [.] support built-in debugger  <br>
 > [.] support unlimited function parameters  <br>
 > [.] support call function by its parameter name <br>
@@ -92,7 +128,7 @@ MAHDI Language Features
 > [.] support call by reference vars  <br>
 > [.] support short allocations for vars  <br>
 > [.] support built-in encoder  <br>
-> [.] has bit functions  <br>
+> [.] support bit functions  <br>
 > [.] support sqlite3 module  <br>
 > [.] support browse arrays in loop  <br>
 > [.] support switch condition equivalent  <br>

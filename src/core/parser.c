@@ -488,7 +488,7 @@ void PARSER_manage_package_attributes(uint32 *i) {
         }else{
             for (uint32 i = 0; i < vars_counter; i++) {
                 //=>append to fpp
-                fpp tmp2 = {cur_pack_id,PACK_BLOCK_ID,0, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,is_private,is_static,Aline, Apath, 0 };
+                fpp tmp2 = {0,cur_pack_id,PACK_BLOCK_ID,0, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,is_private,is_static,false,Aline, Apath, 0 };
                 _fpp_append(tmp2);
             }
         }
@@ -499,9 +499,9 @@ void PARSER_manage_package_attributes(uint32 *i) {
 /**
  * get i pointer of token index in source code and detect function header and append it to imin struct
  * @author madkne
- * @version 1.4
+ * @version 1.5
  * @update
- * @since 2019.12.28
+ * @since 2020.1.1
  * @param i : (pointer) index of token 
  * @return void
  */
@@ -513,6 +513,7 @@ void PARSER_manage_function(uint32 *i){
     uint32 params_len = 0;
     uint8 pars = 0;
     uint8 param_bra=0,param_acol=0;
+    IntList is_param_ref=0;
     defvar main_params[MAX_VAR_ALLOC_INSTRUCTIONS];
     int32 func_attrs[MAX_FUNCTION_ATTRIBUTES];
     ILIST_reset(func_attrs,MAX_FUNCTION_ATTRIBUTES);
@@ -556,6 +557,13 @@ void PARSER_manage_function(uint32 *i){
                 soco next_token=_soco_get(TOKENS_SOURCE_CODE, next);
                 //=>check if next token is ',' or ')'
                 if((STR_CH_equal(next_token.code,',')||STR_CH_equal(next_token.code,')'))&&param_acol==0&&param_bra==0){
+                    //=>check if parameter is reference
+                    if(param_buf[0]=='&'){
+                        ILIST_append(&is_param_ref,1,params_len);
+                        param_buf=STR_substring(param_buf,1,0);
+                    }else{
+                        ILIST_append(&is_param_ref,0,params_len);
+                    }
                     SLIST_append(&parameters,param_buf,params_len++);
                     param_buf=0;
                     param_acol=param_bra=0;
@@ -622,14 +630,14 @@ void PARSER_manage_function(uint32 *i){
         //     printf("@@@@:%s;%s;%s\n",f.name_var,f.type_var,f.value_var);
         // }
         //=>check if has error
-        if(vars_counter==0 && EXP_check_errcode(BAD_DEFINE_VARS_ERRC)){
+        if((vars_counter==0 && EXP_check_errcode(BAD_DEFINE_VARS_ERRC)) || params_len!=vars_counter){
             //TODO:fetal
-            printf("ERR3234\n");
+            printf("ERR32341\n");
             return;
         }else{
             for (uint32 i = 0; i < vars_counter; i++) {
                 //=>append to fpp
-                fpp tmp2 = {cur_func_id,FUNC_BLOCK_ID,i, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,false,false,Aline, Apath, 0 };
+                fpp tmp2 = {0,cur_func_id,FUNC_BLOCK_ID,i, main_params[i].name_var,main_params[i].type_var,main_params[i].value_var,false,false,is_param_ref[i],Aline, Apath, 0 };
                 _fpp_append(tmp2);
             }
         }

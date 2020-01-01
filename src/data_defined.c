@@ -462,6 +462,105 @@ void _blst_append(blst s) {
   }
 }
 //*************************************************************
+blst *_blst_filter(blst *start,uint8 type,Longint pack_id,Longint func_id){
+  //=>init vars
+  blst *filter_start=0;
+  blst *filter_end=0;
+  if (start == 0) return 0;
+  for (;;) {
+      if(start->type==type && start->pack_id==pack_id && (func_id==0 || start->func_id==func_id)){
+          blst *q;
+          q = (blst *) malloc(sizeof(blst));
+          if (q == 0) return 0;
+          q->id=start->id;
+          q->pack_id=start->pack_id;
+          q->func_id=start->func_id;
+          q->stru_id=start->stru_id;
+          q->type=start->type;
+          STR_init(&q->label,start->label);
+          STR_init(&q->inherit,start->inherit);
+          SLIST_init(&q->params,start->params,start->params_len);
+          q->params_len=start->params_len;
+          q->is_simplified=start->is_simplified;
+          ILIST_init(&q->func_attrs,start->func_attrs,MAX_FUNCTION_ATTRIBUTES);
+
+          q->line=start->line;
+          q->source_id=start->source_id;
+          q->next = 0;
+          if (filter_start == 0)
+            filter_start = filter_end = q;
+          else {
+            filter_end->next = q;
+            filter_end = q;
+          }
+      } 
+      start = start->next;
+      if (start == 0) break;
+  }
+  return filter_start;
+}
+//*************************************************************
+void _blst_print(String head,blst *blst_start){
+  blst *st = blst_start;
+  if (st == 0) return;
+  printf("BLST[%s]:\n",head);
+  for (;;) {
+    printf("\t[id:%li,typ:%i,pid:%li,fid:%li,sid:%li]:%s:%s\t%s[line:%i]\n",st->id, st->type,st->pack_id,st->func_id, st->stru_id,ILIST_print(st->func_attrs,MAX_FUNCTION_ATTRIBUTES),st->label,SLIST_print(st->params,st->params_len),st->line);
+    st = st->next;
+    if (st == 0) break;
+  }
+  printf("---------------------\n");
+}
+//*************************************************************
+blst * _blst_delete_by_id(Longint id,blst *blst_start,Boolean *is_success) {
+  (*is_success)=false;
+  blst *last_node=0;
+  if (blst_start == 0)return 0;
+  blst *tmp1 = blst_start;
+  if (tmp1 == 0) return 0;
+  for (;;) {
+    if(tmp1->id==id){
+      //=>if just one node
+      if(tmp1->next==0 && last_node==0){
+        blst_start=0;
+      }
+      //=>if last node
+      if(tmp1->next==0){
+        last_node->next=0;
+      }
+      //=>if first node
+      else if(tmp1==blst_start){
+        blst_start=tmp1->next;
+      }
+      //=>if middle node
+      else{
+        last_node->next=tmp1->next;
+      }
+      free(tmp1);
+      (*is_success)=true;
+      break;
+    }
+    last_node=tmp1;
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+  return blst_start;
+}
+//*************************************************************
+blst _blst_get_by_id(blst *start,Longint id) {
+  blst null = {0, 0, 0, 0, 0, 0, 0, 0, 0,0,0,0,0,0};
+  blst *tmp1 = start;
+  //------------------
+  for (;;) {
+    if (id == tmp1->id) {
+      return (*tmp1);
+    }
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+  return null;
+}
+//*************************************************************
 //*******************data_types functions**********************
 //*************************************************************
 void _datas_append(Longint pack_id,uint8 type,String name) {
@@ -596,14 +695,16 @@ void _instru_append(instru s) {
 //*************************************************************
 //*****************inherit_package functions*******************
 //*************************************************************
-void _inpk_append(inpk s) {
+void _inpk_append(Longint parent_id,String parent_name,Longint inherit_id,String inherit_name) {
   inpk *q;
   q = (inpk *) malloc(sizeof(inpk));
   if (q == 0) return;
-  q->parent_id=s.parent_id;
-  q->inherit_id = s.inherit_id;
-  STR_init(&q->inherit_name,s.inherit_name);
-  STR_init(&q->parent_name,s.parent_name);
+  q->parent_id=parent_id;
+  q->inherit_id = inherit_id;
+  q->is_done=false;
+  q->is_processing=false;
+  STR_init(&q->inherit_name,inherit_name);
+  STR_init(&q->parent_name,parent_name);
   q->next = 0;
   entry_table.inpk_id++;
   if (entry_table.inpk_start == 0) {
@@ -614,19 +715,78 @@ void _inpk_append(inpk s) {
   }
 }
 //*************************************************************
+inpk _inpk_get_by_done(Boolean is_done) {
+  inpk null = {0, 0, 0, 0, 0,0};
+  inpk *st = entry_table.inpk_start;
+  if (st == 0) return null;
+  for (;;) {
+      if(!st->is_processing && st->is_done==is_done){
+          return (*st);
+      }
+      st = st->next;
+      if (st == 0) break;
+  }
+  return null;
+}
+//*************************************************************
+Boolean _inpk_set_done(Longint inherit_id) {
+  inpk *st = entry_table.inpk_start;
+  if (st == 0) return false;
+  for (;;) {
+      if(st->inherit_id==inherit_id){
+          st->is_done=true;
+          st->is_processing=false;
+          return true;
+      }
+      st = st->next;
+      if (st == 0) break;
+  }
+  return false;
+}
+//*************************************************************
+Boolean _inpk_set_processing(Longint inherit_id) {
+  inpk *st = entry_table.inpk_start;
+  if (st == 0) return false;
+  for (;;) {
+      if(!st->is_processing && st->inherit_id==inherit_id){
+          st->is_processing=true;
+          return true;
+      }
+      st = st->next;
+      if (st == 0) break;
+  }
+  return false;
+}
+//*************************************************************
+inpk _inpk_search(Longint inherit_id,Longint parent_id,Boolean parent_or_not) {
+  inpk null = {0, 0, 0, 0, 0,0};
+  inpk *st = entry_table.inpk_start;
+  if (st == 0) return null;
+  for (;;) {
+      if(!st->is_processing && !parent_or_not && st->inherit_id==inherit_id){
+          return (*st);
+      } else if(!st->is_processing && parent_or_not && st->parent_id==parent_id){
+          return (*st);
+      }
+      st = st->next;
+      if (st == 0) break;
+  }
+  return null;
+}
+//*************************************************************
 //****************func_pack_params functions*******************
 //*************************************************************
 void _fpp_append(fpp s) {
   fpp *q;
   q = (fpp *) malloc(sizeof(fpp));
   if (q == 0) return;
-  entry_table.fpp_id++;
-
+  q->id=entry_table.fpp_id++;
   q->type = s.type;
   q->refid=s.refid;
   q->porder=s.porder;
   q->is_private=s.is_private;
   q->is_static=s.is_static;
+  q->is_reference=s.is_reference;
   q->line=s.line;
   q->source_id=s.source_id;
   STR_init(&q->pname, s.pname);
@@ -639,6 +799,120 @@ void _fpp_append(fpp s) {
     entry_table.fpp_end->next = q;
     entry_table.fpp_end = q;
   }
+}
+//*************************************************************
+/**
+ * get type and refid and collect all parameters of a function or attributres of a package, create a new linked list and return its start pointer
+ * @author madkne
+ * @version 1.1
+ * @since 2020.1.1
+ */ 
+fpp *_fpp_filter(uint8 type,Longint refid){
+  //=>init vars
+  fpp *filter_start=0;
+  fpp *filter_end=0;
+  fpp *st = entry_table.fpp_start;
+  if (st == 0) return 0;
+  for (;;) {
+      if(st->type==type && st->refid==refid){
+          fpp *q;
+          q = (fpp *) malloc(sizeof(fpp));
+          if (q == 0) return 0;
+          q->id=st->id;
+          q->type = st->type;
+          q->refid=st->refid;
+          q->porder=st->porder;
+          q->is_private=st->is_private;
+          q->is_static=st->is_static;
+          q->is_reference=st->is_reference;
+          q->line=st->line;
+          q->source_id=st->source_id;
+          STR_init(&q->pname, st->pname);
+          STR_init(&q->ptype, st->ptype);
+          STR_init(&q->pvalue, st->pvalue);
+          q->next = 0;
+          if (filter_start == 0)
+            filter_start = filter_end = q;
+          else {
+            filter_end->next = q;
+            filter_end = q;
+          }
+      } 
+      st = st->next;
+      if (st == 0) break;
+  }
+  return filter_start;
+}
+//*************************************************************
+void _fpp_print(String head,fpp *fpp_start){
+  fpp *st = fpp_start;
+  if (st == 0) return;
+  printf("FPP[%s]:\n",head);
+  for (;;) {
+    printf("\t[id:%li,typ:%i,refid:%li,ord:%i]:%s|%s|%s\t[priv:%i,stat:%i,ref:%i,line:%i]\n",st->id, st->type,st->refid,st->porder, st->pname,st->ptype,st->pvalue,st->is_private,st->is_static,st->is_reference,st->line);
+    st = st->next;
+    if (st == 0) break;
+  }
+  printf("---------------------\n");
+}
+//*************************************************************
+Boolean _fpp_change_by_id(Longint id,String field,String value){
+  fpp *st = entry_table.fpp_start;
+  if (st == 0) return false;
+  for (;;) {
+    if(st->id==id){
+      if(STR_equal(field,"pname")){
+        STR_init(&st->pname,value);
+        return true;
+      }else if(STR_equal(field,"ptype")){
+        STR_init(&st->ptype,value);
+        return true;
+      }else if(STR_equal(field,"pvalue")){
+        STR_init(&st->pvalue,value);
+        return true;
+      }
+      break;
+    }
+    st = st->next;
+    if (st == 0) break;
+  }
+  return false;
+
+}
+//*************************************************************
+fpp * _fpp_delete_by_id(Longint id,fpp *fpp_start,Boolean *is_success) {
+  (*is_success)=false;
+  fpp *last_node=0;
+  if (fpp_start == 0)return 0;
+  fpp *tmp1 = fpp_start;
+  if (tmp1 == 0) return 0;
+  for (;;) {
+    if(tmp1->id==id){
+      //=>if just one node
+      if(tmp1->next==0 && last_node==0){
+        fpp_start=0;
+      }
+      //=>if last node
+      if(tmp1->next==0){
+        last_node->next=0;
+      }
+      //=>if first node
+      else if(tmp1==fpp_start){
+        fpp_start=tmp1->next;
+      }
+      //=>if middle node
+      else{
+        last_node->next=tmp1->next;
+      }
+      free(tmp1);
+      (*is_success)=true;
+      break;
+    }
+    last_node=tmp1;
+    tmp1 = tmp1->next;
+    if (tmp1 == 0) break;
+  }
+  return fpp_start;
 }
 //*************************************************************
 //******************utf8_strings functions*********************
@@ -758,21 +1032,7 @@ utst _utst_get_by_label(String s) {
 //   }
 //   return null;
 // }
-// //*************************************************************
-// blst get_func_by_id(long_int id) {
-//   blst null = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-//   blst *tmp1;
-//   tmp1 = entry_table.blst_func_start;
-//   //------------------
-//   for (;;) {
-//     if (id == tmp1->id) {
-//       return (*tmp1);
-//     }
-//     tmp1 = tmp1->next;
-//     if (tmp1 == 0) break;
-//   }
-//   return null;
-// }
+
 // //*************************************************************
 // blst search_lbl_stru(String lbl) {
 //   blst null = {0, 0, 0, 0, 0, 0, 0, 0, 0};

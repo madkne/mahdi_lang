@@ -4,15 +4,15 @@
 		-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
 -----------------------------
-Influence by:
+Influenced by:
 C,PHP,MPL,PYTHON,JAVA
 -----------------------------
 step 1   :import all files [OK]
 step 2   :detect all functions , packages , instructions [OK]
-step 3   :resolve all inherit packages [..]
+step 3   :resolve all inherit packages [OK]
 step 3.1 :if debug mode is on, then go to mdebug and wait!
 step 3.2 :if build mode is on, then go to mbuild and compile execute file!
-step 4   :start from first instruction of bootup function and run codes line by line
+step 4   :run codes line by line [..]
 -----------------------------
 /*
 **basic data types**
@@ -26,11 +26,11 @@ pointer:p
 func,pack,override,static,true,false,if,elif,else,choose,and,or,not,next,break,loop,number,string,boolean,def,manage,return,self,this,import,config=>26
 *************************************
 -----------------core module packages
-exception,console,string,math,os,bit,app,file
+exception,console,strings,math,os,bit,app,file
 -----------------http module packages
 net
 -----------------db module packages
-sqlite3,csv
+sqlite3,csv,json
 -----------------builtin functions
 len(var),typeof(var),exec(str),errhand(num,str,str),del(var),nil(var)/*check is empty*/,str(var)/*convert to string*/,num(var)/*convert to number*/,inum(str)
 list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/,popfirst(),topfirst(),pushfirst(var),fill(number,var)/*fill n rooms with var value*/
@@ -171,8 +171,12 @@ n:=q[0] //n=5,q[0]=45
 - function header can a parameter with default value
 - default value of a paqrameter can be a value expression(number|string|boolean) or a list or a map as simplest! like 4+5,true,'he'+'llo',[5,8.5-4],{'q1':67,'q2':9*4}
 - function parameter must have data type or default value
+- function parameter can be a call by reference param, if before name has '&'
+- reference parameters can not have default value
+- function parameter can not be a constant var (Param=>error)
 func sam(d:string,g=34/*OR g:number*/)
 func sam1(j=3,jj:string)
+func sam2(&k,u=0) //=>k is a reference param
 ----------------- call function
 - all functions that defined out of all packages, are static and public and not give any attribute(private,static)
 - for call outof functions using self keyword

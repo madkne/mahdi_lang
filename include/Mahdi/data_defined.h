@@ -318,6 +318,8 @@ typedef struct inherit_package_struct {
   String parent_name;
   Longint inherit_id;
   String inherit_name;
+  Boolean is_done;
+  Boolean is_processing;
   struct inherit_package_struct *next;
 } inpk;
 //****************************func_pack_params struct
@@ -325,14 +327,16 @@ typedef struct inherit_package_struct {
  * (parser) store all packages and functions attributes and parameters as simplify
  */ 
 typedef struct func_pack_params_struct {
+  Longint id;
   Longint refid; //=>pack id OR func_id
-  uint8 type; //=>pack OR func
+  uint8 type;    //=>pack OR func
   uint32 porder; //=>for function parameters, start from 0
   String pname;
   String ptype;
   String pvalue;
   Boolean is_private; //=>for package attributes
   Boolean is_static; //=>for package attributes
+  Boolean is_reference; //=>for function parameters
 
   uint32 line;
   uint32 source_id;
@@ -565,6 +569,10 @@ map _map_popleft(map **map_start,map **map_end);
 void _stoi_empty(stoi s[], uint32 size);
 //=>blst functions
 void _blst_append(blst s);
+blst *_blst_filter(blst *start,uint8 type,Longint pack_id,Longint func_id);
+void _blst_print(String head,blst *blst_start);
+blst * _blst_delete_by_id(Longint id,blst *blst_start,Boolean *is_success);
+blst _blst_get_by_id(blst *start,Longint id);
 //=>datas functions
 void _datas_append(Longint pack_id,uint8 type,String name);
 datas _datas_search(String name,Longint pack_id,Boolean name_or_packid);
@@ -575,9 +583,17 @@ void _inor_set(Longint pid, Longint fid, Longint sid, uint32 order);
 //=>instru functions
 void _instru_append(instru s);
 //=>inpk functions
-void _inpk_append(inpk s);
+void _inpk_append(Longint parent_id,String parent_name,Longint inherit_id,String inherit_name);
+inpk _inpk_get_by_done(Boolean is_done);
+Boolean _inpk_set_done(Longint inherit_id);
+Boolean _inpk_set_processing(Longint inherit_id);
+inpk _inpk_search(Longint inherit_id,Longint parent_id,Boolean parent_or_not);
 //=>fpp functions
 void _fpp_append(fpp s);
+fpp *_fpp_filter(uint8 type,Longint refid);
+void _fpp_print(String head,fpp *fpp_start);
+Boolean _fpp_change_by_id(Longint id,String field,String value);
+fpp * _fpp_delete_by_id(Longint id,fpp *fpp_start,Boolean *is_success);
 //=>utst functions
 void _utst_append(utst s);
 Longint _utst_add(uint32 line, UString str, uint8 max_bytes);

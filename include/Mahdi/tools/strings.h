@@ -10,6 +10,7 @@
 //************************************************************************
 uint32 STR_length(String s);
 Boolean STR_equal(String s1, String s2);
+Boolean STR_is_const(String s);
 String STR_convert_from(String s);
 String STR_reomve_quotations(String s, String type);
 String STR_append(String s1, String s2);

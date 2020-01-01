@@ -17,7 +17,12 @@ Boolean STR_equal(String s1, String s2) {
   }
   return true;
 }
-
+//******************************************
+Boolean STR_is_const(String s){
+  if(s==0)return false;
+  if(s[0]!='\0' && (s[0] >= 'A' && s[0] <= 'Z')) return true;
+  return false;
+}
 //******************************************
 String STR_convert_from(String s) {
   String ret = 0;

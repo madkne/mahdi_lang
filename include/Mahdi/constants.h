@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.01.063"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 16          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.01.084"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 18          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -17,10 +17,10 @@
 #define  RC_LBUILD                      "undefined"
 #define  LICENCE                        "MAHDI-LICENCE"
 #define  OFFICIAL_WEBSITE               "http://mahdi-lang.ir"
-#define  COPYRIGHT                      "Copyright (C) 2019"
-#define  C_CORE_CODE_LINES              4536       //0.1.0-0.1.90
-#define  H_CORE_CODE_LINES              935
-#define  MODULES_CODE_LINES             0           //+=5471
+#define  COPYRIGHT                      "Copyright (C) 2020"
+#define  C_CORE_CODE_LINES              6534       //0.1.84-0.2.20
+#define  H_CORE_CODE_LINES              1030
+#define  MODULES_CODE_LINES             0           //+=7564
 #define  LANGUAGE_CREATOR               "madkne"
 #define  CREATOR_SIGNATURE              "48441415431625231"
 #define  TRUST_LEVEL                    0          //100%
@@ -76,7 +76,6 @@
 #define   RETURN_TMP_NAME               "@ret"
 #define   RETURN_TMP_POINTER_ID         2
 #define   STRUCTURES_LABEL              "@@@STRU_"
-#define   SWITCH_LABEL                  "@@@SWITCH_"
 #define   UTF8_ID_LABEL                 "__!U8!_"
 #define   UTF8_ID_LBL_LEN               6
 #define   PARAM_ARRAY_NAME              "__ArrayParam_"

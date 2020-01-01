@@ -120,7 +120,7 @@ Boolean INTR_start() {
 	if(entry_table.need_inheritance){
 		STR_init(&interpreter_level, "inherit");
 		Boolean ret1 =INHERIT_run();
-    if (!ret0) return false;
+    if (!ret1) return false;
 	}
   //=>if programmer debug is enabled, then show all structs
   if(is_programmer_debug>=2){
@@ -133,16 +133,14 @@ Boolean INTR_start() {
     COM_print_struct(PRINT_INSTRU_ST);
     COM_print_struct(PRINT_FUNC_PACK_PARAMS_ST);
   }
-//   //-----------------------meaning&running instructions
-//   str_init(&interpreter_level, "runtime");
-//   Boolean ret3 = start_runtime();
-//   if (!ret3) return false;
-//   //show debug  lists info
-//   if (is_programmer_debug > 0) {
-//     show_memory(0);
-// //    print_magic_macros(2);
-// //    print_struct(PRINT_INSTRU_ST);
-//   }
+  //-----------------------meaning&running instructions
+  STR_init(&interpreter_level, "runtime");
+  Boolean ret3 = APP_start();
+  if (!ret3) return false;
+  //=>show virual memory entries
+  if (is_programmer_debug > 0) {
+    // show_memory(0);
+  }
 //   //-----------------------free memory
 //   str_init(&interpreter_level, "free");
 return true;

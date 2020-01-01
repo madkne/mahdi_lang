@@ -49,31 +49,33 @@ func _bootup_(argvs:string){
 	}
 }
 ----------------APP5--------------------
+pack pk2(pk1){
+func f3(){}
+func f4(){}
+@private
+def g:string='HE'
+}
 pack pk0(){
 @private
-def g:number
-func f1(){
+def g,y:number=2*6
+func f1(k:number){
 def h=this.g
 }
-override func f2(d:string){}
+override func f2(d="hel"+"lo"){}
 @public
 static def bb=[3,6,7]
 }
 pack pk1(pk0){
 static func f2(h:number,d:string){}
-override func f3(f:boolean){}
+override func f3(f:boolean){
 def g=456
+if(g==45){}
 }
-pack pk2(pk1){
-func f3(){}
-func f4(){}
-@private
-def g:string
 }
 func _bootup_(){}
-----------------APP2--------------------
+----------------APP6--------------------
 import mod:core:console
-func _bootup_(argvs){
+func _bootup_(argvs:string){
 	main.hello()
 }
 pack main(){

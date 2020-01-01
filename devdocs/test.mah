@@ -1,25 +1,10 @@
 import file:..sam.c
-
-pack pk0(){
-@private
-def g,y:number=2*6
-func f1(k){
-def h=this.g
+import mod:core:console
+func _bootup_(argvs:string){
+	main.hello()
 }
-override func f2(d="hel"+"lo"){}
-@public
-static def bb=[3,6,7]
+pack main(){
+	static func hello(){
+		console.print('Hello World\n')
+	}
 }
-pack pk1(pk0){
-static func f2(h:number,d:string){}
-override func f3(f:boolean){}
-def g=456
-if(g==45){}
-}
-pack pk2(pk1){
-func f3(){}
-func f4(){}
-@private
-def g:string='HE'
-}
-func _bootup_(){}

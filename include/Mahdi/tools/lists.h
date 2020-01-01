@@ -12,6 +12,7 @@ void LLIST_append(LintList *s, uint32 len, Longint n);
 uint32 LLIST_join(LintList *s, LintList a1, uint32 a1_len, LintList a2, uint32 a2_len);
 void LLIST_init(LintList *s, LintList val, uint32 len);
 String LLIST_print(LintList s, uint32 len);
+void ILIST_append(IntList *s, int32 s1, uint32 len);
 //************************************************************************
 //************************************************************************
 //Int32 List Functions

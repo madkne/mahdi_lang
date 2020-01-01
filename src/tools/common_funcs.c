@@ -166,7 +166,7 @@ void COM_print_struct(uint8 which) {
     if (tmp1 == 0) return;
     printf("=====Print func_pack_params_struct :\n");
     for (;;) {
-      printf("[typ:%i,refid:%li,ord:%i]:%s|%s|%s\t[priv:%i,stat:%i,line:%i]\n", tmp1->type,tmp1->refid,tmp1->porder, tmp1->pname,tmp1->ptype,tmp1->pvalue,tmp1->is_private,tmp1->is_static,tmp1->line);
+      printf("[id:%li,typ:%i,refid:%li,ord:%i]:%s|%s|%s\t[priv:%i,stat:%i,ref:%i,line:%i]\n",tmp1->id, tmp1->type,tmp1->refid,tmp1->porder, tmp1->pname,tmp1->ptype,tmp1->pvalue,tmp1->is_private,tmp1->is_static,tmp1->is_reference,tmp1->line);
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }
@@ -207,7 +207,7 @@ void COM_print_struct(uint8 which) {
     if (tmp1 == 0) return;
     printf("=====Print inherit_package_struct :\n");
     for (;;) {
-      printf("pid:%li,name:%s[iid:%li,inherit:%s]\n", tmp1->parent_id, tmp1->parent_name, tmp1->inherit_id,tmp1->inherit_name);
+      printf("pid:%li,name:%s[iid:%li,inherit:%s,done:%i]\n", tmp1->parent_id, tmp1->parent_name, tmp1->inherit_id,tmp1->inherit_name,tmp1->is_done);
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }

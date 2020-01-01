@@ -117,6 +117,20 @@ Boolean ILIST_search(IntList s,int32 s2,uint32 len){
   }
   return false;
 }
+//*************************************************************
+void ILIST_append(IntList *s, int32 s1, uint32 len) {
+  // printf("CCCC:%s,%i\n",s1,len);
+  IntList tmp = 0;
+  ILIST_init(&tmp, *s, len);
+  //if(*s!=NULL)free(*s);
+  (*s) = (IntList) malloc((len + 1) * sizeof(IntList));
+  if (*s == 0)return;
+  for (uint32 i = 0; i < len; i++) {
+    (*s)[i] = tmp[i];
+  }
+  (*s)[len] = s1;
+  //printf("CCVVV:%s,%i\n",(*s)[len],str_length((*s)[len]));
+}
 
 // Str List Functions
 //******************************************
