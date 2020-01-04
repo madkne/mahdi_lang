@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.01.084"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 18          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.02.007"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 20          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -120,16 +120,18 @@
 #define   INVALID_BOOLEAN_VAL_ERRC      9
 #define   BAD_DEFINE_VARS_ERRC          10
 #define   BAD_MAPORLIST_VAL_ERRC        11
+#define   NOT_SET_VAR_MEMORY_ERRC       12
 //------------------------------------------used as instruction types
+#define   STRUCTURE_LBL_INST            100 //by priority type
+#define   NEXT_BREAK_LBL_INST           99
+#define   ALLOC_SHORT_LBL_INST          98
+#define   DEF_PACKAGE_LBL_INST          97
+#define   FUNC_CALL_LBL_INST            96
+#define   DEF_VARS_LBL_INST             95
+#define   ALLOC_VARS_LBL_INST           94
+#define   RETURN_LBL_INST               93
 #define   UNKNOWN_LBL_INST              0
-#define   STRUCTURE_LBL_INST            1
-#define   DEF_VARS_LBL_INST             2
-#define   ALLOC_VARS_LBL_INST           3
-#define   FUNC_CALL_LBL_INST            4
-#define   ALLOC_SHORT_LBL_INST          5
-#define   RETURN_LBL_INST               6
-#define   DEF_PACKAGE_LBL_INST          7
-#define   NEXT_BREAK_LBL_INST           9
+
 
 #define   LOGIC_CALC_LBL_INST           20
 #define   REVIEW_ARRAY_LBL_INST         21

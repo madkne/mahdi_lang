@@ -34,7 +34,7 @@ sqlite3,csv,json
 -----------------builtin functions
 len(var),typeof(var),exec(str),errhand(num,str,str),del(var),nil(var)/*check is empty*/,str(var)/*convert to string*/,num(var)/*convert to number*/,inum(str)
 list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/,popfirst(),topfirst(),pushfirst(var),fill(number,var)/*fill n rooms with var value*/
-map methods: get(key),set(key,var)
+map methods: get(key),set(key,var),keys()
 -----------------predefined functions
 - these functions just called by mahdi, not programmer!
 _bootup_(string),_init_(),_plus_(package):package,_len_():num,_str_():str,_equal_(package):bool,_index_(number):package/*pack1[0]*/,_empty_():bool/*nil(pack1)*/,_del_():void/*del(pack1)*/
@@ -278,6 +278,7 @@ func _init_(s:string,y:string){}
 -----------------package attributes
 pack pk1(){
 def GG=(45*2)+5
+def exp:exception=exception()
 override def aa=11 //in child package, can redefined like 'def aa=12' type can not changed
 static def v=3
 def q:string

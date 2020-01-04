@@ -139,7 +139,7 @@ Boolean INTR_start() {
   if (!ret3) return false;
   //=>show virual memory entries
   if (is_programmer_debug > 0) {
-    // show_memory(0);
+    VM_show(0);
   }
 //   //-----------------------free memory
 //   str_init(&interpreter_level, "free");

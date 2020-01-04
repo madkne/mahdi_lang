@@ -168,17 +168,21 @@ void EXP_init() {
 void EXP_set_errcode(uint32 errcode){
   errcodes_len++;
   if(errcodes_len+1>MAX_ERROR_CODES){
-    //=>reset all fields
-    for (uint8 i = 0; i < MAX_ERROR_CODES; i++){
-      errcodes[i]=NOT_ERROR_ERRC;
-    }
-    errcodes_len=0;
+    EXP_clear_errcode();
   }
   errcodes[errcodes_len]=errcode;
 }
 //**************************************************************
 Boolean EXP_check_errcode(uint32 errcode){
   return (errcodes[errcodes_len]==errcode);
+}
+//**************************************************************
+void EXP_clear_errcode(){
+  //=>reset all fields
+  for (uint8 i = 0; i < MAX_ERROR_CODES; i++){
+    errcodes[i]=NOT_ERROR_ERRC;
+  }
+  errcodes_len=0;
 }
 //**************************************************************
 int8 EXP_handler(String lbl_err, const char func_occur[], String rep1, String rep2) {

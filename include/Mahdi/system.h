@@ -43,7 +43,7 @@
 #include "core/starter.h"
 
 #include "core/runkit.h"
-// #include "core/run_mgr.h"
+#include "core/runmgr.h"
 #include "core/memory.h"
 //---------------------------------tools functions
 #include "tools/common_funcs.h"

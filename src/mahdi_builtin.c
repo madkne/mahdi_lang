@@ -30,6 +30,7 @@ void BUILT_init()
     //----------------------------------map functions(map_builtin)
     _bifs_append(_BUILT_PARENT_MAP,_BUILT_GET, "get", "str", "a"); //=>[..]
     _bifs_append(_BUILT_PARENT_MAP,_BUILT_SET, "set", "str;aa|a", "bool"); //=>[..]
+    _bifs_append(_BUILT_PARENT_MAP,_BUILT_KEYS, "keys", "", "aa"); //=>[..]
 }
 
 //*************************************************************

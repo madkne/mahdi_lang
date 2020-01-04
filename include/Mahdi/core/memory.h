@@ -6,7 +6,10 @@
 #define __MAHDI_MEMORY_H  1
 
 void VM_init();
-
+void VM_show(uint8 wh);
+Longint VM_set_var(rrss current, String name_var, String value_var, String type_var,Boolean is_static,Boolean is_private, Boolean is_create_var);
+Longint VM_set_basictype_mpoint(String value,String type);
+Longint VM_set_maporlist_mpoint(String value,String type);
 //=>mvar functions
 Longint _mvar_append(Longint pointer_id,Longint stru_id,Longint func_id,Longint func_index,Longint pack_id,Longint pack_index,Longint type_id,Boolean is_static,Boolean is_private,uint8 flag,String  name);
 Mvar _mvar_get(Longint i);

@@ -33,6 +33,8 @@ String RUNKIT_calc_string_exp(String exp, uint8 *sub_type);
 String RUNKIT_calc_two_strings(String str1, String str2, uint8 op);
 String RUNKIT_calc_boolean_exp(String exp);
 String RUNKIT_append_number_subtype(String num,uint8 subtype);
+String RUNKIT_get_name_index_var(String s, Boolean is_empty_index, String *name);
+Longint RUNKIT_get_var_id(String name, Longint pin, Longint fin);
 
 #endif /*__MAHDI_RUNKIT_H*/
 

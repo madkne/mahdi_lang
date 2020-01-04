@@ -1,10 +1,17 @@
 import file:..sam.c
 import mod:core:console
+def Name:string="Hello"
+def vv=[{'q1':5.78,'q2':(3.14*10)+4},{'s':9999,'v':-7777,'r':88888}]
+def HWE=Name
+//def man=main()
 func _bootup_(argvs:string){
+	def f=4*4
 	main.hello()
 }
 pack main(){
 	static func hello(){
 		console.print('Hello World\n')
 	}
+	@private
+	def vv="MEM"
 }

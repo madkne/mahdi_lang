@@ -20,15 +20,14 @@ void VM_init()
     //   append_Mpoint(tmp3);
 }
 
-//****************************************************
+//*************************************************************
 /**
  * display Mvar,Mpoint or both in console by details based on wh
  * @param wh {uint8}
  * @author madkne
  * @version 1.0
  */
-void VM_show(uint8 wh)
-{
+void VM_show(uint8 wh){
     // if (wh == 40){
     //     wh = 0;
     // }
@@ -72,6 +71,242 @@ void VM_show(uint8 wh)
     }
     printf("-------------------------\n");
 }
+
+//**************************************************************
+/**
+ * get name of new var and its value , type and its pack_index,func_index,stru_index. finally create new var on VM and return id of Mvar
+ * @version 1.0
+ * @author madkne
+ * @since 2020.1.3
+ * @param current
+ * @param name
+ * @param value_var
+ * @param type_var
+ * @param is_static
+ * @param is_private
+ * @param is_create_var
+ * @return Longint
+ */
+Longint VM_set_var(rrss current, String name_var, String value_var, String type_var,Boolean is_static,Boolean is_private, Boolean is_create_var) {
+    /**
+        1- def g=785i                ---..---
+        2- def li:string=["sd","ER"] ---..---
+        3- def r=li                  ---..---
+        4- def u={"RT":5.7,"F":-13}  ---..---
+        5- def ddd=[{'q1':3,'q2':4},{'f':'fg','g':'gf'}]  ---..---
+    */
+    //  printf("&@@@:%s,%i,%s(%i)\n", name, return_var_id(name, "0"), value_var,str_length(value_var));
+    //=>if value is a variable
+    if (RUNKIT_is_valid_name(value_var, true)) {
+        String al_name = 0;
+        String al_index=RUNKIT_get_name_index_var(value_var, true, &al_name);
+        //=>if is a variable
+        if (al_index == 0) {
+            Longint varid = RUNKIT_get_var_id(value_var,current.pin,current.fin);
+            //=>if not exist var
+            if (varid == 0) {
+                EXP_handler("not_exist_var", __func__, value_var, 0);
+                EXP_set_errcode(NOT_SET_VAR_MEMORY_ERRC);
+                return 0;
+            }
+            //=>if var is exist, get its value
+            //TODO:
+            // value_var = return_value_var_complete(find_index_var_memory(ret0));
+        }
+        //=>if is a data variable (has index)
+        else {
+            //TODO:
+            // uint8 ty = '0';
+            // Mpoint point = return_var_memory_value(value_var);
+            // value_var = point.data;
+            // if (point.type_data == 's') {
+            //     value_var = convert_to_string(value_var);
+            // } else if (point.type_data == 'p' || point.type_data == '0') {
+            //     //TODO:error
+            //     printf("#ERR9877\n");
+            //     return 0;
+            // }
+        }
+    }
+    //=>check if value is not null
+    value_var = STR_trim_space(value_var);
+    if(value_var==0){
+        //TODO:error
+        EXP_set_errcode(NOT_SET_VAR_MEMORY_ERRC);
+        return 0;
+    }
+    //=>init vars
+    datas type_props;
+    Boolean is_package_var = false;
+    Longint main_pointer_id =0;
+    //=>if var type is a package
+    type_props=_datas_search(type_var,0,true);
+    if (type_props.type==PACKAGE_DATA_TYPE) {
+        is_package_var = true;
+    }
+    //=>if redeclared var name
+    if (RUNKIT_get_var_id(name_var,current.pin,current.fin) > 0) {
+        EXP_handler("redeclared_var", __func__, name_var, 0);
+        EXP_set_errcode(NOT_SET_VAR_MEMORY_ERRC);
+        return 0;
+    }
+    //=>if type var is package
+    if(is_package_var){
+        //TODO:reading package var pointers from value_var
+    }
+    //=>if type var is basic(string,number,boolean)
+    else{
+        //=>if value is a list or map
+        if(value_var[0]=='[' || value_var[0]=='{'){
+            main_pointer_id= VM_set_maporlist_mpoint(value_var,type_var);
+            //=>if an error to set list or map in mpoint
+            if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+                EXP_set_errcode(NOT_SET_VAR_MEMORY_ERRC);
+                return 0;
+            }
+        }
+        //=>if value is simple
+        else{
+            main_pointer_id=VM_set_basictype_mpoint(value_var,type_var);
+        }
+    }
+    //=>add to var_memory
+    if (is_create_var) {
+        return _mvar_append(main_pointer_id,current.sid,current.fid, current.fin,current.pid,current.pin, type_props.pack_id,is_static,is_private, 0,name_var);
+    } else {
+        return main_pointer_id;
+    }
+}
+//**************************************************************
+/**
+ * get a value and its type(string,boolean,number) and set it to mpoint and return its id
+ * @version 1.0
+ * @author madkne
+ * @since 2020.1.4
+ * @param value
+ * @param type
+ * @return Longint : id of node that created in mpoint
+ */
+Longint VM_set_basictype_mpoint(String value,String type){
+    //=>if value is boolean
+    if(STR_equal(type,"boolean")){
+        return _mpoint_append('b',value);
+    }
+    //=>if value is string
+    else if(STR_equal(type,"string")){
+        //=>if value is utf8
+        uint8 sub='s';
+        if(STR_indexof(value,UTF8_ID_LABEL,0)==0){
+            sub='u';
+        }else{
+            value=STR_reomve_quotations(value, "s");
+        }
+        return _mpoint_append(sub,value);
+    }
+    //=>if value is number
+    else{
+        uint8 sub=RUNKIT_determine_type_number(value);
+        return _mpoint_append(sub,value);
+    }
+}
+//**************************************************************
+/**
+ * get a value and its basic type(string,number,boolean) and if is a map or list or combination of them and set them into mpoint and return parent (last) node id
+ * @version 1.0
+ * @author madkne
+ * @since 2020.1.4
+ * @param value
+ * @param type
+ * @return Longint : id of last node that created in mpoint
+ */
+Longint VM_set_maporlist_mpoint(String value,String type){
+    //=>init vars
+    Longint parentid=0;
+    //=>if value is map, then parse it!
+    if(value[0]=='{'){
+        StrList values=0,keys=0;
+        uint32 mapl=RUNKIT_get_map_items(value,&values,&keys);
+        //=>check for error
+        if(mapl==0 && EXP_check_errcode(BAD_MAP_ERRC)){
+            EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+            return 0;
+        }
+        //=>set keys on mpoint
+        for (uint32 i = 0; i < mapl; i++){
+            keys[i]= STR_from_Longint(VM_set_basictype_mpoint(keys[i],"string"));
+        }
+        //=>when first value is checked, the other items use this!
+        Boolean value_is_maporlist=false;
+        //=>set values on mpoint
+        for (uint32 i = 0; i < mapl; i++){
+            //=>if value item is a list or map
+            if(value_is_maporlist || values[i][0]=='[' || values[i][0]=='{'){
+                values[i]=STR_from_Longint(VM_set_maporlist_mpoint(values[i],type));
+                //=>if an error to calculate of list or map
+                if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+                value_is_maporlist=true;
+            }
+            //=>if value item is a simple basic type
+            else{
+                values[i]= STR_from_Longint(VM_set_basictype_mpoint(values[i],type));
+            }
+        }
+        //=>create mpoint entry for map items (type='m')
+        String data=0;
+        for (uint32 i = 0; i < mapl; i++) {
+            data=STR_multi_append(data,keys[i],";",values[i],0,0);
+            if(i+1<mapl)data=CH_append(data,';');
+        }
+        //=>append to mpoint
+        parentid=_mpoint_append('m',data);
+    }
+    //=>if value is list, then parse it!
+    else if(value[0]=='['){
+        StrList items=0;
+        uint32 listl=RUNKIT_get_list_items(value,&items);
+        //=>check for error
+        if(EXP_check_errcode(BAD_LIST_ERRC)){
+            EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+            return 0;
+        }
+        //=>when first value is checked, the other items use this!
+        Boolean value_is_maporlist=false;
+        //=>set items on mpoint
+        for (uint32 i = 0; i < listl; i++){
+            //=>if item is a list or map
+            if(value_is_maporlist || items[i][0]=='[' || items[i][0]=='{'){
+                items[i]=STR_from_Longint(VM_set_maporlist_mpoint(items[i],type));
+                //=>if an error to calculate of list or map
+                if(EXP_check_errcode(BAD_MAPORLIST_VAL_ERRC)){
+                    EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+                    return 0;
+                }
+                value_is_maporlist=true;
+            }
+            //=>if item is a simple basic type
+            else{
+                items[i]= STR_from_Longint(VM_set_basictype_mpoint(items[i],type));
+            }
+        }
+        //=>create mpoint entry for list items (type='l')
+        String data=0;
+        for (uint32 i = 0; i < listl; i++) {
+            data=STR_append(data,items[i]);
+            if(i+1<listl)data=CH_append(data,';');
+        }
+        //=>append to mpoint
+        parentid=_mpoint_append('l',data);
+    }
+    //=>if not, then error!
+    else{
+        EXP_set_errcode(BAD_MAPORLIST_VAL_ERRC);
+        return 0;
+    }
+    return parentid;
+}
 //*************************************************************
 //***********************mvar functions************************
 //*************************************************************
@@ -83,8 +318,7 @@ void VM_show(uint8 wh)
  * @author madkne
  * @version 1.0
  */
-Longint _mvar_append(Longint pointer_id, Longint stru_id, Longint func_id, Longint func_index, Longint pack_id, Longint pack_index, Longint type_id, Boolean is_static, Boolean is_private, uint8 flag, String name)
-{
+Longint _mvar_append(Longint pointer_id, Longint stru_id, Longint func_id, Longint func_index, Longint pack_id, Longint pack_index, Longint type_id, Boolean is_static, Boolean is_private, uint8 flag, String name){
     Mvar *q;
     q = (Mvar *)malloc(sizeof(Mvar));
     if (q == 0)
@@ -112,9 +346,8 @@ Longint _mvar_append(Longint pointer_id, Longint stru_id, Longint func_id, Longi
     }
     return entry_table.var_mem_id;
 }
-//****************************************************
-Mvar _mvar_get(Longint i)
-{
+//*************************************************************
+Mvar _mvar_get(Longint i){
     Mvar null = {0, 0, 0, 0, 0, 0, 0, 0, false, false, 0, 0, 0};
     Longint counter = 0;
     Mvar *tmp1 = entry_table.var_memory_start;
@@ -129,15 +362,14 @@ Mvar _mvar_get(Longint i)
     }
     return null;
 }
-//****************************************************
+//*************************************************************
 /**
  * get an index of mvar linkedlist and remove indexed node of mvar and decrease mvar length
  * @param i {Longint} : index of mvar linkedlist
  * @author madkne
  * @version 1.0
  */
-void _mvar_delete(Longint i)
-{
+void _mvar_delete(Longint i){
     Longint counter = 0;
     Mvar *first = 0;
     Mvar *last = entry_table.var_memory_start;
@@ -163,9 +395,8 @@ void _mvar_delete(Longint i)
     }
     entry_table.var_mem_len--;
 }
-//****************************************************
-void _mvar_set_pointer_id(Longint i, Longint new_po)
-{
+//*************************************************************
+void _mvar_set_pointer_id(Longint i, Longint new_po){
     Longint counter = 0;
     Mvar *tmp1 = entry_table.var_memory_start;
     for (;;)
@@ -181,7 +412,7 @@ void _mvar_set_pointer_id(Longint i, Longint new_po)
             break;
     }
 }
-//**************************************************************
+//*************************************************************
 /**
  * delete a Mvar node by its id
  * @param id {Longint}
@@ -189,8 +420,7 @@ void _mvar_set_pointer_id(Longint i, Longint new_po)
  * @author madkne
  * @version 1.0
  */
-Boolean _mvar_delete_by_id(Longint id)
-{
+Boolean _mvar_delete_by_id(Longint id){
     for (Longint i = 0; i < entry_table.var_mem_len; i++)
     {
         if (_mvar_get(i).id == id)
@@ -201,7 +431,7 @@ Boolean _mvar_delete_by_id(Longint id)
     return true;
 }
 
-//**************************************************************
+//*************************************************************
 /**
  * get an id and search for index it in Mvar
  * @param id {Longint}
@@ -210,8 +440,7 @@ Boolean _mvar_delete_by_id(Longint id)
  * @author madkne
  * @version 1.0
  */
-Longint _mvar_find_index_by_id(Longint id)
-{
+Longint _mvar_find_index_by_id(Longint id){
     if (id == 0)
         return 0;
     for (Longint i = 0; i < entry_table.var_mem_len; i++)
@@ -224,7 +453,7 @@ Longint _mvar_find_index_by_id(Longint id)
     return 0;
 }
 
-//****************************************************
+//*************************************************************
 /**
  * get a pointer_id of var and return an index in Mvar
  * @param pointer_id {Longint}
@@ -233,8 +462,7 @@ Longint _mvar_find_index_by_id(Longint id)
  * @author madkne
  * @version 1.0
  */
-Longint _mvar_find_index_by_pointer_id(Longint pointer_id)
-{
+Longint _mvar_find_index_by_pointer_id(Longint pointer_id){
     for (Longint i = 0; i < entry_table.var_mem_len; i++)
     {
         if (_mvar_get(i).pointer_id == pointer_id)
@@ -251,7 +479,7 @@ uint32 _mpoint_hash_index(Longint id)
 {
     return (uint32)(id % HASH_MEM_SIZE);
 }
-//****************************************************
+//*************************************************************
 Longint _mpoint_append(uint8 type, String data)
 {
     //create Mpoint struct
@@ -277,7 +505,7 @@ Longint _mpoint_append(uint8 type, String data)
     return entry_table.pointer_mem_id;
 }
 
-//****************************************************
+//*************************************************************
 void _mpoint_delete(Longint id)
 {
     Mpoint *first = 0;
@@ -307,7 +535,7 @@ void _mpoint_delete(Longint id)
     entry_table.pointer_mem_len--;
 }
 
-//****************************************************
+//*************************************************************
 Mpoint _mpoint_get(Longint id)
 {
     Mpoint null = {0, 0, 0, 0};
@@ -326,7 +554,7 @@ Mpoint _mpoint_get(Longint id)
     }
     return null;
 }
-//****************************************************
+//*************************************************************
 void _mpoint_edit(Longint id, String data, uint8 subtype, Boolean set_data, Boolean set_type)
 {
     uint32 hash_index = _mpoint_hash_index(id);
@@ -354,8 +582,7 @@ void _mpoint_edit(Longint id, String data, uint8 subtype, Boolean set_data, Bool
  * @author madkne
  * @version 1.0
  */
-Boolean _mpoint_delete_by_id(Longint id)
-{
+Boolean _mpoint_delete_by_id(Longint id){
     for (Longint i = 0; i < entry_table.pointer_mem_len; i++)
     {
         if (_mpoint_get(i).id == id)
@@ -365,7 +592,11 @@ Boolean _mpoint_delete_by_id(Longint id)
     }
     return true;
 }
-//****************************************************
+
+
+//*************************************************************
+
+
 // Boolean append_Mpoint_pointer(Longint id, Longint new_pointer) {
     //TODO:
 //   Mpoint pointers = get_Mpoint(id);
@@ -380,7 +611,7 @@ Boolean _mpoint_delete_by_id(Longint id)
 //   return true;
 // }
 
-//****************************************************
+//*************************************************************
 // Boolean change_Mvar_flag(Longint i, uint8 flag) {
     //TODO:
 //   Longint counter = 0;
@@ -396,7 +627,7 @@ Boolean _mpoint_delete_by_id(Longint id)
 //   }
 //   return false;
 // }
-//****************************************************
+//*************************************************************
 /**
  * get a name(and index) of var and return a Mpoint struct of var by its index
  * defualt of index is 0
@@ -443,7 +674,7 @@ Boolean _mpoint_delete_by_id(Longint id)
 // //  printf("CXCXC:%s[%s]=>(%i)%s\n", var_name,var_index,data_ind, get_Mpoint(data_ind).data);
 //   return get_Mpoint(data_id);
 // }
-//****************************************************
+//*************************************************************
 /**
  * get a name(and index) of var and return a Mpoint struct of var by its index
  * defualt of index is empty
@@ -483,7 +714,7 @@ Boolean _mpoint_delete_by_id(Longint id)
 // //  printf("CXCXC:%s[%s]=>(%i)%s\n", var_name,var_index,data_ind, get_Mpoint(data_ind).data);
 //   return get_Mpoint(data_id);
 // }
-//****************************************************
+//*************************************************************
 
 /**
  * get a pointer_id of var and index of var and return an id of Mpoint
@@ -543,216 +774,7 @@ Boolean _mpoint_delete_by_id(Longint id)
 //   return 0;
 // }
 
-//****************************************************
-/**
- * get name of new var and its value , type and its func_index,stru_index. finally create new var on VM and return id of Mvar
- * @param fin
- * @param sid
- * @param name
- * @param value_var
- * @param type_var
- * @param is_create_var
- * @return Longint
- */
-// Longint
-// set_memory_var(Longint fin, Longint sid, String name, String value_var, String type_var, Boolean is_create_var) {
-    //TODO:
-//   /**
-//   1- str st1=fi.name
-//   2- str st2=fg //fg={"sd","ER"} ---OK---
-//   3- str r=er ---OK---
-//   4- str u="RT"*2 ---OK---
-//   5- num j=j1 //num j1=56d => j=56d
-//   */
-// //  printf("&@@@:%s,%i,%s(%i)\n", name, return_var_id(name, "0"), value_var,str_length(value_var));
-// //  *******************************************if value is a variable
-//   if (is_valid_name(value_var, true)) {
-//     String al_name = 0, al_index = 0;
-//     return_name_index_var(value_var, true, &al_name, &al_index);
-// //    printf("&!!!:%s,%s\n", value_var, al_index);
-//     //----------if is a variable
-//     if (al_index == 0) {
-//       //msg("&NNNN", value_var, return_var_id(value_var, "0"), cur_fin)
-//       Longint ret0 = return_var_id(value_var, "0");
-//       if (ret0 == 0) {
-//         exception_handler("not_exist_var", __func__, value_var, "");
-//         return 0;
-//       }
-//       //show_memory(40)
-//       value_var = return_value_var_complete(find_index_var_memory(ret0));
-//       //msg("&NNN+++",value_var,find_index_var_memory(return_var_id(value_var, "0")))
-//     }
-//     //----------if is a data variable
-//     if (al_index != 0) {
-//       //msg("&UUU")
-//       uint8 ty = '0';
-//       Mpoint point = return_var_memory_value(value_var);
-//       value_var = point.data;
-//       if (point.type_data == 's') {
-//         value_var = convert_to_string(value_var);
-//       } else if (point.type_data == 'p' || point.type_data == '0') {
-//         //TODO:error
-//         printf("#ERR9877\n");
-//         return 0;
-//       }
-//     }
-//   }
-//   //msg("&IIIII", value_var)
-//   //*******************************************define variables
-//   value_var = str_trim_space(value_var);
-//   vaar_en vals_array = {0, 0, 0};
-//   //int32 set_indexes[MAX_ARRAY_DIMENSIONS + 1];
-//   int32 max_indexes[MAX_ARRAY_DIMENSIONS];//get user indexes
-//   max_indexes[0] = 0;
-//   Boolean is_multi_array = false, is_struct = false;
-//   uint8 indexes_len = 0;//count of user indexes dimensions
-//   //*******************************************if type is a struct
-//   if (search_datas(type_var, entry_table.cur_fid, false).id != 0 &&
-//       !str_search(basic_types, type_var, StrArraySize(basic_types)) && !str_equal(type_var, "vars")) {
-//     is_struct = true;
-//   }
-//   //*******************************************analyzing name of variable
-//   String tmp_name = 0, tmp_ind = 0;
-//   return_name_index_var(name, true, &tmp_name, &tmp_ind);
-// //  printf("CCCCCCC:%s=>%s,%s\n",name,tmp_name, tmp_ind);
-//   //is_multi array
-//   if (tmp_ind != 0 && !str_ch_equal(tmp_ind, '0')) {
-//     Boolean has_unknown_index = false;
-//     is_multi_array = true;
-//     str_list indexes;
-//     indexes_len = (uint8) char_split(tmp_ind, ',', &indexes, true);
-//     if (indexes_len > MAX_ARRAY_DIMENSIONS) {
-//       //TODO:error
-//       printf("#ERR32\n");
-//       return 0;
-//     }
-//     //******************add indexes to max_indexes
-//     for (uint32 i = 0; i < indexes_len; i++) {
-//       if (str_equal(indexes[i], "?")) {
-//         has_unknown_index = true;
-//         max_indexes[i] = -10;
-//       } else max_indexes[i] = str_to_int32(indexes[i]);
-//     }
-//     //******************if has ? index
-//     if (has_unknown_index) {
-//       if (value_var == 0) {
-//         //TODO:error
-//         printf("VM#ERR52\n");
-//       }
 
-//       if (str_equal(value_var, "null")) {
-//         for (uint32 i = 0; i < indexes_len; i++)
-//           if (max_indexes[i] == -10)max_indexes[i] = 1;
-//       } else {
-//         int32 tmp_indexes[MAX_ARRAY_DIMENSIONS];
-//         uint8 tmp_len = return_size_value_dimensions(value_var, tmp_indexes, 0);
-//         if (tmp_len != indexes_len) {
-//           //TODO:error
-//           printf("VM#ERR53\n");
-//         }
-//         for (uint32 i = 0; i < indexes_len; i++)
-//           if (max_indexes[i] == -10)max_indexes[i] = tmp_indexes[i];
-//       }
-//     }
-//   }
-//   STR_init(&name, tmp_name);
-// //  printf("CCCCCCCC:%s,%i,%s\n",name,return_var_id(name, 0),value_var);
-//   //show_memory(1);
-//   if (__return_var_id(name, fin) > 0) {
-//     //printf("ERR:%s(fin:%i,Rfin:%i,sid:%i)\n",name,fin,entry_table.cur_fin,sid);
-//     exception_handler("redeclared_var", __func__, name, "");
-//     return 0;
-//   }
-//   //*******************************************analyzing values of variable
-//   //if value is null
-//   if (value_var == 0 || str_equal(value_var, "null")) {
-// //    printf("fgjfjff:%s,%i[%i]\n",type_var,max_indexes[0],indexes_len);
-//     if (!is_multi_array && str_search(basic_types, type_var, StrArraySize (basic_types)))
-//       value_var = return_default_value(type_var);
-//     else if (!is_multi_array && str_equal(type_var, "null") && str_indexof(name, RETURN_TMP_NAME, 0) == 0) {
-//       STR_init(&type_var, "num");
-//       value_var = return_default_value(type_var);
-//     }
-//     else
-//       value_var = create_null_array(type_var, max_indexes, indexes_len);
-// //    printf ("####EmptyVal:%s,%s\n", type_var, value_var);
-//   }
-//   //is multi array
-//   if (is_multi_array) {
-// //    printf("fffffffff....:%s=>%s\n",type_var,value_var);
-//     vals_array = return_value_dimensions(value_var, type_var, max_indexes, indexes_len);
-
-// //    print_vaar (vals_array);
-//     if (vals_array.start == 0) {
-//       //TODO:error
-//       printf("#ERR54\n");
-//       return 0;
-//     }
-//   }
-//     //is single data
-//   else {
-//     uint32 val_len = str_length(value_var);
-//     if (val_len > 2 && value_var[0] == '{' && value_var[val_len - 1] == '}') {
-//       exception_handler("not_defined_array", __func__, name, "");
-//       return 0;
-//     }
-//     //printf ("DDDDDDDDD:%s,%s\n", value_var, type_var);
-//     String main_value = 0;
-//     uint8 sub_type = '0';
-//     calculate_value_of_var(value_var, type_var, &main_value, &sub_type);
-//     if (sub_type == '0' && !str_equal(type_var, "vars")) {
-//       //printf("###########failed2\n");
-//       //TODO:error
-//       printf("VM#ERR55:%s;%s;%s(%c)\n", name, value_var, type_var, sub_type);
-//       return 0;
-//     }
-//     //printf("----SSSSW:%s[%s]=>%s[%c]\n", value_var, type_var, main_value, sub_type);
-//     indexes_len = 1;
-//     max_indexes[0] = 1;
-//     //-----
-//     vaar s = {1, sub_type, main_value, "0", 0};
-//     append_vaar(s, &vals_array);
-//     //TODO:
-//   }
-//   //  print_vaar(vals_array);
-//   //*******************************************determine type of var
-//   datas data_type = search_datas(type_var, entry_table.cur_fid, false);
-// //  printf("#$EEEE:%s,%i,%i\n",type_var,data_type.id,is_struct);
-//   //*******************************************add to memory
-//   //******************add to pointer_memory
-//   longint_list pointers_id = 0;
-//   uint32 pointers_id_len = 0;
-//   //-------------create data pointers (last nodes)
-//   vaar *st = vals_array.start;
-//   for (;;) {
-//     //printf("@WWWW:%i,%s,%c\n",st->data_id,st->value,st->sub_type);
-//     //is a struct node
-//     if (is_struct) {
-//       Longint stde_id = str_to_long_int(st->value);
-//       stde s = get_stde(stde_id);
-//       Longint po = set_struct_node_Mpoint(s.st);
-//       if (po == 0) continue;
-//       longint_list_append(&pointers_id, pointers_id_len++, po);
-//     }
-//       //is a normal node
-//     else {
-//       if (st->sub_type == 's')st->value = str_reomve_quotations(st->value, "s");
-//       Longint po = add_to_pointer_memory(st->value, st->sub_type);
-//       longint_list_append(&pointers_id, pointers_id_len++, po);
-//     }
-//     st = st->next;
-//     if (st == 0) break;
-//   }
-//   //-------------create other pointers (parent nodes)
-//   Longint main_pointer_id = set_parent_nodes_Mpoint(max_indexes, indexes_len, pointers_id, pointers_id_len);
-//   //******************add to var_memory
-//   if (is_create_var) {
-//     return add_to_var_memory(main_pointer_id, fin, sid, data_type.id, name, 0);
-//   } else {
-//     return main_pointer_id;
-//   }
-//   //*******************************************
-// }
 
 //****************************************************
 /**

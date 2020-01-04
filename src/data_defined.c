@@ -165,12 +165,7 @@ void DEF_init() {
   entry_table.blst_stru_start = 0;
   entry_table.stru_id = 1;
   //=>init current vars states
-  entry_table.parent_fin = 0;
-  entry_table.cur_sid = 0;
-  entry_table.cur_fin = 0;
-  entry_table.cur_fid = 0;
-  entry_table.cur_pid = 0;
-  entry_table.cur_pin = 0;
+  entry_table.current=_rrss_null();
   //=>init data types struct
   entry_table.datas_start = 0;
   entry_table.datas_id = 1;
@@ -201,6 +196,10 @@ void DEF_init() {
   entry_table.inpk_start=0;
   entry_table.inpk_end=0;
   entry_table.inpk_id=1;
+  //=>init record runtime states struct
+  entry_table.rrss_start=0;
+  entry_table.rrss_end=0;
+  entry_table.rrss_id=1;
   //=>init break,next instructions vars states
   entry_table.next_break_inst = 0;
   entry_table.break_count = 0;
@@ -955,6 +954,48 @@ utst _utst_get_by_label(String s) {
   }
   return ret;
 }
+//*************************************************************
+//**************record_runtime_states functions****************
+//*************************************************************
+void _rrss_append(rrss s) {
+  rrss *q;
+  q = (rrss *) malloc(sizeof(rrss));
+  if (q == 0) return;
+  q->id=++entry_table.rrss_id;
+  q->pid=s.pid;
+  q->pin=s.pin;
+  q->sid = s.sid;
+  q->fid = s.fid;
+  q->fin = s.fin;
+  q->parent_rrss = s.parent_rrss;
+  q->order = s.order;
+  q->next = 0;
+  if (entry_table.rrss_start == 0) {
+    entry_table.rrss_start = entry_table.rrss_end = q;
+  } else {
+    entry_table.rrss_end->next = q;
+    entry_table.rrss_end = q;
+  }
+}
+//*************************************************************
+rrss _rrss_get_by_fin(Longint fin){
+  rrss null={0,0,0,0,0,0,0,0,0};
+  rrss *st = entry_table.rrss_start;
+  if (st == 0) return null;
+  for (;;) {
+    if(st->fin==fin){
+      return (*st);
+    }
+    st = st->next;
+    if (st == 0) break;
+  }
+  return null;
+}
+//*************************************************************
+rrss _rrss_null(){
+  rrss null = {0, 0, 0, 0, 0,0,0,0,0};
+  return null;
+}
 // //*************************************************************
 // utst get_utst(long_int id) {
 //   utst ret = {0, 0, 0, 0};
@@ -1251,27 +1292,7 @@ utst _utst_get_by_label(String s) {
 //   return null;
 // }
 
-// //*************************************************************
-// //***************functions_stack functions*********************
-// //*************************************************************
-// void append_fust(fust s) {
-//   fust *q;
-//   q = (fust *) malloc(sizeof(fust));
-//   if (q == 0) return;
-//   q->sid = s.sid;
-//   q->fid = s.fid;
-//   q->fin = s.fin;
-//   q->parent_fin = s.parent_fin;
-//   q->order = s.order;
-//   q->next = 0;
-//   if (entry_table.fust_start == 0) {
-//     entry_table.fust_start = entry_table.fust_end = q;
-//   } else {//printf("!!!:%i,%i\n",s.fin,entry_table.fust_end);
-//     entry_table.fust_end->next = q;
-//     entry_table.fust_end = q;
-//   }
-//   entry_table.fust_len++;
-// }
+
 
 // //*************************************************************
 // fust get_last_fust() {

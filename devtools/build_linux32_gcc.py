@@ -118,7 +118,7 @@ sources = [
     [scr_folder+"/core/parser.c",scr_folder+"/core/parser.c -o "+obj_folder+"/parser.o"],
     [scr_folder+"/core/importer.c",scr_folder+"/core/importer.c -o "+obj_folder+"/importer.o"],
     [scr_folder+"/core/inheritance.c",scr_folder+"/core/inheritance.c -o "+obj_folder+"/inheritance.o"],    [scr_folder+"/core/starter.c",scr_folder+"/core/starter.c -o "+obj_folder+"/starter.o"],
-    # [scr_folder+"/core/run_mgr.c",scr_folder+"/core/run_mgr.c -o "+obj_folder+"/run_mgr.o"],
+    [scr_folder+"/core/runmgr.c",scr_folder+"/core/runmgr.c -o "+obj_folder+"/runmgr.o"],
     [scr_folder+"/core/memory.c",scr_folder+"/core/memory.c -o "+obj_folder+"/memory.o"],
     # [scr_folder+"/built_in/mpl_builtin.c",scr_folder+"/built_in/mpl_builtin.c -o "+obj_folder+"/mpl_builtin.o"],
     # [scr_folder+"/built_in/os_builtin.c",scr_folder+"/built_in/os_builtin.c -o "+obj_folder+"/os_builtin.o"],

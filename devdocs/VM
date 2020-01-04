@@ -16,7 +16,7 @@ var_memory (Mvar) :
 *************************************
 pointer_memory (MPoint) :
 - Longint id
-- uint8   type ('i':int , 'f':float , 'h':huge , 's':string , 'u':utf8 , 'b':boolean , 'p':Pointer To Mpoint , 'v':Pointer To Mvar)
+- uint8   type ('i':int , 'f':float , 'h':huge , 's':string , 'u':utf8 , 'b':boolean , 'p':Pointer To Mpoint , 'v':Pointer To Mvar, 'l': list(pointer to Mpoint) , 'm':map(pointer to Mpoint))
 - String  data
  
  

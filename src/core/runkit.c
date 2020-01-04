@@ -356,7 +356,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             //=>get value data type
             var.typeval=RUNKIT_detect_basic_type_value(var.value,0);
             //=>check for invalid value error
-            if(EXP_check_errcode(INVALID_VALUE_ERRC)){
+            if(var.typeval==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
                 EXP_handler("invalid_value", __func__, var.value, "");
                 EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
@@ -368,6 +368,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             //=>comparison between var type(if exist) and val type
             if(var.type!=0 && !STR_equal(var.type,var.typeval)){
                 //TODO:
+                printf("ERR4454\n");
                 EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
             }
@@ -380,6 +381,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             var.value=RUNKIT_calculate_value(var.value,var.typeval,&sub_type,true);
             if(sub_type=='0'||var.value==0){
                 //TODO:error
+                printf("ERR445478\n");
                 EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
             }
@@ -390,12 +392,14 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
             //=>a var must has a default value
             if(var.value==0){
                 //TODO:err
+                printf("ERR445411\n");
                 EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
             }
             //=>verify var type (if exist)
             if(var.type!=0 && _datas_search(var.type,0,true).name==0){
                 //TODO:err
+                printf("ERR44500411\n");
                 EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
                 return 0;
             }
@@ -403,6 +407,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
         //=>if type var is null
         if(var.type==0){
             //TODO:err
+            printf("ERR4454011\n");
             EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
             return 0;
         }
@@ -424,7 +429,7 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
 
 //******************************************************
 /**
- * get a value like [78,55] or {'q':5,'e':77} or combination of both and calculate its items and return it
+ * get a value like [7+8,(5*5)+1] or {'q'+'u':5,'e':77} or combination of both and calculate its items and return it
  * @author madkne
  * @version 1.0
  * @since 2019.12.29
@@ -1285,7 +1290,7 @@ String RUNKIT_remove_unused_parenthesis(String value) {
 }
 //******************************************************
 /**
- * get a value like 'H'*3 , {'q1':true and false} , 4.5+12 and detect main data type and its sub type if possible!
+ * get a value like 'H'*3 , jj[4] , {'q1':true and false} , 4.5+12 and detect main data type and its sub type if possible!
  * @author madkne
  * @version 1.1
  * @since 2019.12.20
@@ -1299,6 +1304,7 @@ String RUNKIT_detect_basic_type_value(String value,uint8 *sub_type){
     Boolean is_string=false;
     String final_type=0,word=0;
     uint8 final_sub=0;
+    String name=0,index=0;
     //=>check if value not null
     if(value==0){
         EXP_set_errcode(INVALID_VALUE_ERRC);
@@ -1312,6 +1318,12 @@ String RUNKIT_detect_basic_type_value(String value,uint8 *sub_type){
             EXP_set_errcode(INVALID_VALUE_ERRC);
             return 0;
         }
+    }
+    //=>if value is a var
+    if(RUNKIT_is_valid_name(value,true)){
+        //=>split name and index
+        String index=RUNKIT_get_name_index_var(value,true,&name);
+        //TODO:
     }
     //=>if value is simple (number:+56.5,string:"hello",boolean:true)
     if (STR_is_bool(value)) {
@@ -2130,6 +2142,97 @@ String RUNKIT_append_number_subtype(String num,uint8 subtype){
     //=>append subtype to num
     return CH_append(num,subtype);
 }
+//******************************************************
+/**
+ * get a var name and split its name and index
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.3
+ * @param s
+ * @param is_empty_index
+ * @param name : (pointer)
+ * @return String : index of var
+ */
+String RUNKIT_get_name_index_var(String s, Boolean is_empty_index, String *name) {
+    //=>init vars
+    String word = 0;
+    uint8 bra = 0;
+    STR_empty(&(*name));
+    String index=0;
+
+    //=>get length of var name
+    uint32 len = STR_length(s);
+    //=>finding name and index of var
+    for (uint32 i = 0; i < len; i++) {
+        //=>count brackets
+        if (s[i] == '[')bra++;
+        else if (s[i] == ']')bra--;
+        //=>determine name and index of var
+        if ((s[i] == '[' && bra == 1) || (s[i] == ']' && bra == 0) || i + 1 == len) {
+            if (s[i] == '[' || i + 1 == len && (*name) == 0) {
+                if (i + 1 == len) {
+                    word = CH_append(word, s[i]);
+                }
+                STR_init(&(*name), word);
+            } else if (name != 0 && s[i] == ']') {
+                STR_init(&index, word);
+                break;
+            }
+            word = 0;
+        } 
+        else {
+            word = CH_append(word, s[i]);
+        }
+    }
+    //=>return index of var
+    if (!is_empty_index && index==0) {
+        return "0";
+    }else if(index!=0){
+        return STR_trim_space(index);
+    }
+    return 0;
+}
+//******************************************************
+/**
+ * get a var name and return its id in Mvar by its func_index , pack_index if exist
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.3
+ * @param name
+ * @param pin
+ * @param fin
+ * @return Longint : id of var in Mvar or 0 if not exist
+ */
+Longint RUNKIT_get_var_id(String name, Longint pin, Longint fin) {
+    //=>iterate Mvar to find var
+    for (Longint i = 0; i < entry_table.var_mem_len; i++) {
+        Mvar st = _mvar_get(i);
+        //=>search with cur_pin=0 : function var
+        if (st.pack_index==0 && st.func_index == fin && STR_equal(st.name, name)) {
+            return st.id;
+        }
+        //=>search with cur_pin=0 , cur_fin=0 : global var
+        if (st.pack_index==0 && st.func_index == 0 && STR_equal(st.name, name)) {
+            return st.id;
+        }
+        //=>search with cur_fin=0 : package var
+        if (st.pack_index==pin && st.func_index == 0 && STR_equal(st.name, name)) {
+            return st.id;
+        }
+        //=>search all : package method var
+        if (st.pack_index==pin && st.func_index == fin && STR_equal(st.name, name)) {
+            return st.id;
+        }
+
+    }
+    //=>if not exist var on the scope
+    return 0;
+}
+//******************************************************
+
+//******************************************************
+//******************************************************
+//******************************************************
 //******************************************************
 //******************************************************
 //******************************************************

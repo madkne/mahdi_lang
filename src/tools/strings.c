@@ -25,6 +25,8 @@ Boolean STR_is_const(String s){
 }
 //******************************************
 String STR_convert_from(String s) {
+  if(STR_indexof(s,UTF8_ID_LABEL,0)==0)return s;
+  if(s[0]=='\"' && s[STR_length(s)-1]=='\"') return s;
   String ret = 0;
   ret = STR_append("\"", s);
   ret = CH_append(ret, '\"');

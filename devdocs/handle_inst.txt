@@ -1,18 +1,30 @@
 instruction lables (by priority):
 1- STRUCTURE_LBL_INST
-1- NEXT_BREAK_LBL_INST
-2- ALLOC_SHORT_LBL_INST
-3- DEF_PACKAGE_LBL_INST
-4- FUNC_CALL_LBL_INST
+1- NEXT_BREAK_LBL_INST  [waits] for FUNC_CALL_LBL_INST , ALLOC_SHORT_LBL_INST
+2- ALLOC_SHORT_LBL_INST [waits] for FUNC_CALL_LBL_INST
+3- DEF_PACKAGE_LBL_INST [waits] for FUNC_CALL_LBL_INST
+4- FUNC_CALL_LBL_INST	
 5- DEF_VARS_LBL_INST
 5- ALLOC_VARS_LBL_INST
 5- RETURN_LBL_INST
 6- UNKNOWN_LBL_INST
 ------------------------------------
 def a,b=pk1(my1("he")).hello(y++,myfunc(5*7),23)
+------------------------------------solve1
 => (0) DEF_VARS_LBL_INST   : <def a,b> , (1)
 => (1) FUNC_CALL_LBL_INST  : (2) , <hello> , (3) , (4) , <23>
 => (2) DEF_PACKAGE_LBL_INST: <pk1> , (5)
 => (3) ALLOC_SHORT_LBL_INST: <y++>
 => (4) FUNC_CALL_LBL_INST  : <myfunc> , <5*7>
 => (5) FUNC_CALL_LBL_INST  : <my1> , <"he">
+~ solve from last to first
+------------------------------------solve2 [SELECT]
+=> (0) ALLOC_SHORT_LBL_INST => def a,b=pk1(my1("he")).hello(5,myfunc(5*7),23)
+=> (1) FUNC_CALL_LBL_INST   => def a,b=pk1(@ret0).hello(5,myfunc(5*7),23)
+=> (2) DEF_PACKAGE_LBL_INST => def a,b=@ret1.hello(5,myfunc(5*7),23)
+=> (3) FUNC_CALL_LBL_INST   => def a,b=@ret1.hello(5,@ret2,23)
+=> (4) FUNC_CALL_LBL_INST   => def a,b=@re3,@ret4
+=> (5) DEF_VARS_LBL_INST    => <null>
+~ solve from first to last
+
+

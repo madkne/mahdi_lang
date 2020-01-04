@@ -7,6 +7,12 @@
 > Influenced by:
  C,PHP,MPL,PYTHON,JAVA
 
+| **OS** | **Architecture** | **Build** | **Tested Host**|
+|---|:---:|:---:|:---:|
+| **macOS**   | x86_64 |FAILED      |-
+| **Linux**   | x86_64 |PROCESSING  |Debian 10-4.9-amd64
+| **Windows** | x86_64 |FAILED      |-
+
 TODO
 --------
 
@@ -46,94 +52,104 @@ TODO
  - [x] inheritance packages if needed
  - [x] inheritance package attributes
  - [x] inheritance package methods
- - [.] init runtime global variables
- - [.] init runtime app controller
- - [.] init runtime instruction executor
- - [.] set label for types of instructions
- - [.] boot app from "_ bootup_" function :)
- - [.] implement define vars
- - [.] set new var in memory
- - [.] delete var in memory
+ - [x] init runtime global variables (define vars)
+ - [x] implement define vars
+ - [x] set new var in memory
+ - [x] show memory entries
+ - [ ] init runtime app controller
+ - [ ] init runtime instruction executor
+ - [ ] set label for types of instructions
+ - [ ] boot app from "_ bootup_" function :)
+ - [ ] delete var in memory
+ - [ ] manage exceptions
  - ...
- - [.] run "Hello world" program
+ - [ ] run "Hello world" program
 
 ### ((:publish MAHDI-BETA version of MAHDI (for linux):))
 
- - [.] igonre duplicate import files,modules,libraries
+ - [ ] igonre duplicate import files,modules,libraries
  - ...
- - [.] start official documentation of mahdi
+ - [ ] start official documentation of mahdi
  - ...
- - [.] preview of mahdi official website
+ - [ ] preview of mahdi official website
  - ...
- - [.] **_complete main structure of mahdi_**
+ - [ ] **_complete main structure of mahdi_**
  - ...
- - [.] **_complete full structure of mahdi_**
+ - [ ] **_complete full structure of mahdi_**
  - ...
+ - [ ] test mahdi by [20-questions](https://github.com/mykeels/20-questions)
+ - [ ] complete mahdi built-in functions
+ - [ ] complete core module packages
+ - [ ] complete official docs
+ - [ ] optimizing RAM,CPU usage
+ - [ ] find (0/300) bug and debug it!
+
 ### To be continued ...
 
 
 MAHDI Modules
 --------
 * core module
-    - [.] math package
-    - [.] exception package 
-    - [.] console package
-    - [.] bit package
-    - [.] app package 
-    - [.] strings package
-    - [.] file package
-    - [.] os package
-    - [.] datetime package
-    - [.] thread package
+    - [ ] math package
+    - [ ] exception package 
+    - [ ] console package
+    - [ ] bit package
+    - [ ] app package 
+    - [ ] strings package
+    - [ ] file package
+    - [ ] os package
+    - [ ] datetime package
+    - [ ] thread package
 * db module
-    - [.] sqlite3 package
-    - [.] csv package
-    - [.] json package
-    - [.] mysql package
-    - [.] xml package
+    - [ ] sqlite3 package
+    - [ ] csv package
+    - [ ] json package
+    - [ ] mysql package
+    - [ ] xml package
 * archive module
-    - [.] zip package
-    - [.] tar package
+    - [ ] zip package
+    - [ ] tar package
 * structs module
-    - [.] heap package
-    - [.] hash package
+    - [ ] heap package
+    - [ ] hash package
 * crypto module
-    - [.] md5 package
-    - [.] sha256 package
+    - [ ] md5 package
+    - [ ] sha256 package
 * net module
-    - [.] parser package
-    - [.] email package
-    - [.] socket package
-    - [.] http package
-    - [.] smtp package
+    - [ ] parser package
+    - [ ] email package
+    - [ ] socket package
+    - [ ] http package
+    - [ ] smtp package
 
 MAHDI Language Features
 --------
 
-> [x] support utf8 strings <br>
-> [.] support radix numbers  <br>
-> [x] support object oriented  <br>
-> [.] support huge numbers <br>
-> [.] support override methods  <br>
-> [.] has built-in functions  <br>
-> [.] manage exceptions  <br>
-> [.] support multi dimensions arrays  <br>
-> [x] support dictionary(map) data structure <br>
-> [.] has built-in garbage collector(gc)  <br>
-> [.] expandability by c modules  <br>
-> [.] support built-in debugger  <br>
-> [.] support unlimited function parameters  <br>
-> [.] support call function by its parameter name <br>
-> [.] support multi return values  <br>
-> [.] support call by reference vars  <br>
-> [.] support short allocations for vars  <br>
-> [.] support built-in encoder  <br>
-> [.] support bit functions  <br>
-> [.] support sqlite3 module  <br>
-> [.] support browse arrays in loop  <br>
-> [.] support switch condition equivalent  <br>
-> [.] support module os syscalls  <br>
-> [.] support create executable file from program <br>
+- [x] support utf8 strings 
+- [ ] support radix numbers  
+- [x] support object oriented  
+- [ ] support huge numbers 
+- [ ] support override methods  
+- [ ] has built-in functions  
+- [ ] Support closures, anonymous functions
+- [ ] manage exceptions  
+- [ ] support multi dimensions arrays  
+- [x] support dictionary(map) data structure 
+- [ ] has built-in garbage collector(gc)  
+- [ ] expandability by c modules  
+- [ ] support built-in debugger  
+- [ ] support unlimited function parameters  
+- [ ] support call function by its parameter name 
+- [ ] support multi return values  
+- [ ] support call by reference vars  
+- [ ] support short allocations for vars  
+- [ ] support built-in encoder  
+- [ ] support bit functions  
+- [ ] support sqlite3 module  
+- [ ] support browse arrays in loop  
+- [ ] support switch condition equivalent  
+- [ ] support module os syscalls  
+- [ ] support create executable file from program 
 
 MAHDI Hello World Program
 --------

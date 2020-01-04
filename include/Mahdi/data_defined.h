@@ -342,19 +342,32 @@ typedef struct func_pack_params_struct {
   uint32 source_id;
   struct func_pack_params_struct *next;
 } fpp;
-// //**********************vals_array_struct
-// typedef struct vals_array_struct {
-//   Longint data_id;
-//   uint8 sub_type;
-//   String value;
-//   String index;
-//   struct vals_array_struct *next;
-// } vaar;
-// typedef struct vals_array_entries {
-//   vaar *start;
-//   vaar *end;
-//   uint32 count;
-// } vaar_en;
+//****************************functions_stack struct
+/**
+ * (runtime) when a function or method call , then record all runtime registers to this struct and goes to new state
+ */ 
+typedef struct record_runtime_states_struct {
+  Longint id;
+  Longint fin; //unique
+  Longint fid;
+  Longint pid;
+  Longint pin; //unique
+  Longint sid;
+  Longint order;
+  Longint parent_rrss;
+
+  struct record_runtime_states_struct *next;
+} rrss;
+//**********************value_pointers_struct
+/**
+ * (runtime) when set new var on memory, its value split on this struct to append in mpoint struct
+ */ 
+typedef struct value_pointers_struct {
+  Longint id;
+  uint8 sub_type;
+  String value;
+  struct value_pointers_struct *next;
+} vapo;
 
 
 // //****************************modules_funcs struct
@@ -369,16 +382,7 @@ typedef struct func_pack_params_struct {
 
 //   struct modules_funcs_struct *next;
 // } mofu;
-// //****************************functions_stack struct
-// typedef struct functions_stack_struct {
-//   Longint fid;
-//   Longint fin;
-//   Longint sid;
-//   Longint order;
-//   Longint parent_fin;
 
-//   struct functions_stack_struct *next;
-// } fust;
 
 
 // //****************************alloc_var struct
@@ -510,6 +514,10 @@ struct entry_table_struct {
   fpp *fpp_end;
   Longint fpp_id;
 
+  rrss *rrss_start;
+  rrss *rrss_end;
+  Longint rrss_id;
+
   Boolean debug_is_run;
   Boolean debug_is_next;
 
@@ -525,13 +533,7 @@ struct entry_table_struct {
   int8 next_break_inst;
   uint32 break_count;
 
-  Longint cur_pid;
-  Longint cur_pin;
-  Longint cur_fid;
-  Longint cur_fin;
-  Longint cur_sid;
-  Longint cur_order;
-  Longint parent_fin;
+  rrss current;
   //=>parsing global vars
   Boolean need_inheritance;
   //=>runtime global vars
@@ -598,6 +600,10 @@ fpp * _fpp_delete_by_id(Longint id,fpp *fpp_start,Boolean *is_success);
 void _utst_append(utst s);
 Longint _utst_add(uint32 line, UString str, uint8 max_bytes);
 utst _utst_get_by_label(String s);
+//=>rrss functions
+void _rrss_append(rrss s);
+rrss _rrss_get_by_fin(Longint fin);
+rrss _rrss_null();
 // Longint add_to_utst(uint32 line,str_utf8 str,uint8 max_bytes);
 // utst get_utst(Longint id);
 // utst get_utst_by_string(String s);

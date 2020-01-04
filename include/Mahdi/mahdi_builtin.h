@@ -33,6 +33,7 @@ void BUILT_init();
 
 #define _BUILT_GET                1
 #define _BUILT_SET                2
+#define _BUILT_KEYS               3
 
 //=>bifs functions
 void _bifs_append(uint32 parent,uint32 id,String func_name, String params, String returns);
