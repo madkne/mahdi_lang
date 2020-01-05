@@ -154,7 +154,7 @@ void COM_print_struct(uint8 which) {
     if (tmp1 == 0) return;
     printf("=====Print func_block_struct :\n");
     for (;;) {
-      printf("[id:%li,pid:%li],%s,name:%s,params:%s\n", tmp1->id,tmp1->pack_id,ILIST_print(tmp1->func_attrs,MAX_FUNCTION_ATTRIBUTES), tmp1->label, SLIST_print(tmp1->params, tmp1->params_len));
+      printf("[id:%li,pid:%li,fid:%li],%s,name:%s,params:%s\n", tmp1->id,tmp1->pack_id,ILIST_print(tmp1->func_attrs,MAX_FUNCTION_ATTRIBUTES), tmp1->label, SLIST_print(tmp1->params, tmp1->params_len));
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }

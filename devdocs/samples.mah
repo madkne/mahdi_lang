@@ -74,6 +74,11 @@ if(g==45){}
 }
 func _bootup_(){}
 ----------------APP6--------------------
+import mod:core:console
+func _bootup_(argvs:string){
+	console.print('Hello World\n')
+}
+----------------APP7--------------------
 import mod:core:console,exception
 def Name:string="Hello"
 def HWE=Name

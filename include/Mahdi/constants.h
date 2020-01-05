@@ -7,15 +7,15 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.02.007"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 20          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.02.015"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 21          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
 #define  FIRST_BUILD                    "2019.10.26"
 #define  BETA_LBUILD                    "undefined"
 #define  RC_LBUILD                      "undefined"
-#define  LICENCE                        "MAHDI-LICENCE"
+#define  LICENCE                        "Creative Commons Attribution Share Alike 4.0 (cc-by-sa-4.0)"
 #define  OFFICIAL_WEBSITE               "http://mahdi-lang.ir"
 #define  COPYRIGHT                      "Copyright (C) 2020"
 #define  C_CORE_CODE_LINES              6534       //0.1.84-0.2.20

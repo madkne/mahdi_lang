@@ -130,8 +130,8 @@ void EXP_init() {
                        "'!1@1!' with '!2@2!' parameters, not exist as a function");
   EXP_define(2, ERROR_ID, "wrong_type_var", NotExistError,
                        "'!1@1!' is not a valid type for variable declaration");
-  EXP_define(3, ERROR_ID, "not_found_main", NotExistError,
-                       "Not found 'main()' function in your source files");
+  EXP_define(3, FATAL_ID, "not_found_bootup", NotExistError,
+                       "Not found '_bootup_()' function in your source files");
   EXP_define(4, ERROR_ID, "not_exist_var", NotExistError, "'!1@1!' is not exist as a variable");
   EXP_define(5, ERROR_ID, "not_exist_struct_name", NotExistError, "Not exist name for struct");
   EXP_define(6,
@@ -186,7 +186,6 @@ void EXP_clear_errcode(){
 }
 //**************************************************************
 int8 EXP_handler(String lbl_err, const char func_occur[], String rep1, String rep2) {
-//  printf("FFFFFFFFFF:%s\n",lbl_err);
   //---------------------init vars
   int8 ret_num = WARNING_ID;
   Longint excep_id = 0;
@@ -392,7 +391,7 @@ int8 EXP_print_error(Longint line_err, String name_err, String file_err, String 
   if (rep1 != 0)text_err = STR_replace(text_err, "!1@1!", rep1, -1);
   if (rep2 != 0)text_err = STR_replace(text_err, "!2@2!", rep2, -1);
   //-----------------------print exception
-  String exception_msg = malloc(7 + STR_length(file_err) + (2 * sizeof(Longint)) + STR_length(text_err) +
+  String exception_msg = malloc(7+ 20+ STR_length(text_err) + STR_length(file_err) + (2 * sizeof(Longint))  +
       STR_length(exceptions_group[group_err]) + 1);
   if (line_err == 0 && !is_user_defined)
     sprintf(exception_msg,

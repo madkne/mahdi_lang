@@ -9,7 +9,7 @@ import shutil
 # -----------------------------
 # python3 build_win32_migw64.py
 # -----------------------------
-# -------------------------------functions------------------------------------
+# -----------------------------functions--------------------------------
 
 
 def copy_dir(src, dst, folder, just_contents):
@@ -42,7 +42,7 @@ def copy_dir(src, dst, folder, just_contents):
         i += 1
 
 
-# -------------------------------functions------------------------------------
+# -----------------------------functions--------------------------------
 
 os.system("clear")
 # os.system("echo -e \"Default \e[34mBlue\"")
@@ -66,20 +66,20 @@ if os.path.exists(logfile):
 # for j in compfiles:
 #	print(compfiles)
 # ----------------------
-print("\t~~~~~MAHDI Build Tool (BY Python3) V 4.1~~~~~")
+print("\t~~~~~MAHDI Build Tool (BY Python3) V 4.2~~~~~")
 print("=== Start Building linux32 release of MAHDI Interpreter using GCC (C99) ....")
 # ----------------------init dirs
-# -----create docs file
+# -----create docs dir
 if not os.path.exists(build_folder+"/docs"):
     os.makedirs(build_folder+"/docs")
 # copy_dir("../", build_folder, "docs", False)
-# -----create modules file
-if not os.path.exists(build_folder+"/modules"):
-    os.makedirs(build_folder+"/modules")
-# -----create libs file
-if not os.path.exists(build_folder+"/packs"):
-    os.makedirs(build_folder+"/packs")
-# -----create samples file
+# -----create modules dir
+if not os.path.exists(build_folder+"/mods"):
+    os.makedirs(build_folder+"/mods")
+# -----create libs dir
+if not os.path.exists(build_folder+"/libs"):
+    os.makedirs(build_folder+"/libs")
+# -----create samples dir
 if not os.path.exists(build_folder+"/samples"):
     os.makedirs(build_folder+"/samples")
 # -----delete all obj/.*o

@@ -1,184 +1,235 @@
 
 #include <Mahdi/system.h>
 //**********************************************************
+/**
+ * start runtime interpreter after parser and inherit, init config and global vars and start from bootup function 
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.5
+ * @return Boolean : if success or failed
+ */ 
 Boolean APP_start() {
-  //=>init global vars includes global vars and config vars
+  //=>init vars
+  Boolean exist=false;
+  blst bootup;
+  //=>init config vars
+  //TODO:
+  //=>init global vars includes global vars
   APP_init_global();
   //=>if BuildMode is true, so stop and go to builder
-  //  print_magic_macros(2);
   if (build_mode) {
+    //TODO:
     // start_builder();
     APP_exit(EXIT_NORMAL);
   }
-  //=>init global runtime variables
-  // entry_table.func_index++; //add one for main() function
-  //add_to_prev_fins_array(0)
-  // entry_table.cur_fid = 0;
-  // entry_table.cur_fin = entry_table.func_index;
-  // entry_table.cur_sid = 0;
-  // entry_table.parent_rrss = 0;
-  // entry_table.cur_order = 1;
-  // entry_table.Rsrc = 0;
-  // entry_table.Rline = 0;
-  //=>find main function
-  //   blst main_func = search_lbl_func("main", 0, 0);
-  //   if (main_func.id == 0) {
-  //     print_error(0, "not_found_main", "stdin", 0, 0, "start_runtime");
-  //     return false;
-  //   }
-  //   entry_table.cur_fid = main_func.id;
-    //printf("LLLL:%i,%s\n",main_func.id,main_func.lbl);
-
-    //*************start debugger if enabled
-  //  print_magic_macros(CONFIG_MAGIC_MACRO_TYPE);
+  //=>find _bootup_ function
+  blst *funcs=entry_table.blst_func_start;
+  if (funcs != 0){
+    for (;;) {
+      if(funcs->func_attrs[0]==BOOTUP_FUNCTION_FATTR && funcs->pack_id==0){
+        bootup=(*funcs);
+        exist=true;
+        break;
+      }
+      funcs = funcs->next;
+      if (funcs == 0) break;
+    }
+  }
+  //=>if not found bootup function
+  if(!exist){
+    EXP_print_error(0, "not_found_bootup", "stdin", 0, 0, "APP_start");
+    return false;
+  }
+  //=>init global runtime variables for _bootup_()
+  rrss bootup_func={0,entry_table.current.fin+1,bootup.id,0,0,0,1,0,0};
+  _rrss_append(bootup_func);
+  entry_table.current=bootup_func;
+  //=>start debugger if enabled
   if (debug_mode) {
+    //TODO:
     // start_debugger();
   }
-  //*************start program from fid=2,fin=2,sid=0,order=1
+  //=>start program from bootup function,order=1
   APP_controller();
-  //*************return
+  //=>return success
   return true;
 }
 
 //**********************************************************
+/**
+ * start from first instruction of bootup function and browse all instructions in program
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.5
+ * @return int8 : status of app
+ */ 
 int8 APP_controller() {
-//   //--------------search for current instruction
-//   instru *st = entry_table.instru_start;
-//   if (st == 0) return false;
-//   for (;;) {
-//     //-------is is_occur_error_exception is true
-//     if (entry_table.is_occur_error_exception) {
-//       //msg("&BREAKS:", break_count)
-//       entry_table.is_occur_error_exception = false;
-//       return STOP_RETURN_APP_CONTROLLER;
-//     }
-//     // printf("XSSSS:%s>>%i<>%i,%i<>%i,%i<>%i\n",st->code, st->func_id, entry_table.cur_fid , st->stru_id, entry_table.cur_sid , st->order, entry_table.cur_order);
-//     //-------get current instruction for executing
-//     if (st->func_id == entry_table.cur_fid
-//         && st->stru_id == entry_table.cur_sid
-//         && st->order == entry_table.cur_order) {
-//       //-------set global vars
-//       entry_table.Rorder = st->order;
-//       //-------run instruction
-//       int8 ret0 = INSTRUCTION_EXECUTOR(st->id);
-//       // printf("RUN_inst:\n",st->code);
-//       if (ret0 == FAILED_EXECUTE_INSTRUCTION)return BAD_RETURN_APP_CONTROLLER;
-//       //-------if is next instruction
-//       if (entry_table.next_break_inst == NEXT_INST) {
-//         entry_table.next_break_inst = 0;
-//         return STOP_RETURN_APP_CONTROLLER;
-//       }
-//         //-------if is break instruction
-//       else if (entry_table.next_break_inst == BREAK_INST) {
-//         entry_table.break_count--;
-//         if (entry_table.break_count == 0) entry_table.next_break_inst = 0;
-//         return BREAK_RETURN_APP_CONTROLLER;
-//       }
-//       //-------increase cur_order
-//       entry_table.cur_order++;
-//     }
-//     st = st->next;
-//     if (st == 0) break;
-//   }
+  //=>search for current instruction
+  instru *st = entry_table.instru_start;
+  if (st == 0) return BAD_RETURN_APP_CONTROLLER;
+  for (;;) {
+    //=>is is_occur_error_exception is true
+    if (entry_table.is_occur_error_exception) {
+      entry_table.is_occur_error_exception = false;
+      return STOP_RETURN_APP_CONTROLLER;
+    }
+    // printf("XSSSS:%s>>%i<>%i,%i<>%i,%i<>%i\n",st->code, st->func_id, entry_table.current.fid , st->stru_id, entry_table.current.sid , st->order, entry_table.current.order);
+    //=>get current instruction for executing
+    if (st->func_id == entry_table.current.fid
+        && st->stru_id == entry_table.current.sid
+        && st->order == entry_table.current.order) {
+      //=>set global vars
+      entry_table.current.order = st->order;
+      //=>run instruction
+      int8 ret0 = APP_executor(st->id);
+      // printf("RUN_inst:\n",st->code);
+      if (ret0 == FAILED_EXECUTE_INSTRUCTION)return BAD_RETURN_APP_CONTROLLER;
+      //TODO:
+      // //=>if is next instruction
+      // if (entry_table.next_break_inst == NEXT_INST) {
+      //   entry_table.next_break_inst = 0;
+      //   return STOP_RETURN_APP_CONTROLLER;
+      // }
+      // //=>if is break instruction
+      // else if (entry_table.next_break_inst == BREAK_INST) {
+      //   entry_table.break_count--;
+      //   if (entry_table.break_count == 0) entry_table.next_break_inst = 0;
+      //   return BREAK_RETURN_APP_CONTROLLER;
+      // }
+      //=>increase current order
+      entry_table.current.order++;
+    }
+    st = st->next;
+    if (st == 0) break;
+  }
 
   return NORMAL_RETURN_APP_CONTROLLER;
 }
 
 //**********************************************************
-int8 APP_executor(Longint index) {
-  //---------------------init
-  //   instru st = get_instru_by_id(index);
-  //   String Rcode = str_trim_space(st.code);
-  //   entry_table.Rline = st.line;
-  //   entry_table.Rsrc = utf8_to_bytes_string(source_paths[st.source_id]);
-  //   Boolean is_done = true;
-  //   //---------------------check breakpoints1
-  //   if (is_find_debr(entry_table.Rline, entry_table.Rsrc) || entry_table.debug_is_next) {
-  //     on_breakpoint_interrupt(Rcode, true);
-  //   }
-  //   //---------------------show memory in programmer debug
-  //   if (is_programmer_debug >= 1 && str_equal(Rcode, "_@_")) {
-  //     show_memory(0);
-  //     return SUCCESS_EXECUTE_INSTRUCTION;
-  //   } else if (is_programmer_debug >= 1 && str_equal(Rcode, "_u@_")) {
-  //     print_struct(PRINT_UTF8_ST);
-  //     return SUCCESS_EXECUTE_INSTRUCTION;
-  //   }
-  //   //---------------------
-  //   if (str_equal(Rcode, "null")) return SUCCESS_EXECUTE_INSTRUCTION;
-  //   while ((Rcode = str_trim_space(Rcode)) != 0) {
-  //     //msg("&Rcode", Rcode)
-  //     uint8 state = labeled_instruction(Rcode);
-  //     if (is_programmer_debug >= 1) {
-  //       printf("@###############INST(fid:%i,sid:%i,order:%i,state:%i,fin:%i,line:%i):\n%s\n", entry_table.cur_fid,
-  //              entry_table.cur_sid, entry_table.Rorder, state, entry_table.cur_fin, entry_table.Rline, Rcode);
-  //     }
-  //     //---------------------analyzing all states
-  //     if (state == UNKNOWN_LBL_INST) {
-  //       is_done = false;
-  //       if (str_equal(Rcode, "null")) return SUCCESS_EXECUTE_INSTRUCTION;
-  //       exception_handler("unknown_instruction", __func__, Rcode, "");
-  //     } else if (state == DEF_VARS_LBL_INST) Rcode = define_vars(Rcode);
-  //     else if (state == ALLOC_MAGIC_MACROS_LBL_INST)Rcode = alloc_magic_macros(Rcode);
-  //     else if (state == FUNC_CALL_LBL_INST)Rcode = function_call(Rcode);
-  //     else if (state == ALLOC_VARS_LBL_INST) {
-  //       is_done = vars_allocation(Rcode);
-  //       Rcode = 0;
-  //     } else if (state == RETURN_LBL_INST) {
-  //       Boolean ret = function_return(Rcode);
-  //       Rcode = 0;
-  //       /*if Rcode == "true"
-  //       {
-  //           return 3
-  //       } else if Rcode == "false"
-  //       {
-  //           return 1
-  //       }*/
-  //     } else if (state == ALLOC_SHORT_LBL_INST) {
-  //       Rcode = vars_allocation_short(Rcode);
-  //     } else if (state == STRUCTURE_LBL_INST) {
-  //       Boolean ret = init_structures(Rcode);
-  //       Rcode = 0;
-  //       if (!ret)is_done = false;
-  //     } else if (state == NEXT_BREAK_LBL_INST) {
-  //       is_done = structure_loop_next_break(Rcode);
-  //       Rcode = 0;
-  //     } else {
-  //       is_done = false;
-  //       //exception_handler("unknown_instruction", "INSTRUCTION_EXECUTOR", Rcode, "")
-  //     }
-  //     if (str_equal(Rcode, BAD_CODE)) is_done = false;
-  //     else if (entry_table.is_occur_error_exception) is_done = false;
-  //     //********************
-  //     if (!is_done) {
-  //       break;
-  //     }
-  //   }
-  //   //garbage_collector('@')
-  //   //********************is DONE!!
-  //   if (is_programmer_debug >= 2) {
-  //     if (is_done) {
-  //       printf("~~~~~~~~~~~~~~~~~~>DONE :)\n\n");
-  // //       printf("---------------:%i,%s\n",entry_table.post_short_alloc_len,entry_table.post_short_alloc[0]);
-  //       //check post short alloc
-  //       is_done = check_post_short_alloc();
-  //     }
-  //     if (!is_done) {
-  //       printf("~~~~~~~~~~~~~~~~~~>BREAK :(\n\n");
-  //       return FAILED_EXECUTE_INSTRUCTION;
-  //     }
-  //     //show_prev_fins_array()
-  //   }
-  //   //---------------------check breakpoints2
-  //   if (entry_table.debug_is_run) {
-  //     on_breakpoint_interrupt(st.code, false);
-  //   }
+/**
+ * get id of an instruction and try to execute it, before check breakpoints if debug mode is enabled
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.5
+ * @param id : id of instruction
+ * @return int8 : status of executed instruction
+ */ 
+int8 APP_executor(Longint id) {
+  //=>init vars
+  instru st = _instru_get_by_id(id);
+  String Rcode = st.code;
+  entry_table.Rline = st.line;
+  entry_table.Rsrc = entry_table.sources_list[st.source_id];
+  Boolean is_done = true;
+  //=>check breakpoints before execute instruction
+  //TODO:
+  // if (is_find_debr(entry_table.Rline, entry_table.Rsrc) || entry_table.debug_is_next) {
+  //   on_breakpoint_interrupt(Rcode, true);
+  // }
+  //=>execute programming debug instructions if in programmer debug
+  if (is_programmer_debug >= 1 && STR_equal(Rcode, "_@_")) {
+    VM_show(0);
+    return SUCCESS_EXECUTE_INSTRUCTION;
+  } else if (is_programmer_debug >= 1 && STR_equal(Rcode, "_u@_")) {
+    COM_print_struct(PRINT_UTF8_ST);
+    return SUCCESS_EXECUTE_INSTRUCTION;
+  }
+  //=>while instruction code not null 
+  while ((Rcode = STR_trim_space(Rcode)) != 0) {
+    //=>labeled instruction
+    uint8 state = APP_labeled_instruction(Rcode);
+    //=>if programming debug is enabled
+    if (is_programmer_debug >= 1) {
+      printf("@###############INST(pid:%li,fid:%li,sid:%li,order:%i,state:%i,pin:%li,fin:%li,line:%i):\n%s\n",entry_table.current.pid, entry_table.current.fid,entry_table.current.sid, entry_table.current.order, state, entry_table.current.pin,entry_table.current.fin, entry_table.Rline, Rcode);
+    }
+    //=>check for instruction types
+    switch (state) {
+      case UNKNOWN_LBL_INST:{
+        is_done = false;
+        EXP_handler("unknown_instruction", __func__, Rcode, 0);
+      }
+      case DEF_VARS_LBL_INST: {
+        Rcode = RUN_define_vars(Rcode);
+        if (EXP_check_errcode(BAD_DEFINE_VARS_ERRC)) is_done = false;
+        break;
+      }
+      //TODO:
+      default: {
+        is_done = false;
+        break;
+      }
+    }
+    //TODO:
+    // else if (state == ALLOC_MAGIC_MACROS_LBL_INST)Rcode = alloc_magic_macros(Rcode);
+    // else if (state == FUNC_CALL_LBL_INST)Rcode = function_call(Rcode);
+    // else if (state == ALLOC_VARS_LBL_INST) {
+    //   is_done = vars_allocation(Rcode);
+    //   Rcode = 0;
+    // } else if (state == RETURN_LBL_INST) {
+    //   Boolean ret = function_return(Rcode);
+    //   Rcode = 0;
+    //   /*if Rcode == "true"
+    //   {
+    //       return 3
+    //   } else if Rcode == "false"
+    //   {
+    //       return 1
+    //   }*/
+    // } else if (state == ALLOC_SHORT_LBL_INST) {
+    //   Rcode = vars_allocation_short(Rcode);
+    // } else if (state == STRUCTURE_LBL_INST) {
+    //   Boolean ret = init_structures(Rcode);
+    //   Rcode = 0;
+    //   if (!ret)is_done = false;
+    // } else if (state == NEXT_BREAK_LBL_INST) {
+    //   is_done = structure_loop_next_break(Rcode);
+    //   Rcode = 0;
+    // } 
+    // else {
+    //   is_done = false;
+    //   //exception_handler("unknown_instruction", "INSTRUCTION_EXECUTOR", Rcode, "")
+    // }
+    // else if (entry_table.is_occur_error_exception) is_done = false;
+    //********************
+    if (!is_done) {
+      break;
+    }
+  }
+  //garbage_collector('@')
+  //=>is DONE!!
+  if (is_programmer_debug >= 2) {
+    if (is_done) {
+      printf("~~~~~~~~~~~~~~~~~~>DONE :)\n\n");
+//       printf("---------------:%i,%s\n",entry_table.post_short_alloc_len,entry_table.post_short_alloc[0]);
+      //check post short alloc
+      //TODO:
+      // is_done = check_post_short_alloc();
+    }
+    if (!is_done) {
+      printf("~~~~~~~~~~~~~~~~~~>BREAK :(\n\n");
+      return FAILED_EXECUTE_INSTRUCTION;
+    }
+    //show_prev_fins_array()
+  }
+  //---------------------check breakpoints after execute instruction
+  //TODO:
+  // if (entry_table.debug_is_run) {
+  //   on_breakpoint_interrupt(st.code, false);
+  // }
   //show_memory(0)
   //printf("###QWER:%i\n",entry_table.is_stop_APP_CONTROLLER);
   return SUCCESS_EXECUTE_INSTRUCTION;
 }
 
 //**********************************************************
+/**
+ * init and set into memory all global vars with fid=0,pid=0
+ * @author madkne
+ * @version 1.0
+ * @since 2020.1.5
+ * @return Boolean : if success or failed
+ */ 
 Boolean APP_init_global() {
   //=>init vars
   Longint order = 1;
@@ -197,13 +248,14 @@ Boolean APP_init_global() {
         printf("@###############GLOBAL_INST(State:%i,pin:%i,fin:%i,line:%i):\n%s\n@###############\n", state,
               entry_table.current.pin, entry_table.current.fin, entry_table.Rline, Rcode);
       }
-      //********************
+      //=>check for instruction types
       switch (state) {
         case DEF_VARS_LBL_INST: {
           Rcode = RUN_define_vars(Rcode);
           if (EXP_check_errcode(BAD_DEFINE_VARS_ERRC)) is_done = false;
           break;
         }
+        //TODO:def package
         default: {
           is_done = false;
           EXP_handler("incorrect_global_inst", __func__, Rcode, 0);

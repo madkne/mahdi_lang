@@ -164,8 +164,6 @@ void DEF_init() {
   //=>init structures like if struct
   entry_table.blst_stru_start = 0;
   entry_table.stru_id = 1;
-  //=>init current vars states
-  entry_table.current=_rrss_null();
   //=>init data types struct
   entry_table.datas_start = 0;
   entry_table.datas_id = 1;
@@ -205,10 +203,11 @@ void DEF_init() {
   entry_table.break_count = 0;
   //=>init parsing vars states
   entry_table.need_inheritance=false;
+  //=>init runtime current vars states
+  entry_table.current=_rrss_null();
   //=>init runtime vars states
   entry_table.Rsrc = 0;
   entry_table.return_fin = 0;
-  entry_table.Rorder = 0;
   entry_table.Rline = 0;
   entry_table.is_stop_APP_controller = false;
   entry_table.is_next_inst_running = false;
@@ -692,6 +691,20 @@ void _instru_append(instru s) {
   }
 }
 //*************************************************************
+instru _instru_get_by_id(Longint id) {
+  instru null = {0, 0, 0, 0, 0, 0, 0, 0,0,0};
+  instru *st = entry_table.instru_start;
+  if (st == 0) return null;
+  for (;;) {
+    if (st->id == id) {
+      return (*st);
+    }
+    st = st->next;
+    if (st == 0) break;
+  }
+  return null;
+}
+//*************************************************************
 //*****************inherit_package functions*******************
 //*************************************************************
 void _inpk_append(Longint parent_id,String parent_name,Longint inherit_id,String inherit_name) {
@@ -1110,20 +1123,7 @@ rrss _rrss_null(){
 
 
 
-// //*************************************************************
-// instru get_instru_by_id(long_int id) {
-//   instru null = {0, 0, 0, 0, 0, 0, 0, 0};
-//   instru *st = entry_table.instru_start;
-//   if (st == 0) return null;
-//   for (;;) {
-//     if (st->id == id) {
-//       return (*st);
-//     }
-//     st = st->next;
-//     if (st == 0) break;
-//   }
-//   return null;
-// }
+
 // //*************************************************************
 // instru get_instru_by_params(long_int fid, long_int sid, uint32 order) {
 //   instru null = {0, 0, 0, 0, 0, 0, 0, 0};

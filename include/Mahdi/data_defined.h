@@ -539,7 +539,7 @@ struct entry_table_struct {
   //=>runtime global vars
   String Rsrc;
   Longint return_fin;
-  uint32 Rorder, Rline;
+  uint32 Rline;
   Boolean is_stop_APP_controller, is_next_inst_running, is_occur_error_exception;
   //=>list of all source paths
   StrList sources_list;
@@ -584,6 +584,7 @@ uint32 _inor_get(Longint pid, Longint fid, Longint sid);
 void _inor_set(Longint pid, Longint fid, Longint sid, uint32 order);
 //=>instru functions
 void _instru_append(instru s);
+instru _instru_get_by_id(Longint id);
 //=>inpk functions
 void _inpk_append(Longint parent_id,String parent_name,Longint inherit_id,String inherit_name);
 inpk _inpk_get_by_done(Boolean is_done);
