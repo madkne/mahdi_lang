@@ -7,8 +7,8 @@
 
 //**************************************************define interpreter constants
 #define  APP_NAME                       "Mahdi Programming Language"
-#define  VERSION                        "0.02.015"    //X.Y.Z=> Z<100,Y<10
-#define  VERSION_NUMBER                 21          //XYZ=>(X*100)+(Y*10)+(Z/10)
+#define  VERSION                        "0.02.048"    //X.Y.Z=> Z<100,Y<10
+#define  VERSION_NUMBER                 24          //XYZ=>(X*100)+(Y*10)+(Z/10)
 #define  VERSION_NAME                   "BETA"
 #define  SLOGAN                         "Assemble all the good features of programming languages" //اجتماع تمام ویژگی های خوب زبان های برنامه نویسی
 
@@ -18,9 +18,9 @@
 #define  LICENCE                        "Creative Commons Attribution Share Alike 4.0 (cc-by-sa-4.0)"
 #define  OFFICIAL_WEBSITE               "http://mahdi-lang.ir"
 #define  COPYRIGHT                      "Copyright (C) 2020"
-#define  C_CORE_CODE_LINES              6534       //0.1.84-0.2.20
-#define  H_CORE_CODE_LINES              1030
-#define  MODULES_CODE_LINES             0           //+=7564
+#define  C_CORE_CODE_LINES              7476       //0.2.48-0.2.90
+#define  H_CORE_CODE_LINES              1097
+#define  MODULES_CODE_LINES             59           //+=8632
 #define  LANGUAGE_CREATOR               "madkne"
 #define  CREATOR_SIGNATURE              "48441415431625231"
 #define  TRUST_LEVEL                    0          //100%
@@ -63,7 +63,7 @@
 #define   MAX_VAR_ALLOC_INSTRUCTIONS    15
 #define   MAX_PARAMS_STRUCT             30
 #define   MAX_INTO_IN_STRUCTURES        20
-#define   MAX_INTO_IN_FUNCTION_CALLS    30
+// #define   MAX_INTO_IN_FUNCTION_CALLS    30
 #define   MAX_OPENED_FILES              20
 #define   MAX_ERROR_CODES               5
 #define   MAX_FUNCTION_ATTRIBUTES       5
@@ -121,6 +121,7 @@
 #define   BAD_DEFINE_VARS_ERRC          10
 #define   BAD_MAPORLIST_VAL_ERRC        11
 #define   NOT_SET_VAR_MEMORY_ERRC       12
+#define   BAD_FUNC_CALL_ERRC            13
 //------------------------------------------used as instruction types
 #define   STRUCTURE_LBL_INST            100 //by priority type
 #define   NEXT_BREAK_LBL_INST           99
@@ -174,6 +175,7 @@
 #define PRINT_LOOP_LEVEL_ST             15
 #define PRINT_DATA_TYPES_ST             16
 #define PRINT_INHERIT_ST                17
+#define PRINT_MODULE_PACKFUNCS_ST       18
 //------------------------------------------
 #define   BOOL_SUB_TYPE_ID              1
 #define   STR_SUB_TYPE_ID               2
@@ -210,18 +212,11 @@
 #define   NEXT_INST                     1
 #define   BREAK_INST                    2
 //------------------------------------------used for mahdi_modules_instance array
-#define   EXCEPTION_MODULE_ID           2
-#define   CONSOLE_MODULE_ID             3
-#define   STRING_MODULE_ID              4
-#define   MATH_MODULE_ID                5
-#define   OS_MODULE_ID                  6
-#define   BIT_MODULE_ID                 7
-#define   APP_MODULE_ID                 8
-#define   FILE_MODULE_ID                9
-//------------------------------------------used for function call
-#define   FUNC_TYPE_NORMAL              1
-#define   FUNC_TYPE_MODULE              2
-#define   FUNC_TYPE_PACKAGE             3
+#define   CORE_MODULE_ID                 1
+#define   DB_MODULE_ID                   2
+
+
+
 //**************************************************typedef
 typedef char int8;
 typedef unsigned char uint8;

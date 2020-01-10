@@ -20,12 +20,14 @@ Boolean IMPORT_run(){
           //=>open file and fill soco struct
           ret1 = IMPORT_open_file(ret);
         }
+        //=>if import type is module, the open it
+        else if (ret.type == IMPORT_MODULE){
+          //=>resolve mahdi module path
+          ret.path=MODULE_return_mahdi_modules(ret.path);
+          //=>load module by its path
+          ret1 =MODULE_load_module(ret.path,ret.packages,ret.pack_len,ret.line,entry_table.sources_list[ret.source_index]);
+        }
         //TODO:the others
-        // else if (ret.type == IMPORT_MODULE)
-        // {
-        //     ret1 =
-        //         load_module_file(utf8_to_bytes_string(ret.path), ret.line, utf8_to_bytes_string(source_paths[ret.source_id]));
-        // }
         //=>set current source path
         STR_init(&entry_table.current_source_path, ret.path);
         //=>if success to import file or module or..., then analyze it!

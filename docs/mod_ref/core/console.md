@@ -1,11 +1,11 @@
 
 methods
 --------
-- print(message:string) : boolean
+- print(msg:string) : boolean
 
-- printLn(message:string) : boolean
+- printLn(msg:string) : boolean
 
-- printErr(message:string) : boolean
+- printErr(msg:string) : boolean
 
 - readLine() : string
 

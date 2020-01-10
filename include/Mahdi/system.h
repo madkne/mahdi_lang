@@ -33,6 +33,7 @@
 //---------------------------------normal functions
 #include "exceptions.h"
 #include "mahdi_builtin.h"
+#include "mahdi_module.h"
 #include "mahdi_help.h"
 // #include "debugger.h"
 // #include "builder.h"
@@ -59,7 +60,4 @@
 // #include "built_in/os_builtin.h"
 // #include "built_in/data_builtin.h"
 // #include "built_in/fs_builtin.h"
-// //---------------------------------modules
-// #include "module.h"
-// #include "modules/sqlite_interface.h"
 #endif //__MAHDI_SYSTEM_H

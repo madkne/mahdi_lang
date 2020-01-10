@@ -43,27 +43,29 @@ String COM_convert_mahdipath_to_abspath(String mahdipath,String extension,String
   return ret;
 
 }
-//******************************************
-// String COM_get_Mahdi_dir_path() {
-//   String out = 0;
-//   #if LINUX_PLATFORM == 1
-//   //TODO:
-//   #elif WINDOWS_PLATFORM == 1
-//   uint8 ownPth[MAX_PATH];
-//   HMODULE hModule = GetModuleHandle(NULL);
-//   if (hModule != NULL) {
-//     // Use GetModuleFileName() with module handle to get the path
-//     GetModuleFileName(hModule, ownPth, (sizeof(ownPth)));
-//     StrList entries = 0;
-//     uint32 size = CH_split(ownPth, OS_SEPARATOR, &entries, true);
-//     for (uint32 i = 0; i < size - 1; i++) {
-//       out = STR_append(out, entries[i]);
-//       if (i + 1 < size - 1)out = CH_append(out, OS_SEPARATOR);
-//     }
-//   }
-//   #endif
-//   return out;
-// }
+//*************************************************************
+String COM_get_Mahdi_dir_path() {
+  if(interpreter_path!=0) return interpreter_path;
+  String out = 0;
+  #if LINUX_PLATFORM == 1
+  //=>get mahdi executable path
+  return CALL_parent_path(CALL_abspath(program_command));
+  #elif WINDOWS_PLATFORM == 1
+  uint8 ownPth[MAX_PATH];
+  HMODULE hModule = GetModuleHandle(NULL);
+  if (hModule != NULL) {
+    // Use GetModuleFileName() with module handle to get the path
+    GetModuleFileName(hModule, ownPth, (sizeof(ownPth)));
+    StrList entries = 0;
+    uint32 size = CH_split(ownPth, OS_SEPARATOR, &entries, true);
+    for (uint32 i = 0; i < size - 1; i++) {
+      out = STR_append(out, entries[i]);
+      if (i + 1 < size - 1)out = CH_append(out, OS_SEPARATOR);
+    }
+  }
+  #endif
+  return out;
+}
 
 //*************************************************************
 double COM_calculate_period_time(Longint start_time, String *unit) {
@@ -81,6 +83,7 @@ void COM_print_struct(uint8 which) {
   //=>print all nodes of imin struct (import instruction)
   if (which == 0 || which == PRINT_IMPORT_ST) {
     imin *tmp1 = entry_table.import_start;
+    if (tmp1 == 0) return;
     printf("=====Print import_inst_struct :\n");
     for (;;) {
       printf("Active:%i,id:%li,type:%i,name:%s,packs:%s,funcs:%s,path:%s,line:%i,source:[%i][ERR%i]\n", tmp1->is_active, tmp1->id, tmp1->type,tmp1->name,SLIST_print(tmp1->packages,tmp1->pack_len),SLIST_print(tmp1->functions,tmp1->func_len),tmp1->path, tmp1->line,tmp1->source_index,tmp1->err_code);
@@ -92,9 +95,22 @@ void COM_print_struct(uint8 which) {
   //=>print all nodes of datas struct (data types)
   else if (which == 0 || which == PRINT_DATA_TYPES_ST) {
     datas *tmp1 = entry_table.datas_start;
+    if (tmp1 == 0) return;
     printf("=====Print data_types_struct :\n");
     for (;;) {
       printf("[id:%li,type:%i,pid:%li]:%s\n", tmp1->id,tmp1->type,tmp1->pack_id,tmp1->name);
+      tmp1 = tmp1->next;
+      if (tmp1 == 0) break;
+    }
+    printf("=====End printed\n");
+  } 
+  //=>print all nodes of mpfu struct (modules packages functions)
+  else if (which == 0 || which == PRINT_MODULE_PACKFUNCS_ST) {
+    mpfu *tmp1 = entry_table.mpfu_start;
+    if (tmp1 == 0) return;
+    printf("=====Print modules_packs_funcs_struct :\n");
+    for (;;) {
+      printf("[id:%li,mod:%i,pack:%i,stat:%i]:%s\n\t%s[%s]=>%s\n", tmp1->id,tmp1->mod_id,tmp1->pack_id,tmp1->is_static,tmp1->func_name,SLIST_print(tmp1->params_name,tmp1->params_len),SLIST_print(tmp1->params_type,tmp1->params_len),SLIST_print(tmp1->returns_type,tmp1->returns_len));
       tmp1 = tmp1->next;
       if (tmp1 == 0) break;
     }
@@ -304,7 +320,71 @@ void COM_print_struct(uint8 which) {
 //   }
 }
 
+//*************************************************************
+String COM_replace_ctrl_chars(String val) {
+  uint32 len = STR_length(val);
+  if (len < 2)return val;
+  String ret = 0;
+  for (uint32 i = 0; i < len; i++) {
+    if (val[i] == '\\' && i + 1 < len) {
+      if (val[i + 1] == 'n')ret = CH_append(ret, '\n');
+      else if (val[i + 1] == 't') ret = CH_append(ret, '\t');
+      else if (val[i + 1] == '\"') ret = CH_append(ret, '\"');
+      else if (val[i + 1] == '\'') ret = CH_append(ret, '\'');
+      else if (val[i + 1] == '\\') ret = CH_append(ret, '\\');
+        //backspace
+      else if (val[i + 1] == 'b') ret = CH_append(ret, '\b');//ret = char_backspace (ret);
+        //alert
+      else if (val[i + 1] == 'a') ret = CH_append(ret, '\a');
+      i++;
+    } else ret = CH_append(ret, val[i]);
+  }
+  return ret;
 
+}
+
+//*************************************************************
+void COM_exit(int32 i) {
+  //=>show exit message if in program debug
+  if (is_programmer_debug >= 1) {
+    //exit state
+    String exit_state = 0, unit = 0;
+    double time_taken = COM_calculate_period_time((Longint) AppStartedClock, &unit);
+    if (i == EXIT_NORMAL)STR_init(&exit_state, "EXIT_SUCCESS");
+    else STR_init(&exit_state, "EXIT_FAILURE");
+    printf("Process finished during %.6f %s with exit code %i (%s)\n", time_taken, unit, i, exit_state);
+  }
+  //=>call exit system call with i parameter
+  exit(i);
+}
+//*************************************************************
+/**
+ * get a valid path (relative or absolute) and return filename if exist and if ext not zero return file extension
+ * @author madkne
+ * @version 1.0
+ * @param path
+ * @param ext
+ * @return String
+ */
+String COM_get_path_name_ext(String path, String *ext, Boolean must_ext) {
+  StrList ret = 0;
+  uint32 len = 0;
+  int32 pos = CH_last_indexof(path, OS_SEPARATOR,STR_length(path));
+  if (pos == -1) {
+    len = CH_split(path, '.', &ret, true);
+    if (must_ext && len < 2)return 0;
+  } else {
+    String sub = STR_substring(path, pos + 1, 0);
+    len = CH_split(sub, '.', &ret, true);
+    if (must_ext && len < 2)return 0;
+  }
+  if (ext != 0 && len > 1) {
+    SLIST_delete_first(&ret, len--);
+    (*ext) = CH_join(ret, '.', len, true);
+  }
+  //printf("Filename:%s=>%s\n", path, ret[0]);
+  return ret[0];
+}
 
 // Boolean functions
 //******************************************
@@ -507,28 +587,7 @@ double I32_power(double base, int32 power) {
 //   return false;
 // }
 
-// //*************************************************************
-// String replace_control_chars(String val) {
-//   uint32 len = str_length(val);
-//   if (len < 2)return val;
-//   String ret = 0;
-//   for (uint32 i = 0; i < len; i++) {
-//     if (val[i] == '\\' && i + 1 < len) {
-//       if (val[i + 1] == 'n')ret = char_append(ret, '\n');
-//       else if (val[i + 1] == 't') ret = char_append(ret, '\t');
-//       else if (val[i + 1] == '\"') ret = char_append(ret, '\"');
-//       else if (val[i + 1] == '\'') ret = char_append(ret, '\'');
-//       else if (val[i + 1] == '\\') ret = char_append(ret, '\\');
-//         //backspace
-//       else if (val[i + 1] == 'b') ret = char_append(ret, '\b');//ret = char_backspace (ret);
-//         //alert
-//       else if (val[i + 1] == 'a') ret = char_append(ret, '\a');
-//       i++;
-//     } else ret = char_append(ret, val[i]);
-//   }
-//   return ret;
 
-// }
 // //*************************************************************
 // String set_valid_control_chars(String val) {
 //   uint32 len = str_length(val);
@@ -687,32 +746,7 @@ double I32_power(double base, int32 power) {
 //   if (t == MANAGE_STRU_ID)return "manage";
 //   if (t == SWITCH_STRU_ID)return "switch";
 // }
-// //*************************************************************
-// /**
-//  * get a valid path (relative or absolute) and return filename if exist and if ext not zero return file extension
-//  * @param path
-//  * @param ext
-//  * @return String
-//  */
-// String return_file_name_extension_path(String path, String *ext, Boolean must_ext) {
-//   str_list ret = 0;
-//   uint32 len = 0;
-//   int32 pos = char_last_indexof(path, OS_SEPARATOR);
-//   if (pos == -1) {
-//     len = char_split(path, '.', &ret, true);
-//     if (must_ext && len < 2)return 0;
-//   } else {
-//     String sub = str_substring(path, pos + 1, 0);
-//     len = char_split(sub, '.', &ret, true);
-//     if (must_ext && len < 2)return 0;
-//   }
-//   if (ext != 0 && len > 1) {
-//     str_list_delete_first(&ret, len--);
-//     (*ext) = char_join(ret, '.', len, true);
-//   }
-// //  printf("Filename:%s=>%s\n", path, ret[0]);
-//   return ret[0];
-// }
+
 // //*************************************************************
 // String convert_sub_type_to_type(uint8 sub_type) {
 //   if (sub_type == 0)return 0;

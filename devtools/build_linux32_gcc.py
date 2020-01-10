@@ -49,7 +49,7 @@ os.system("clear")
 os.system("tput setaf 4") #set foreground blue
 # ----------------------define vars
 # enable warnings :  -Wall -Wextra
-cflags = "-I ../include -std=c99  -fmax-errors=2 -c "
+cflags = "-I ../include -std=c99 -fmax-errors=2 -c "
 build_folder = "../linux32-release"
 obj_folder = "../tmp"
 scr_folder = "../src"
@@ -66,7 +66,7 @@ if os.path.exists(logfile):
 # for j in compfiles:
 #	print(compfiles)
 # ----------------------
-print("\t~~~~~MAHDI Build Tool (BY Python3) V 4.2~~~~~")
+print("\t~~~~~MAHDI Build Tool (BY Python3) V 4.3~~~~~")
 print("=== Start Building linux32 release of MAHDI Interpreter using GCC (C99) ....")
 # ----------------------init dirs
 # -----create docs dir
@@ -101,7 +101,7 @@ sources = [
     [scr_folder+"/main.c", scr_folder+"/main.c -o "+obj_folder+"/main.o"],
     # [scr_folder+"/builder.c",scr_folder+"/builder.c -o "+obj_folder+"/builder.o"],
     [scr_folder+"/mahdi_help.c",scr_folder+"/mahdi_help.c -o "+obj_folder+"/mahdi_help.o"],
-    # [scr_folder+"/module.c",scr_folder+"/module.c -o "+obj_folder+"/module.o"],
+    [scr_folder+"/mahdi_module.c",scr_folder+"/mahdi_module.c -o "+obj_folder+"/mahdi_module.o"],
     [scr_folder+"/data_defined.c", scr_folder + "/data_defined.c -o "+obj_folder+"/data_defined.o"],
     [scr_folder+"/exceptions.c",scr_folder+"/exceptions.c -o "+obj_folder+"/exceptions.o"],
     # [scr_folder+"/mahdi_debugger.c",scr_folder+"/mahdi_debugger.c -o "+obj_folder+"/mahdi_debugger.o"],
@@ -163,7 +163,7 @@ obj_files = glob.glob(obj_folder+"/*.o")
 all_files = ' '.join(obj_files)
 #print("gcc .\win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
 # is_error=os.system("gcc win32rc.res "+all_files+" -o "+build_folder+"/mpl.exe")
-is_error = os.system("gcc -fPIC "+all_files+" -o "+build_folder+"/mahdi")
+is_error = os.system("gcc -fPIC -ldl "+all_files+" -o "+build_folder+"/mahdi")
 # print('link:',is_error)
 # ----------------------finish
 if is_error != 0:
@@ -174,6 +174,9 @@ if is_error != 0:
 else:
     os.system("tput setaf 2") #set foreground green
     print("=== Finish Building! All Done in "+build_folder+" folder")
+    # ----------------------build modules, if user wants
+    if len(sys.argv)>1 and sys.argv[1]=='build_mods':
+        os.system("python3 modules_build_linux32_gcc.py")
     # ----------------------run gdb
     #print("=== Running GDB ...");
     #os.system("gdb "+build_folder+"/bin/mpl.exe main.mpl");

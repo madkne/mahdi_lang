@@ -1,5 +1,5 @@
 import file:..sam.c
 import mod:core:console
 func _bootup_(argvs:string){
-	console.print('Hello World\n')
+	console.print(msg='Hello World\n')
 }

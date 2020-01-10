@@ -102,8 +102,9 @@ int main(int argc, char **argv) {
   // Boolean iss=false;
   // uint32 ee=RUNKIT_simplify_define_vars("def g=pkg('hello',56)",&eee,&iss);
   // printf("DDDD:%s\n",RUNKIT_calculate_listormap("{\"q\"+\"1\":[5,8*2,5^2],\"q2\"-\"2\":[7+3,7]}","number"));
+  // printf("SSSSS:%s\n",COM_get_Mahdi_dir_path());
   //-------------------------time of end program
-  APP_exit(EXIT_NORMAL);
+  COM_exit(EXIT_NORMAL);
   return 0;
 }
 //************************************************
@@ -132,6 +133,7 @@ Boolean INTR_start() {
     COM_print_struct(PRINT_STRU_ST);
     COM_print_struct(PRINT_INSTRU_ST);
     COM_print_struct(PRINT_FUNC_PACK_PARAMS_ST);
+    COM_print_struct(PRINT_MODULE_PACKFUNCS_ST);
   }
   //-----------------------meaning&running instructions
   STR_init(&interpreter_level, "runtime");

@@ -591,6 +591,12 @@ void PARSER_manage_function(uint32 *i){
         EXP_print_error(Aline,"invalid_predefined_method",entry_table.current_source_path,name,0,"PARSER_manage_function");
         return;
     }
+    //=>check function name not same with built-in function names
+    if(_bifs_get_by_name(name).func_name!=0){
+        //TODO:fetal
+        printf("PAR#4566\n");
+        return;
+    }
     //=>set function attributes if in a package
     if(cur_pack_id>0){
         for (uint8 i = 0; i < pack_method_attrs_len; i++){

@@ -60,7 +60,7 @@ Boolean MHELP_starter(StrList argvs, uint32 argvs_len) {
       printf("MH#ERR2432423\n");
       return false;
     }
-    docs_dir = STR_multi_append(interpreter_path, os_separator, "docs", os_separator, 0, 0); //=>absolute path of 'docs' dir
+    docs_dir = STR_multi_append(COM_get_Mahdi_dir_path(), os_separator, "docs", os_separator, 0, 0); //=>absolute path of 'docs' dir
     String not_exist = 0;
     //---------------------------------------------
     //=>full params array

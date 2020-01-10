@@ -8,7 +8,7 @@ String project_root = 0;
 
 String main_source_name = 0;
 
-String interpreter_path = 0; //=>mahdi dir path
+String interpreter_path = 0; //=>mahdi dir path, if not real mahdi
 String interpreter_tmp_path = 0; //mahdi-root/tmp-dir
 String os_separator = 0; //char_to_str(OS_SEPARATOR);
 uint8 MAX_INT_LEN = 0;
@@ -110,6 +110,7 @@ Mpoint *hash_pointers[HASH_MEM_SIZE] = {0};
 StrList program_argvs = 0;
 uint32 argvs_len = 0;
 
+//=>list of imported modules path
 StrList installed_modules = 0;
 uint32 installed_modules_len = 0;
 
@@ -125,12 +126,11 @@ void DEF_init() {
   MAX_FLOAT_LEN = (FLOAT_USED_BYTES * 2) - 2;
   //=>-get mahdi path
   os_separator = CH_to_string(OS_SEPARATOR);
-  //=>get mahdi executable path
-  if (interpreter_path == 0) interpreter_path = CALL_parent_path(CALL_abspath(program_command));
+  
   //=>if main mahdi interpreter, not app host!
   if (is_real_mahdi) {
     //=>get tmp dir path of mahdi interpreter
-    interpreter_tmp_path = STR_multi_append(interpreter_path, os_separator, "tmp", os_separator, 0, 0);
+    interpreter_tmp_path = STR_multi_append(COM_get_Mahdi_dir_path(), os_separator, "tmp", os_separator, 0, 0);
     //=>check for exist tmp dir of mahdi interpreter
     if (fopen(STR_append(interpreter_tmp_path, "TMPDIR"), "r") == NULL) {
       CALL_mkdir(interpreter_tmp_path,true);
@@ -194,6 +194,10 @@ void DEF_init() {
   entry_table.inpk_start=0;
   entry_table.inpk_end=0;
   entry_table.inpk_id=1;
+  //=>init module packages functions struct
+  entry_table.mpfu_start=0;
+  entry_table.mpfu_end=0;
+  entry_table.mpfu_id=1;
   //=>init record runtime states struct
   entry_table.rrss_start=0;
   entry_table.rrss_end=0;
@@ -233,10 +237,10 @@ void DEF_init() {
 prme predefined_methods[8]={
   {1,"_init_","unknown",0},
   {2,"_plus_","package","package"},
-  {3,"_len_",0,"number"},
-  {4,"_str_",0,"string"},
-  {5,"_equal_","package","boolean"},
-  {6,"_index_","number","unknown"},
+  {3,"_minus_","package","package"},
+  {4,"_len_",0,"number"},
+  {5,"_str_",0,"string"},
+  {6,"_equal_","package","boolean"},
   {7,"_empty_",0,"boolean"},
   {8,"_del_",0,0},
 };
@@ -1009,6 +1013,47 @@ rrss _rrss_null(){
   rrss null = {0, 0, 0, 0, 0,0,0,0,0};
   return null;
 }
+//*************************************************************
+//**************modules_packs_funcs functions******************
+//*************************************************************
+Boolean _mpfu_append(uint32 mod_id,uint32 pack_id,String func_name,Boolean is_static,String params_name,String params_type,String params_default,String params_ref,uint32 params_len,String returns_type,uint32 returns_len) {
+  //=>init vars
+  mpfu *q;
+  StrList prefs=0;
+
+  q = (mpfu *) malloc(sizeof(mpfu));
+  if (q == 0) return false;
+  q->mod_id = mod_id;
+  q->pack_id=pack_id;
+  STR_init(&q->func_name, func_name);
+  q->is_static=is_static;
+  if(CH_split(params_name,';',&q->params_name,true)!=params_len) return false;
+  if(CH_split(params_type,';',&q->params_type,true)!=params_len) return false;
+  if(CH_split(params_default,';',&q->params_default,false)!=params_len) return false;
+  if(CH_split(params_ref,';',&prefs,true)!=params_len) return false;
+  for (uint32  i = 0; i < params_len; i++){
+    ILIST_append(&q->params_ref,STR_to_int32(prefs[i]),i);
+  }
+  q->params_len = params_len;
+  if(CH_split(returns_type,';',&q->returns_type,true)!=params_len) return false;
+  q->returns_len = returns_len;
+  q->id = ++entry_table.mpfu_id;
+  q->next = 0;
+  if (entry_table.mpfu_start == 0) {
+    entry_table.mpfu_start = entry_table.mpfu_end = q;
+  } else {
+    entry_table.mpfu_end->next = q;
+    entry_table.mpfu_end = q;
+  }
+  return true;
+}
+
+
+
+
+
+
+
 // //*************************************************************
 // utst get_utst(long_int id) {
 //   utst ret = {0, 0, 0, 0};
@@ -1156,32 +1201,7 @@ rrss _rrss_null(){
 
 
 
-// //*************************************************************
-// //*****************modules_funcs functions*********************
-// //*************************************************************
-// //void append_mofu(mofu s, mofu *start, mofu *end) {
-// //  mofu *q;
-// //  q = (mofu *) malloc(sizeof(mofu));
-// //  if (q == 0) return;
-// //  q->id = s.id;
-// //  q->mod_id = s.mod_id;
-// //  q->params_len = s.params_len;
-// //  q->returns_len = s.returns_len;
-// //  str_init(&q->func_name, s.func_name);
-// //  str_init(&q->params, s.params);
-// //  str_init(&q->returns, s.returns);
-// //  q->next = 0;
-// //  if (start == 0 /*|| (*start) == 0*/) {
-// //    //*(&start) = *(&end) = &q;
-// //    start = end = q;
-// //  } else {
-// ////    (*end)->next = q;
-// ////    (*end) = q;
-// //    end->next = q;
-// //    end = q;
-// //  }
-// ////  printf("mod_func:%i,%s,%i,%i\n", s.id, s.func_name, (*start), (*end));
-// //}
+
 
 // //*************************************************************
 // //******************magic_macros functions*********************

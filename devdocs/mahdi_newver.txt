@@ -25,19 +25,13 @@ pointer:p
 **Keywords**
 func,pack,override,static,true,false,if,elif,else,choose,and,or,not,next,break,loop,number,string,boolean,def,manage,return,self,this,import,config=>26
 *************************************
------------------core module packages
-exception,console,strings,math,os,bit,app,file
------------------http module packages
-net
------------------db module packages
-sqlite3,csv,json
 -----------------builtin functions
-len(var),typeof(var),exec(str),errhand(num,str,str),del(var),nil(var)/*check is empty*/,str(var)/*convert to string*/,num(var)/*convert to number*/,inum(str)
-list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/,popfirst(),topfirst(),pushfirst(var),fill(number,var)/*fill n rooms with var value*/
-map methods: get(key),set(key,var),keys()
+len(var),typeof(var)/*h,i,f,b,s,u*/,exec(str),errhand(num,str,str),del(var),nil(var)/*check is empty*/,str(var)/*convert to string*/,num(var)/*convert to number*/,inum(str),ilist(var),imap(var)
+list methods: push(var),pop()/*remove and get last item*/,top()/*get last item*/,popfirst(),topfirst(),pushfirst(var),fill(number,var)/*fill n rooms with var value*/,find(var):number
+map methods: get(key),set(key,var),keys(),del(key)
 -----------------predefined functions
 - these functions just called by mahdi, not programmer!
-_bootup_(string),_init_(),_plus_(package):package,_len_():num,_str_():str,_equal_(package):bool,_index_(number):package/*pack1[0]*/,_empty_():bool/*nil(pack1)*/,_del_():void/*del(pack1)*/
+_bootup_(string),_init_(),_plus_(package):package,_minus_(package):package,_len_():num,_str_():str,_equal_(package):bool,_empty_():bool/*nil(pack1)*/,_del_():void/*del(pack1)*/
 -----------------Extensions
 - mah    : mahdi source files
 - mahlib : mahdi lib bytecode files
@@ -117,7 +111,7 @@ def t1=type1(45)
 t1.add(34)
 -----------------set vars in string
 def t="Amin";def j=56;
-def s="Hello %t% : %j%\%";
+def s="Hello $(t) : $(j)%";
 -----------------loop
 loop([section1];[section2];[section3])
 [section1] : just run in first time (for define vars)
@@ -178,12 +172,15 @@ func sam(d:string,g=34/*OR g:number*/)
 func sam1(j=3,jj:string)
 func sam2(&k,u=0) //=>k is a reference param
 ----------------- call function
-- all functions that defined out of all packages, are static and public and not give any attribute(private,static)
-- for call outof functions using self keyword
+- all functions that defined out of all packages, not give any attribute(private,static)
+- for call outof functions using 'self' keyword (in a package method)
 - call function can using parameter name!
+- for call a method from another method of package can use 'this' keyword
+- in calling a function, you can using parameters with their names
+- plus oe minus operators between instances of a package are function call
 func fg(){}
 func _bootup_(){
-self.fg()
+	fg()
 }
 sam1(jj="er",j=7.656) OR sam1(34,"hello")
 //call static function
@@ -192,15 +189,16 @@ pkg.main(); OR mypkg1=pkg();mypkg1.main();
 def f=pkg::ERRORSTATE; //f=4
 //call package function
 mypkg1=pkg();mypkg1.sub() OR pkg().sub() 
-def z=pkg().plus(3)
-def g,s=sam() //=>ERR:on defined variable
+def z=pkg1+pkg2 //pkg1._plus_(pkg2)
+def g,s=sam()
 g,s=sam() //=>ERR:if sam() return not two values
 def j=0;j=f("g",6.8)[1]  //=>j get 2nd returned value
 -----------------predefined package functions 
 def _plus_(pack):any => def g=pk1+pk2
 def _minus_(pack):any => def g=pk1-pk2
 def _empty_():boolean => if(nil(pk1))
-def _index(number):any=> def h=pk1[0] //h='hello'
+def _len_():number => def v=len(pk1)
+def _equal_(pack):boolean => if(pk1==pk2)
 
 -----------------var alloc
 a=3

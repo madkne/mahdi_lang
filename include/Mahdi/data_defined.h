@@ -370,18 +370,23 @@ typedef struct value_pointers_struct {
 } vapo;
 
 
-// //****************************modules_funcs struct
-// typedef struct modules_funcs_struct {
-//   uint32 id;
-//   uint8 mod_id;
-//   String func_name;
-//   String params;
-//   uint8 params_len;
-//   String returns;
-//   uint8 returns_len;
+//****************************modules_packs_funcs struct
+typedef struct modules_packs_funcs_struct {
+  uint32 id;
+  uint32 mod_id;
+  uint32 pack_id;
+  String func_name;
+  Boolean is_static;
+  StrList params_name;
+  StrList params_type;
+  StrList params_default;
+  IntList params_ref;
+  uint32 params_len;
+  StrList returns_type;
+  uint32 returns_len;
 
-//   struct modules_funcs_struct *next;
-// } mofu;
+  struct modules_packs_funcs_struct *next;
+} mpfu;
 
 
 
@@ -477,6 +482,10 @@ struct entry_table_struct {
   datas *datas_start;
   datas *datas_end;
   Longint datas_id;
+
+  mpfu *mpfu_start;
+  mpfu *mpfu_end;
+  Longint mpfu_id;
 
   inor *inor_start;
   inor *inor_end;
@@ -605,6 +614,8 @@ utst _utst_get_by_label(String s);
 void _rrss_append(rrss s);
 rrss _rrss_get_by_fin(Longint fin);
 rrss _rrss_null();
+//=>mpfu functions
+Boolean _mpfu_append(uint32 mod_id,uint32 pack_id,String func_name,Boolean is_static,String params_name,String params_type,String params_default,String params_ref,uint32 params_len,String returns_type,uint32 returns_len);
 // Longint add_to_utst(uint32 line,str_utf8 str,uint8 max_bytes);
 // utst get_utst(Longint id);
 // utst get_utst_by_string(String s);

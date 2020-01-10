@@ -20,7 +20,7 @@ Boolean APP_start() {
   if (build_mode) {
     //TODO:
     // start_builder();
-    APP_exit(EXIT_NORMAL);
+    COM_exit(EXIT_NORMAL);
   }
   //=>find _bootup_ function
   blst *funcs=entry_table.blst_func_start;
@@ -75,9 +75,9 @@ int8 APP_controller() {
     }
     // printf("XSSSS:%s>>%i<>%i,%i<>%i,%i<>%i\n",st->code, st->func_id, entry_table.current.fid , st->stru_id, entry_table.current.sid , st->order, entry_table.current.order);
     //=>get current instruction for executing
-    if (st->func_id == entry_table.current.fid
-        && st->stru_id == entry_table.current.sid
-        && st->order == entry_table.current.order) {
+    if (st->func_id == entry_table.current.fid && st->stru_id == entry_table.current.sid && st->order == entry_table.current.order) {
+      //=>reset errcode
+      EXP_clear_errcode();
       //=>set global vars
       entry_table.current.order = st->order;
       //=>run instruction
@@ -145,13 +145,25 @@ int8 APP_executor(Longint id) {
     }
     //=>check for instruction types
     switch (state) {
+      //=>unknown type
       case UNKNOWN_LBL_INST:{
         is_done = false;
         EXP_handler("unknown_instruction", __func__, Rcode, 0);
       }
+      //=>define vars type
       case DEF_VARS_LBL_INST: {
         Rcode = RUN_define_vars(Rcode);
-        if (EXP_check_errcode(BAD_DEFINE_VARS_ERRC)) is_done = false;
+        if (EXP_check_errcode(BAD_DEFINE_VARS_ERRC)){
+            is_done = false;
+        }
+        break;
+      }
+      //=>func call type
+      case FUNC_CALL_LBL_INST:{
+        Rcode = RUN_normal_func_call(Rcode);
+        if (EXP_check_errcode(BAD_FUNC_CALL_ERRC)){
+            is_done = false;
+        }
         break;
       }
       //TODO:
@@ -426,18 +438,4 @@ uint8 APP_labeled_instruction(String code) {
   }
   //=>return state
   return states[states_len-1];
-}
-//**********************************************************
-void APP_exit(int32 i) {
-  //=>show exit message if in program debug
-  if (is_programmer_debug >= 1) {
-    //exit state
-    String exit_state = 0, unit = 0;
-    double time_taken = COM_calculate_period_time((Longint) AppStartedClock, &unit);
-    if (i == EXIT_NORMAL)STR_init(&exit_state, "EXIT_SUCCESS");
-    else STR_init(&exit_state, "EXIT_FAILURE");
-    printf("Process finished during %.6f %s with exit code %i (%s)\n", time_taken, unit, i, exit_state);
-  }
-  //=>call exit system call with i parameter
-  exit(i);
 }

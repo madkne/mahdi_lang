@@ -3,9 +3,12 @@
 
 
 String COM_convert_mahdipath_to_abspath(String mahdipath,String extension,String *mahdiname);
-// String COM_get_Mahdi_dir_path();
+String COM_get_Mahdi_dir_path();
 double COM_calculate_period_time(Longint start_time, String *unit);
 void COM_print_struct(uint8 which);
+String COM_replace_ctrl_chars(String val);
+void COM_exit(int32 i);
+String COM_get_path_name_ext(String path, String *ext, Boolean must_ext);
 // Boolean functions
 //******************************************
 Boolean BOOL_switch(Boolean b);
