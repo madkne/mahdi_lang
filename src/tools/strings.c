@@ -35,9 +35,31 @@ String STR_convert_from(String s) {
 
 //******************************************
 String STR_reomve_quotations(String s, String type) {
-  if ((!STR_CH_equal(type, 's') && !STR_equal(type, "str")))return s;
+  if ((!STR_CH_equal(type, 's') && !STR_equal(type, "string")))return s;
   uint32 s_len = STR_length(s);
-  if (s_len >= 2 && s[0] == '\"' && s[s_len - 1] == '\"') {
+  //=>if is a list
+  if(s[0]=='['){
+    StrList items=0;
+    uint32 ilen=RUNKIT_get_list_items(s,&items);
+    STR_init(&s,"[");
+    for (uint32 i = 0; i < ilen; i++){
+      s=STR_append(s,STR_reomve_quotations(items[i],"s"));
+      if(i+1<ilen) s=CH_append(s,',');
+    }
+    s=CH_append(s,']');
+  }
+  //=>if is a map
+  if(s[0]=='{'){
+    StrList keys=0,values=0;
+    uint32 mlen=RUNKIT_get_map_items(s,&values,&keys);
+    STR_init(&s,"{");
+    for (uint32 i = 0; i < mlen; i++){
+      s=STR_multi_append(s,STR_reomve_quotations(keys[i],"s"),":",STR_reomve_quotations(values[i],"s"),0,0);
+      if(i+1<mlen) s=CH_append(s,',');
+    }
+    s=CH_append(s,'}');
+  }
+  else if (s_len >= 2 && s[0] == '\"' && s[s_len - 1] == '\"') {
     return STR_substring(s, 1, s_len - 1);
   }
   return s;

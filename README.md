@@ -39,7 +39,7 @@ MAHDI Language Features
 - [ ] support multi dimensions arrays  
 - [x] support dictionary(map) data structure 
 - [ ] has built-in garbage collector(gc)  
-- [ ] expandability by c modules  
+- [x] expandability by c modules  
 - [ ] support built-in debugger  
 - [ ] support unlimited function parameters  
 - [ ] support call function by its parameter name 

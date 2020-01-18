@@ -50,11 +50,14 @@ TODO
  - [x] load core module
  - [x] init module packages functions struct
  - [x] init all core console functions
- - [ ] implement console package of core module
- - [ ] implement init function call
- - [ ] implememt call module function call
- - [ ] call module package methods
- - [ ] run "Hello world" program
+ - [x] implement console package of core module
+ - [x] implement init function call
+ - [x] detect function call parameters type
+ - [x] implememt call module function call
+ - [x] check for function parameters
+ - [x] normalize function parameter values
+ - [x] call module package methods
+ - [x] run "Hello world" program
 
  - **((:publish MAHDI-BETA version of MAHDI (for linux):))**
 
@@ -120,6 +123,7 @@ MAHDI Modules
       - [ ] http package
       - [ ] smtp package
       - [ ] xml package
+      - [ ] hack package
   * mgl modlue
       - [ ] gtk module
 

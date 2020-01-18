@@ -144,7 +144,7 @@ uint32 SLIST_size(StrList s) {
 }
 //******************************************
 String SLIST_print(StrList s, uint32 len) {
-  if (len == 0) return "[NULL]";
+  if (len == 0||s==0) return "[NULL]";
   String ret = 0;
   ret = CH_append(ret, '{');
   for (uint32 i = 0; i < len; i++) {

@@ -60,4 +60,6 @@
 // #include "built_in/os_builtin.h"
 // #include "built_in/data_builtin.h"
 // #include "built_in/fs_builtin.h"
+//---------------------------------modules info
+#include "../Modules/core/coremod.h"
 #endif //__MAHDI_SYSTEM_H

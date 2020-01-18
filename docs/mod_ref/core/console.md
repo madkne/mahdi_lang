@@ -9,7 +9,7 @@ methods
 
 - readLine() : string
 
-- readChar() : string
+- readSplitted(split:string) : string []
 
 - readNumber() : number
 

@@ -372,11 +372,11 @@ typedef struct value_pointers_struct {
 
 //****************************modules_packs_funcs struct
 typedef struct modules_packs_funcs_struct {
-  uint32 id;
+  Longint id;
   uint32 mod_id;
   uint32 pack_id;
   String func_name;
-  Boolean is_static;
+  Boolean is_static; //=>not used, all module functions are static!
   StrList params_name;
   StrList params_type;
   StrList params_default;
@@ -572,6 +572,7 @@ soco _soco_get(uint8 type, uint32 ind);
 //=>map functions
 void _map_push(map **map_start,map **map_end, String key,String value);
 String _map_get(map *map_start,String key);
+map _map_index(map *map_start,uint32 ind);
 String _map_print(map *map_start);
 map _map_popleft(map **map_start,map **map_end);
 // soco get_soco(uint8 type, uint32 ind);

@@ -366,6 +366,20 @@ String _map_get(map *map_start,String key) {
   return 0;
 }
 //*************************************************************
+map _map_index(map *map_start,uint32 ind) {
+  map *st = map_start;
+  map null={0,0,0};
+  uint32 index=0;
+  if (st == 0) return null;
+  for (;;) {
+    if (index==ind)return *(st);
+    index++;
+    st = st->next;
+    if (st == 0) break;
+  }
+  return null;
+}
+//*************************************************************
 String _map_print(map *map_start){
   map *st = map_start;
   if (st == 0) return 0;

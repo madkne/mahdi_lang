@@ -355,16 +355,17 @@ uint8 RUNKIT_defvars_analyzing(StrList defvars,uint32 defvars_len, defvar vars_s
         if(var.value!=0){
             //=>get value data type
             var.typeval=RUNKIT_detect_basic_type_value(var.value,0);
-            //=>check for invalid value error
-            if(var.typeval==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
-                EXP_handler("invalid_value", __func__, var.value, "");
-                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
-                return 0;
-            }
             //=>if not have basic type, if not just basic types
             if(!just_basic_types && var.typeval==0){
                 //TODO:search in datas
             }
+            //=>check for invalid value error
+            else if(var.typeval==0 && EXP_check_errcode(INVALID_VALUE_ERRC)){
+                EXP_handler("invalid_value", __func__, var.value, "");
+                EXP_set_errcode(BAD_DEFINE_VARS_ERRC);
+                return 0;
+            }
+            
             //=>comparison between var type(if exist) and val type
             if(var.type!=0 && !STR_equal(var.type,var.typeval)){
                 //TODO:
@@ -576,7 +577,7 @@ String RUNKIT_calculate_value(String value, String type, uint8 *ret_subtype,Bool
             EXP_set_errcode(INVALID_VALUE_ERRC);
             return 0;
         }
-        (*ret_subtype)=type[0];
+        if(ret_subtype!=0) (*ret_subtype)=type[0];
         return value;
     }
     //=>search for basic types
@@ -604,7 +605,7 @@ String RUNKIT_calculate_value(String value, String type, uint8 *ret_subtype,Bool
         } else if (basic_ind==0/*string*/) {
             return STR_convert_from(RUNKIT_calc_string_exp(value,&(*ret_subtype)));
         } else if (basic_ind==2/*boolean*/) {
-            (*ret_subtype)='b';
+            if(ret_subtype!=0) (*ret_subtype)='b';
             return RUNKIT_calc_boolean_exp(value);
         }  
     }

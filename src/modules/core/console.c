@@ -8,6 +8,7 @@ uint32 MOD_CORE_CONSOLE_INIT(){
     uint32 lcount=0;
     //=>append console functions to mpfu
     if(_mpfu_append(CORE_MODULE_ID,CORE_CONSOLE_MODID,"print",true,"msg","string","","0",1,"boolean",1))lcount++;
+    if(_mpfu_append(CORE_MODULE_ID,CORE_CONSOLE_MODID,"printLn",true,"msg","string","","0",1,"boolean",1))lcount++;
     //=>update entry table indexes
     MOD_CORE_TABLE->mpfu_id=entry_table.mpfu_id;
     MOD_CORE_TABLE->mpfu_start=entry_table.mpfu_start;
@@ -16,13 +17,12 @@ uint32 MOD_CORE_CONSOLE_INIT(){
 }
 //************************************************
 Boolean MOD_CORE_CONSOLE_print(String msg){
-    uint32 len=STR_length(msg);
-    //=>if is a list
-    // if(len>1 && msg[0]=='[' && RUNKIT){
-
-    // }
-    // //=>if is a map
-    // else if(len>1 && msg[0]=='{')
     printf(COM_replace_ctrl_chars(msg));
     return true;
+}
+//************************************************
+Boolean MOD_CORE_CONSOLE_printLn(String msg){
+    Boolean ret=MOD_CORE_CONSOLE_print(msg);
+    printf("\n");
+    return ret;
 }

@@ -8,7 +8,7 @@
 
 uint32 MOD_CORE_CONSOLE_INIT();
 Boolean MOD_CORE_CONSOLE_print(String msg);
-
+Boolean MOD_CORE_CONSOLE_printLn(String msg);
 
 
 #endif /* __MODULES_CORE_CONSOLE_H */
