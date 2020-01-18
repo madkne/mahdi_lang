@@ -2,7 +2,7 @@
 <img src="docs/assets/logo.png"  alt="Mahdi Programming Language" title="Mahdi Programming Language"> <br>
 **MAHDI (BETA-0.2)**
 </p>
-============================================
+
 ![Build Status](docs/assets/passing.svg)
 
 **Mahdi** is a small, lightweight, fast programming language written in C (c99) without any non-standard libraries that Assemble all the good features of programming languages.
@@ -11,9 +11,6 @@
 
 **Mahdi** Influenced by:
  >C,PHP,MPL,PYTHON,JAVA,TYPESCRIPT
-
-> Tags:
- interpreter, programming-language, programming, language, open-source, mahdi, mahdilang, c-programming, linux, object-oriented, beta, interpreter, object-oriented 
 
 
 | **OS** | **Architecture** | **Build** | **Tested Host**|
